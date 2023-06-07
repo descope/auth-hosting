@@ -1,9 +1,6 @@
 import '../App.css';
-import { useCopyToClipboard } from 'usehooks-ts'
-
 
 function Error() {
-    const [value, copy] = useCopyToClipboard()
     const exampleText = "https://descope-oidc.com?projectId=PROJECT_ID&flow_id=FLOW_ID&demo=true"
   
     return (
