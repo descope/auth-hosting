@@ -1,0 +1,159 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Source+Code+Pro&display=swap');
+
+
+/*  ===== CSS Variables ===== */
+:root {
+  --test-test: blue;
+  --theme-bg: white;
+  --theme-color: #151515;
+  --sample-bg: #f3faff;
+  --sample-border: rgb(209, 231, 238);
+  --sample-link: #1c1c1c;
+  --sample-des: #125d92;
+  --github-color: #181818;
+  --auth-border: #0081b3;
+  --nav-link: #191919;
+  --nav-bggray-link: white;
+  --nav-bggray-link-dark: #151515;
+  --nav-link-hover: #0081b3;
+  --bg-bg: rgb(0, 139, 194);
+  --navbar-btn-bg: #f4f4f4;
+  --navbar-btn-border: #56a2f9;
+  --navbar-btn-color: #0081b3;
+  --hamburger-color: #151515;
+  --gosdk-shadow: rgb(96, 223, 255);
+  --node-shadow: rgb(60, 228, 152);
+  --python-shadow: rgb(187, 187, 0);
+  --react-shadow: rgb(23, 228, 232);
+  --web-shadow: rgb(210, 210, 3);
+  --swift-shadow: rgb(255, 119, 0);
+  --flutter-shadow: rgb(44, 195, 255);
+  --jwt-bg: #f6f6f6;
+  --jwt-border-color: rgb(226, 226, 226);
+  --jwt-color1: #ba09e6;
+  --jwt-color2: rgb(169, 76, 0);
+  --logout-btn-bg: rgb(255, 241, 232);
+  --logout-btn-color: red;
+  --navbar-bg: rgb(240, 240, 240);
+  --nav-bg-mobile: #0081b3;
+}
+[data-theme="dark"] {
+  --test-test: blue;
+  --theme-bg: #121217;
+  --theme-color: #c6c6cb;
+  --sample-bg: #141416;
+  --sample-border: #353535;
+  --sample-link: rgb(107, 236, 236);
+  --sample-des: #c1bfbf;
+  --github-color: #ededed;
+  --auth-border: rgb(0, 255, 225);
+  --nav-link: #f1f1f1;
+  --nav-bggray-link: #f1f1f1;
+  --nav-bggray-link-dark: #f1f1f1;
+  --nav-link-hover: #76ffda;
+  --nav-bg-mobile: #76ffda;
+  --bg-bg: rgb(28, 28, 28);
+  --navbar-btn-bg: #1c1c1c;
+  --navbar-btn-border: #56f9aa;
+  --navbar-btn-color: gold;
+  --hamburger-color: #39e7a1;
+  --gosdk-shadow: rgb(45, 143, 255);
+  --node-shadow: rgb(25, 255, 128);
+  --python-shadow: rgb(202, 202, 14);
+  --react-shadow: rgb(0, 242, 255);
+  --web-shadow: rgb(181, 169, 1);
+  --swift-shadow: rgb(231, 111, 6);
+  --flutter-shadow: rgb(0, 171, 239);
+  --jwt-bg: #171717;
+  --jwt-border-color: rgb(78, 78, 78);
+  --jwt-color1: #e57eff;
+  --jwt-color2: rgb(255, 161, 84);
+  --logout-btn-bg: rgb(33, 33, 33);
+  --logout-btn-color: rgb(255, 59, 59);
+  --navbar-bg: rgb(32, 32, 32);
+}
+
+
+/*  ===== html + body ===== */
+html, body {
+  font-family: 'JetBrains Mono', monospace;
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  background-color: var(--theme-bg);
+  color: var(--theme-color);
+}
+
+
+/*  ===== Globally acessible ===== */
+.page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  width: 100%;
+  height: 100%;
+}
+.fullscreen {
+  min-height: 100vh;
+  width: 100%;
+}
+.row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  height: 100%;
+  width: 100%;
+}
+.gradient {
+  background-image: linear-gradient(84.37deg,#0081b3 2.3%,#0ff 34.46%,#6fef2d 67.18%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -moz-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  -moz-text-fill-color: transparent;
+}
+h1, p {
+  max-width: 90%;
+}
+h1 {
+  margin: 0;
+  font-size: 3.1em;
+  margin-bottom: 3vh;
+}
+p {
+  margin: 0;
+  font-size: 1.1em;
+  margin-bottom: 3vh;
+}
+.curved {
+  border-radius: 100px;
+  height: 5vh;
+  padding: 0 4vh;
+}
+.title {
+  color: #0081b3;
+  font-size: 3.8em;
+  margin-top: 2vh;
+}
+.tagline {
+  margin: 0;
+  margin-bottom: 3vh;
+}
+
+/*  ===== Error ===== */
+.example {
+  border: 2px solid #0081b3;
+  width: 50vw;
+  border-radius: 100px;
+  padding: 2vh 5vh;
+  background-color: rgb(246, 251, 255);
+}
+.copied {
+  color: #0081b3;
+}
