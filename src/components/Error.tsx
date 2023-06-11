@@ -1,7 +1,7 @@
 import '../App.css';
 
 function Error() {
-    const exampleText = "https://descope-oidc.com?projectId=PROJECT_ID&flow_id=FLOW_ID&demo=true"
+    const exampleText = "https://descope-oidc.com?project=PROJECT_ID&flow=FLOW_ID&debug=true"
   
     return (
       <div className='page error fullscreen'>
