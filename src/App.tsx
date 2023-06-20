@@ -5,7 +5,7 @@ import Error from "./components/Error";
 function App() {
   const urlParams = new URLSearchParams(window.location.search);
 
-  const projectId = urlParams.get("project") || "";
+  const projectId = window.location.pathname.replaceAll("/", "") || "";
   const flowId = urlParams.get("flow") || "sign-up-or-in";
   const debug = urlParams.get("debug") === "true";
   const baseUrl = `${window.location.protocol}//${window.location.host}`;

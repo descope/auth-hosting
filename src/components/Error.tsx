@@ -1,7 +1,7 @@
-import '../App.css';
+import "../App.css";
 
 function Error() {
-  const exampleText = `${window.location.protocol}://${window.location.host}?project=PROJECT_ID&flow=FLOW_ID&debug=true`;
+  const exampleText = `${window.location.protocol}://${window.location.host}/PROJECT_ID?flow=FLOW_ID&debug=true`;
 
   return (
     <div className="page error fullscreen">
