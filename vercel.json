@@ -1,0 +1,12 @@
+{
+  "rewrites": [
+    {
+      "source": "/v1/:path*",
+      "destination": "https://api.descope.com/v1/:path*"
+    },
+    {
+      "source": "/v2/:path*",
+      "destination": "https://api.descope.com/v2/:path*"
+    }
+  ]
+}
