@@ -8,7 +8,7 @@ function App() {
   const projectId = window.location.pathname.replaceAll("/", "") || "";
   const flowId = urlParams.get("flow") || "sign-up-or-in";
   const debug = urlParams.get("debug") === "true";
-  const baseUrl = `${window.location.protocol}//auth.${window.location.host}`;
+  const baseUrl = `${window.location.protocol}//api.${window.location.host}`;
 
   return (
     <>
