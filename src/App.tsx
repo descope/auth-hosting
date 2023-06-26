@@ -23,7 +23,7 @@ const App = () => {
     const [error, setError] = useState(false)
 
 	return (
-            <AuthProvider projectId={projectId}>
+      <AuthProvider projectId={projectId}>
         <div className="app">
           {projectId && flowId && !error? (
               <div className="descope-container">

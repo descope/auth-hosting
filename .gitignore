@@ -13,6 +13,7 @@
 
 # IDE files
 .idea/
+.vscode/
 .history/
 *.vsix
 .ionide
