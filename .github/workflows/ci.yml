@@ -42,7 +42,11 @@ jobs:
         env:
           CI: true
       - name: Checking format
-        run: yarn format-check
+        run: |
+          yarn format-check
+      - name: Checking lint
+        run: |
+          yarn lint
 
   pack:
     name: 📦 Pack and Upload

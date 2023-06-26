@@ -27,7 +27,7 @@ const App = () => {
       <div className="app">
         {projectId && flowId && !error ? (
           <div className="descope-container">
-            <Descope flowId={flowId} debug={debug} onError={(e) => setError(true)} />
+            <Descope flowId={flowId} debug={debug} onError={() => setError(true)} />
           </div>
         ) : (
           <Error />
