@@ -1,14 +1,18 @@
-.app {
+  
+  html,
+  body,
+  #root {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .app {
     display: flex;
     flex-grow: 1;
     flex-direction: column;
     text-align: center;
-  }
-  
-  .app-body {
-    display: flex;
-    flex-grow: 1;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
   }
@@ -18,7 +22,6 @@
     flex-grow: 1;
     flex-direction: column;
     align-items: center;
-    margin-top: 88px;
   }
   
   .descope-container {
@@ -26,8 +29,6 @@
     border-radius: 15px;
     border-color: #0082b5;
     padding: 4px 4px;
-    margin-top: 96px;
-    margin-bottom: 88px;
     max-width: 400px;
   }
   
@@ -46,11 +47,8 @@
     margin-bottom: 0px;
     font-family: "JetBrains Mono";
     font-style: normal;
-    font-weight: 700;
-    font-size: 32px;
-    line-height: 128%;
+    font-size: 20px;
     letter-spacing: 0.6px;
-    color: #0082b5;
   }
 
   .example {
@@ -74,6 +72,7 @@
 
   .text-body {
     font-size: 20px;
+    display: inline-block;
   }
   
   h1 {

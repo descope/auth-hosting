@@ -23,10 +23,9 @@ const App = () => {
     const [error, setError] = useState(false)
 
 	return (
-    <AuthProvider projectId={projectId}>
+            <AuthProvider projectId={projectId}>
         <div className="app">
           {projectId && flowId && !error? (
-            <body className="app-body">
               <div className="descope-container">
                 <Descope
                   flowId={flowId}
@@ -34,12 +33,9 @@ const App = () => {
                   onError={(e) => setError(true)}
                 />
               </div>
-            </body>
           ) : (
-            <body className="app-body">
               <Error />
-            </body>
-          )}
+              )}
         </div>
     </AuthProvider>
 	);
