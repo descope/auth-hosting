@@ -92,12 +92,12 @@ jobs:
             type=raw,value=ci-${{github.run_number}},event=branch
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
-            type=raw,value={{date 'YYYY.MM.DD'}}-{{branch}}-{{sha}},event=branch
-            type=raw,value={{branch}}-{{date 'YYYY.M.D'}}-sha-{{sha}},event=branch
-            type=raw,value={{branch}}-{{date 'YYYY.M.D'}}-${{github.run_number}},event=branch
+            type=raw,value={{date 'YYYY.MM.DD'}}-${{github.ref_name}}-{{sha}},event=branch
+            type=raw,value=${{github.ref_name}}-{{date 'YYYY.M.D'}}-sha-{{sha}},event=branch
+            type=raw,value=${{github.ref_name}}-{{date 'YYYY.M.D'}}-${{github.run_number}},event=branch
             type=sha
             type=raw,value=latest,enable={{is_default_branch}}
-            type=raw,value={{branch}}-{{sha}}
+            type=raw,value=${{github.ref_name}}-{{sha}}
       - name: Fetch commit message
         shell: bash
         id: commit-message
