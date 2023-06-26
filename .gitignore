@@ -11,6 +11,13 @@
 # production
 /build
 
+# IDE files
+.idea/
+.vscode/
+.history/
+*.vsix
+.ionide
+
 # misc
 .DS_Store
 .env.local
