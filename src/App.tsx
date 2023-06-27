@@ -22,8 +22,10 @@ const App = () => {
   const debug = urlParams.get("debug") === "true";
   const [error, setError] = useState(false);
 
+  const baseUrl = process.env.REACT_APP_DESCOPE_BASE_URL || "";
+
   return (
-    <AuthProvider projectId={projectId}>
+    <AuthProvider projectId={projectId} baseUrl={baseUrl}>
       <div className="app">
         {projectId && flowId && !error ? (
           <div className="descope-container">
