@@ -22,7 +22,7 @@ const App = () => {
   const debug = urlParams.get("debug") === "true";
   const [error, setError] = useState(false);
 
-  const baseUrl = urlParams.get("baseUrl") ?? "";
+  const baseUrl = process.env.REACT_APP_DESCOPE_BASE_URL || "";
 
   return (
     <AuthProvider projectId={projectId} baseUrl={baseUrl}>
