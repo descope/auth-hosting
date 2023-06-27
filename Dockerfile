@@ -7,7 +7,7 @@ ENV NODE_ENV=production
 WORKDIR /app
 COPY ["package.json", "yarn.lock*", "./"]
 
-RUN yarn install
+RUN yarn install --production=false
 COPY . .
 RUN yarn build
 
