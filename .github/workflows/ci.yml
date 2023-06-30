@@ -47,6 +47,27 @@ jobs:
       - name: Checking lint
         run: |
           yarn lint
+  
+  license-validation:
+    name: 🪪 License Validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          registry-url: https://npm.pkg.github.com/
+      # Skip post-install scripts here, as a malicious
+      # script could steal NODE_AUTH_TOKEN.
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+        env:
+          CI: true
+          NODE_AUTH_TOKEN: ${{ secrets.CI_NPM_READ_ORG }}
+      - name: License validation
+        shell: bash
+        run: ./thirdPartyLicenseCollector_linux_amd64 -npm-project .
 
   pack:
     name: 📦 Pack and Upload
