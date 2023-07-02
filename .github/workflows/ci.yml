@@ -2,6 +2,9 @@ name: CI
 
 on:
   pull_request:
+  push:
+    branches:
+      - main
 
 env:
   NODE_VERSION: 18
@@ -72,7 +75,10 @@ jobs:
   pack:
     name: 📦 Pack and Upload
     runs-on: ubuntu-latest
-    needs: build
+    needs:
+      - build
+      - lint
+      - license-validation
     permissions:
       packages: write
       contents: read
