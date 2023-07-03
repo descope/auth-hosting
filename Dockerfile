@@ -9,7 +9,7 @@ COPY ["package.json", "yarn.lock*", "./"]
 
 RUN yarn install --production=false
 COPY . .
-ARG REACT_APP_DESCOPE_BASE_URL="https://localhost:8443"
+ARG REACT_APP_DESCOPE_BASE_URL="https://kong:8443"
 RUN yarn build
 
 FROM nginx:alpine
