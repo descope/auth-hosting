@@ -25,7 +25,7 @@ const App = () => {
   const baseUrl = process.env.REACT_APP_DESCOPE_BASE_URL || "";
 
   return (
-    <AuthProvider projectId={projectId} baseUrl={baseUrl}>
+    <AuthProvider projectId={projectId} baseUrl={baseUrl} sessionTokenViaCookie={true}>
       <div className="app">
         {projectId && flowId && !error ? (
           <div className="descope-container">
