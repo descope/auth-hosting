@@ -3,11 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@babel/preset-env": "^7.22.6",
     "@descope/react-sdk": "1.0.9",
     "@emotion/react": "11.11.1",
     "@emotion/styled": "11.11.0",
     "@mui/icons-material": "5.11.16",
     "@mui/material": "5.13.5",
+    "babel-plugin-transform-export-extensions": "^6.22.0",
     "prettier": "2.8.8",
     "react": "18.2.0",
     "react-dom": "18.2.0",
@@ -18,8 +20,9 @@
   },
   "devDependencies": {
     "@babel/plugin-proposal-private-property-in-object": "7.21.11",
-    "@testing-library/jest-dom": "5.16.5",
-    "@testing-library/react": "14.0.0",
+    "@babel/preset-react": "^7.22.5",
+    "@testing-library/jest-dom": "^5.16.5",
+    "@testing-library/react": "^14.0.0",
     "@testing-library/user-event": "14.4.3",
     "@types/jest": "29.5.2",
     "@types/node": "18.16.18",
@@ -28,7 +31,8 @@
     "@typescript-eslint/eslint-plugin": "^5.60.0",
     "@typescript-eslint/parser": "^5.60.0",
     "eslint": "^8.43.0",
-    "husky": "^8.0.3"
+    "husky": "^8.0.3",
+    "jest": "^27.5.1"
   },
   "scripts": {
     "prepare": "husky install",
@@ -37,7 +41,7 @@
     "format-check": "prettier . --check --ignore-path .gitignore",
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "test": "react-scripts test",
+    "test": "react-scripts test --coverage",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
