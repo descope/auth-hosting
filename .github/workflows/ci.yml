@@ -39,7 +39,9 @@ jobs:
         uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
+          cache: "yarn"
           node-version-file: .nvmrc
+          cache-dependency-path: "**/yarn.lock"
       - name: Install dependencies
         run: yarn install
         env:
@@ -51,6 +53,31 @@ jobs:
         run: |
           yarn lint
 
+  testing:
+    name: 👔 Test & Coverage
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          cache: "yarn"
+          node-version-file: .nvmrc
+          cache-dependency-path: "**/yarn.lock"
+      - name: Install dependencies
+        run: yarn install
+        env:
+          CI: true
+      - name: Testing
+        run: yarn run test
+      - name: Coverage check
+        uses: devmasx/coverage-check-action@v1.2.0
+        with:
+          type: lcov
+          min_coverage: 95
+          result_path: coverage/lcov.info
+          token: ${{ github.token }}
+
   license-validation:
     name: 🪪 License Validation
     runs-on: ubuntu-latest
@@ -59,10 +86,10 @@ jobs:
         uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          cache: "yarn"
+          node-version-file: .nvmrc
+          cache-dependency-path: "**/yarn.lock"
           registry-url: https://npm.pkg.github.com/
-      # Skip post-install scripts here, as a malicious
-      # script could steal NODE_AUTH_TOKEN.
       - name: Install dependencies
         run: yarn install
         env:
