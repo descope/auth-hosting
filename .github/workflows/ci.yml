@@ -89,6 +89,7 @@ jobs:
           cache: "yarn"
           node-version-file: .nvmrc
           cache-dependency-path: "**/yarn.lock"
+          registry-url: https://npm.pkg.github.com/
       - name: Install dependencies
         run: yarn install
         env:
