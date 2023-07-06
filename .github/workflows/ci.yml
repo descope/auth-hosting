@@ -135,11 +135,25 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v1
       - name: Extract metadata for the Docker image
         id: meta
-        uses: descope/common/.github/actions/docker-metadata@main
+        uses: docker/metadata-action@v4.5.0
         with:
           images: |
             ghcr.io/descope/${{ env.IMAGE_NAME }}
             ${{ steps.login-ecr.outputs.registry }}/descope/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=raw,value=ci-${{github.run_number}},event=branch
+            type=raw,value=${{github.ref_name}}-{{date 'YYYY.M.D'}}-${{github.run_number}},event=branch
+            type=raw,value=${{github.ref_name}}-{{date 'YYYY.M.D'}}-sha-{{sha}},event=branch
+            type=raw,value=${{github.ref_name}}-{{sha}}
+            type=raw,value=${{github.ref_name}}-${{github.run_number}}
+            type=raw,value=sha-{{sha}}
+            type=raw,value=latest,enable={{is_default_branch}}
+          labels: |
+            org.opencontainers.image.description=${{steps.commit-message.outputs.message}}
+            github.sha=${{github.sha}}
+            github.repository=${{github.repository}}
+            github.actor=${{github.actor}}
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
       - name: Build and push
