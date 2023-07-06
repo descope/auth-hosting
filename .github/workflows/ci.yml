@@ -156,4 +156,3 @@ jobs:
             ${{ steps.meta.outputs.labels }}
             org.opencontainers.image.description=${{ steps.meta.outputs.description}}
           outputs: type=image,name=target,annotation-index.org.opencontainers.image.description=${{ steps.meta.outputs.description}},annotation-index.github.sha=${{github.sha}}
-          
