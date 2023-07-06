@@ -135,37 +135,25 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v1
       - name: Extract metadata for the Docker image
         id: meta
-        uses: docker/metadata-action@v4.5.0
+        uses: descope/common/.github/actions/docker-metadata@main
         with:
           images: |
             ghcr.io/descope/${{ env.IMAGE_NAME }}
             ${{ steps.login-ecr.outputs.registry }}/descope/${{ env.IMAGE_NAME }}
-          tags: |
-            type=ref,event=branch
-            type=raw,value=ci-${{github.run_number}},event=branch
-            type=raw,value=${{github.ref_name}}-{{date 'YYYY.M.D'}}-${{github.run_number}},event=branch
-            type=raw,value=${{github.ref_name}}-{{date 'YYYY.M.D'}}-sha-{{sha}},event=branch
-            type=raw,value=${{github.ref_name}}-{{sha}}
-            type=raw,value=${{github.ref_name}}-${{github.run_number}}
-            type=raw,value=sha-{{sha}}
-            type=raw,value=latest,enable={{is_default_branch}}
-          labels: |
-            org.opencontainers.image.description=${{steps.commit-message.outputs.message}}
-            github.sha=${{github.sha}}
-            github.repository=${{github.repository}}
-            github.actor=${{github.actor}}
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
       - name: Build and push
         uses: docker/build-push-action@v4
         with:
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64
           context: .
           push: true
           build-args: |
             NODE_VERSION=${{ env.NODE_VERSION }}
+            NODE_AUTH_TOKEN=${{ secrets.CI_NPM_READ_ORG }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: |
             ${{ steps.meta.outputs.labels }}
             org.opencontainers.image.description=${{ steps.meta.outputs.description}}
           outputs: type=image,name=target,annotation-index.org.opencontainers.image.description=${{ steps.meta.outputs.description}},annotation-index.github.sha=${{github.sha}}
+          
