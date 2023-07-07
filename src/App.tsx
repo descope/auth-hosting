@@ -26,7 +26,7 @@ const App = () => {
   const contentBaseUrl = process.env.REACT_APP_CONTENT_BASE_URL as string;
   if (contentBaseUrl) {
     localStorage.setItem("base.content.url", contentBaseUrl);
-   }
+  }
 
   return (
     <AuthProvider projectId={projectId} baseUrl={baseUrl}>
