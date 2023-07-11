@@ -16,7 +16,7 @@ const Welcome = () => {
       </p>
       <p className="example-title">Here's an example:</p>
       <p
-        data-testid="copy-component"
+        data-testid="welcome-copy-component"
         className="example"
         onClick={() => {
           return copy(exampleText);

@@ -6,14 +6,19 @@ describe("App component", () => {
     render(<App />);
   });
 
-  test("displays Error component when projectId is invalid", async () => {
+  test("displays Welcome component when projectId is missing", async () => {
+    Object.defineProperty(window, "location", {
+      value: {
+        pathname: "/invalid-project-id",
+      },
+      writable: true, // possibility to override
+    });
     Object.assign(navigator, {
       clipboard: {
         writeText: () => undefined,
       },
     });
 
-    window.location.pathname = "/invalid-project-id";
     const { getByTestId } = render(<App />);
     expect(getByTestId("welcome-component")).toBeInTheDocument();
     expect(getByTestId("welcome-copy-component")).toBeInTheDocument();
