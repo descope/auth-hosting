@@ -107,7 +107,7 @@ jobs:
       contents: read
       id-token: write
     env:
-      IMAGE_NAME: oidc-hosting
+      IMAGE_NAME: auth-hosting
     steps:
       - name: Checkout code
         uses: actions/checkout@v3

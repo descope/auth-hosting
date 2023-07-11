@@ -1,5 +1,5 @@
 {
-  "name": "oidc-hosting",
+  "name": "auth-hosting",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
