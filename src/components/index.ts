@@ -1,3 +1,3 @@
-import Error from "./Error";
+import Error from "./Welcome";
 
 export { Error };

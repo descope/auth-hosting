@@ -15,11 +15,11 @@ describe("App component", () => {
 
     window.location.pathname = "/invalid-project-id";
     const { getByTestId } = render(<App />);
-    expect(getByTestId("error-component")).toBeInTheDocument();
-    expect(getByTestId("error-copy-component")).toBeInTheDocument();
-    expect(getByTestId("error-copy-icon")).toBeInTheDocument();
-    fireEvent.click(getByTestId("error-copy-component"));
-    await waitFor(() => expect(getByTestId("error-copied-icon")).toBeInTheDocument());
+    expect(getByTestId("welcome-component")).toBeInTheDocument();
+    expect(getByTestId("welcome-copy-component")).toBeInTheDocument();
+    expect(getByTestId("welcome-copy-icon")).toBeInTheDocument();
+    fireEvent.click(getByTestId("welcome-copy-component"));
+    await waitFor(() => expect(getByTestId("welcome-copied-icon")).toBeInTheDocument());
   });
 
   test("displays Descope component when projectId is valid", () => {

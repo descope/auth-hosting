@@ -31,7 +31,7 @@ body,
     max-width: 400px;
 }
 
-.error-title {
+.welcome-title {
     margin-bottom: 0px;
     font-family: "JetBrains Mono";
     font-style: normal;
@@ -52,7 +52,7 @@ body,
 
 .example {
     border: 2px solid;
-    width: fit-content;
+    min-width: 350px;
     border-radius: 100px;
     border-color: #0082b5;
     padding: 16px 32px;
@@ -103,6 +103,10 @@ p {
         margin-left: 16px;
         margin-right: 16px;
     }
+
+    .example {
+        min-width: fit-content;
+    }
 }
 
 /* Small devices (portrait tablets and large phones, 600px and up) */
@@ -110,11 +114,17 @@ p {
     .app-content {
         width: 80%;
     }
+    .example {
+        min-width: fit-content;
+    }
 }
 
 /* Medium devices (landscape tablets, 768px and up) */
 @media only screen and (min-width: 768px) {
     .app-content {
         width: 55%;
+    }
+    .example {
+        min-width: 350px;
     }
 }
