@@ -1,7 +1,7 @@
 import "./App.css";
 import { useState } from "react";
 import { AuthProvider, Descope } from "@descope/react-sdk";
-import Error from "./components/Error";
+import Error from "./components/Welcome";
 
 const projectRegex = /^[a-zA-Z0-9]{28}$/;
 

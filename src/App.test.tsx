@@ -6,20 +6,25 @@ describe("App component", () => {
     render(<App />);
   });
 
-  test("displays Error component when projectId is invalid", async () => {
+  test("displays Welcome component when projectId is missing", async () => {
+    Object.defineProperty(window, "location", {
+      value: {
+        pathname: "/invalid-project-id",
+      },
+      writable: true, // possibility to override
+    });
     Object.assign(navigator, {
       clipboard: {
         writeText: () => undefined,
       },
     });
 
-    window.location.pathname = "/invalid-project-id";
     const { getByTestId } = render(<App />);
-    expect(getByTestId("error-component")).toBeInTheDocument();
-    expect(getByTestId("error-copy-component")).toBeInTheDocument();
-    expect(getByTestId("error-copy-icon")).toBeInTheDocument();
-    fireEvent.click(getByTestId("error-copy-component"));
-    await waitFor(() => expect(getByTestId("error-copied-icon")).toBeInTheDocument());
+    expect(getByTestId("welcome-component")).toBeInTheDocument();
+    expect(getByTestId("welcome-copy-component")).toBeInTheDocument();
+    expect(getByTestId("welcome-copy-icon")).toBeInTheDocument();
+    fireEvent.click(getByTestId("welcome-copy-component"));
+    await waitFor(() => expect(getByTestId("welcome-copied-icon")).toBeInTheDocument());
   });
 
   test("displays Descope component when projectId is valid", () => {
