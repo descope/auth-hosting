@@ -1,3 +1,3 @@
-import Error from "./Welcome";
+import Welcome from './Welcome';
 
-export { Error };
+export { Welcome };
