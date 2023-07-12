@@ -12,6 +12,6 @@
 
 ## Must
 
--   [ ] 📱 Responsiveness (mobile/XL resolutions)
--   [ ] 🧪 Tests
--   [ ] 📃 Documentation (if applicable)
+- [ ] 📱 Responsiveness (mobile/XL resolutions)
+- [ ] 🧪 Tests
+- [ ] 📃 Documentation (if applicable)

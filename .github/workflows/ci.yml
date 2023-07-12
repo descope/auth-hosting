@@ -17,9 +17,9 @@ jobs:
         uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
-          cache: "yarn"
+          cache: 'yarn'
           node-version-file: .nvmrc
-          cache-dependency-path: "**/yarn.lock"
+          cache-dependency-path: '**/yarn.lock'
       - name: Install dependencies
         run: yarn install
         env:
@@ -35,9 +35,9 @@ jobs:
         uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
-          cache: "yarn"
+          cache: 'yarn'
           node-version-file: .nvmrc
-          cache-dependency-path: "**/yarn.lock"
+          cache-dependency-path: '**/yarn.lock'
       - name: Install dependencies
         run: yarn install
         env:
@@ -57,9 +57,9 @@ jobs:
         uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
-          cache: "yarn"
+          cache: 'yarn'
           node-version-file: .nvmrc
-          cache-dependency-path: "**/yarn.lock"
+          cache-dependency-path: '**/yarn.lock'
       - name: Install dependencies
         run: yarn install
         env:
@@ -82,9 +82,9 @@ jobs:
         uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
-          cache: "yarn"
+          cache: 'yarn'
           node-version-file: .nvmrc
-          cache-dependency-path: "**/yarn.lock"
+          cache-dependency-path: '**/yarn.lock'
           registry-url: https://npm.pkg.github.com/
       - name: Install dependencies
         run: yarn install
