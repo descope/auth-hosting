@@ -3,7 +3,7 @@ import { useState } from "react";
 import { AuthProvider, Descope } from "@descope/react-sdk";
 import Welcome from "./components/Welcome";
 
-const projectRegex = /^[a-zA-Z0-9]{28}$/;
+const projectRegex = /^P[a-zA-Z0-9]{27}$/;
 
 const App = () => {
   const [error, setError] = useState(false);
@@ -20,14 +20,11 @@ const App = () => {
 
   // if no project id, try to take it from URI
   if (!projectId) {
-    let pathname = window.location.pathname;
-    if (pathname.startsWith("/")) {
-      pathname = pathname.substring(1);
-      if (projectRegex.test(pathname)) {
-        projectId = pathname;
-      } else {
-        console.log(`Invalid projectId ${pathname}`);
-      }
+    const pathnameProjectId = window.location.pathname?.split("/").at(-1) || "";
+    if (projectRegex.test(pathnameProjectId)) {
+      projectId = pathnameProjectId;
+    } else {
+      console.log(`Invalid Project ID: ${pathnameProjectId}`);
     }
   }
 
@@ -40,7 +37,11 @@ const App = () => {
       <div className="app">
         {projectId && flowId && !error ? (
           <div className="descope-container" data-testid="descope-component">
-            <Descope flowId={flowId} debug={debug} onError={() => setError(true)} />
+            <Descope
+              flowId={flowId}
+              debug={debug}
+              onError={() => setError(true)}
+            />
           </div>
         ) : (
           <Welcome />
