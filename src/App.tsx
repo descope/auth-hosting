@@ -18,9 +18,9 @@ const App = () => {
 		projectId = envProjectId;
 	}
 
-	// if no project id, try to take it from URI
-	if (!projectId) {
-		const pathnameProjectId = window.location.pathname?.split('/').at(-1) || '';
+	// If exists in URI we will take it from the URI
+	const pathnameProjectId = window.location.pathname?.split('/').at(-1) || '';
+	if (pathnameProjectId) {
 		if (projectRegex.test(pathnameProjectId)) {
 			projectId = pathnameProjectId;
 		} else {
@@ -31,11 +31,11 @@ const App = () => {
 	const urlParams = new URLSearchParams(window.location.search);
 
 	const flowId =
-		process.env.DESCOPE_FLOW_ID || urlParams.get('flow') || 'sign-up-or-in';
+		urlParams.get('flow') || process.env.DESCOPE_FLOW_ID || 'sign-up-or-in';
 
 	const debug =
-		process.env.DESCOPE_FLOW_DEBUG === 'true' ||
-		urlParams.get('debug') === 'true';
+		urlParams.get('debug') === 'true' ||
+		process.env.DESCOPE_FLOW_DEBUG === 'true';
 
 	return (
 		<AuthProvider projectId={projectId} baseUrl={baseUrl}>

@@ -68,4 +68,16 @@ describe('App component', () => {
 		render(<App />);
 		expect(screen.getByTestId('welcome-component')).toBeInTheDocument();
 	});
+
+	test('displays Descope component when projectId is valid and part of the location and env', async () => {
+		process.env.DESCOPE_PROJECT_ID = 'P2Qbs5l8F1kD1g2inbBktiCDummk';
+		Object.defineProperty(window, 'location', {
+			value: {
+				pathname: '/P2Qbs5l8F1kD1g2inbBktiCDummy'
+			},
+			writable: true // possibility to override
+		});
+		render(<App />);
+		expect(screen.getByTestId('descope-component')).toBeInTheDocument();
+	});
 });
