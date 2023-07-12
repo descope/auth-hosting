@@ -30,9 +30,7 @@ describe("App component", () => {
     expect(getByTestId("welcome-copy-component")).toBeInTheDocument();
     expect(getByTestId("welcome-copy-icon")).toBeInTheDocument();
     fireEvent.click(getByTestId("welcome-copy-component"));
-    await waitFor(() =>
-      expect(getByTestId("welcome-copied-icon")).toBeInTheDocument()
-    );
+    await waitFor(() => expect(getByTestId("welcome-copied-icon")).toBeInTheDocument());
   });
 
   test("displays Descope component when projectId is valid and part of the location", async () => {
