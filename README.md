@@ -41,7 +41,8 @@ You can refer to either the [main documentation](https://docs.descope.com/custom
 `flow` query parameter is optional. If none provided the default flow is `sign-up-or-in`  
 `debug` query parameter is optional. If debug mode is needed use `debug=true`
 
-**Using .env**  
+**Using .env**
+
 In case you don't want to provide the project ID as part of the URL, you can specify it as an environment variable.  
 You can use `.env` file for that.  
 From the project root directory run: `cp .env.example .env`, and set your Descope Project and flow IDs.
