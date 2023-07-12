@@ -32,16 +32,16 @@ You can refer to either the [main documentation](https://docs.descope.com/custom
 - `yarn start`
 - Go to `http://localhost:3000/<PROJECT_ID>`
 
-**URL explained**
+**Using URL params**
 
 - Descope's deployment: `https://auth.descope.io/<PROJECT_ID>`
 - Locally: `http://localhost:3000/<PROJECT_ID>?flow=sign-in&debug=true`
 
-* `<PROJECT_ID>` as part of the URL path is required to use the desired Descope's `PROJECT_ID`
-* `flow` query parameter is optional. If none provided the default flow is `sign-up-or-in`
-* `debug` query parameter is optional. If debug mode is needed use `debug=true`
+`<PROJECT_ID>` as part of the URL path is required to use the desired Descope's `PROJECT_ID`  
+`flow` query parameter is optional. If none provided the default flow is `sign-up-or-in`  
+`debug` query parameter is optional. If debug mode is needed use `debug=true`
 
-**Using .env**
+**Using .env**  
 In case you don't want to provide the project ID as part of the URL, you can specify it as an environment variable.  
 You can use `.env` file for that.  
-From the project root directory: `cp .env.example .env` and set your Descope Project ID in `DESCOPE_PROJECT_ID`.
+From the project root directory run: `cp .env.example .env`, and set your Descope Project and flow IDs.

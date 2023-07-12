@@ -29,8 +29,13 @@ const App = () => {
 	}
 
 	const urlParams = new URLSearchParams(window.location.search);
-	const flowId = urlParams.get('flow') || 'sign-up-or-in';
-	const debug = urlParams.get('debug') === 'true';
+
+	const flowId =
+		process.env.DESCOPE_FLOW_ID || urlParams.get('flow') || 'sign-up-or-in';
+
+	const debug =
+		process.env.DESCOPE_FLOW_DEBUG === 'true' ||
+		urlParams.get('debug') === 'true';
 
 	return (
 		<AuthProvider projectId={projectId} baseUrl={baseUrl}>
