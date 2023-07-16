@@ -6,6 +6,8 @@ This is a React web application that runs Descope's login flows according to the
 
 ### Deployment
 
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fdescope%2Fauth-hosting&env=PROJECT_ID&demo-title=Descope%20Hosted%20Auth%20Page&demo-description=https%3A%2F%2Fgithub.com%2Fdescope%2Fauth-hosting%2F%23readme&demo-url=https%3A%2F%2Fauth.descope.io%2F)
+
 By default, the app is deployed to the Descope hosting page in [https://auth.descope.io](https://auth.descope.io).  
 The main purpose is to allow easy integration for descopers implementing authentication with Descope (such as OIDC [use case](#open-id-connect-oidc-use-cases-in-descope)).
 
@@ -43,6 +45,6 @@ You can refer to either the [main documentation](https://docs.descope.com/custom
 
 **Using .env**
 
-In case you don't want to provide the project ID as part of the URL, you can specify it as an environment variable.  
+In case you don't want to provide the project ID as part of the URL, you can specify it as an environment variable `DESCOPE_PROJECT_ID`.  
 You can use `.env` file for that.  
 From the project root directory run: `cp .env.example .env`, and set your Descope Project and flow IDs.
