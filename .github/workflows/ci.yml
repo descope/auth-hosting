@@ -4,9 +4,9 @@ on: [push]
 
 env:
   NODE_VERSION: 18
-  AWS_ACCOUNT_DEVOPS: 601853031418
+  AWS_ACCOUNT_DEVOPS: ${{ secrets.ECR_AWS_ACCOUNT_ID }}
   AWS_ROLE: GithubActions
-  AWS_REGION: eu-central-1
+  AWS_REGION: ${{ secrets.ECR_AWS_REGION }}
 
 jobs:
   build:
