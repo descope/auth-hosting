@@ -23,9 +23,13 @@ const App = () => {
 	if (pathnameProjectId) {
 		if (projectRegex.test(pathnameProjectId)) {
 			projectId = pathnameProjectId;
+			window.localStorage.setItem('descope-project-id', projectId);
+			window.location.replace(window.location.href.replace(projectId, ''));
 		} else {
 			console.log(`Invalid Project ID: ${pathnameProjectId}`); // eslint-disable-line
 		}
+	} else {
+		projectId = window.localStorage.getItem('descope-project-id') || '';
 	}
 
 	const urlParams = new URLSearchParams(window.location.search);
