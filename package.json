@@ -98,5 +98,6 @@
 		"dependencies": {
 			"typescript": "<5.1.4"
 		}
-	}
+	},
+	"homepage": "login"
 }

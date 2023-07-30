@@ -8,25 +8,30 @@ const projectRegex = /^P[a-zA-Z0-9]{27}$/;
 const App = () => {
 	const [error, setError] = useState(false);
 
-	const baseUrl = process.env.REACT_APP_DESCOPE_BASE_URL || '';
+	const baseUrl =
+		process.env.REACT_APP_DESCOPE_BASE_URL || window.location.origin;
 
 	let projectId = '';
 
 	// first, take project id from env
-	const envProjectId = process.env.DESCOPE_PROJECT_ID;
-	if (envProjectId && projectRegex.test(envProjectId)) {
-		projectId = envProjectId;
+	const envProjectId = projectRegex.exec(
+		process.env.DESCOPE_PROJECT_ID ?? ''
+	)?.[0];
+
+	// If exists in URI save it in local storage
+	// and redirect to the same page without the project id in the URI
+	const pathnameProjectId = window.location.pathname?.split('/').at(-1) || '';
+	if (pathnameProjectId && projectRegex.test(pathnameProjectId)) {
+		window.localStorage.setItem('descope-project-id', pathnameProjectId);
+		window.location.pathname = window.location.pathname.replace(
+			pathnameProjectId,
+			''
+		);
+		// execution will stop here and the page will reload
 	}
 
-	// If exists in URI we will take it from the URI
-	const pathnameProjectId = window.location.pathname?.split('/').at(-1) || '';
-	if (pathnameProjectId) {
-		if (projectRegex.test(pathnameProjectId)) {
-			projectId = pathnameProjectId;
-		} else {
-			console.log(`Invalid Project ID: ${pathnameProjectId}`); // eslint-disable-line
-		}
-	}
+	projectId =
+		window.localStorage.getItem('descope-project-id') ?? envProjectId ?? '';
 
 	const urlParams = new URLSearchParams(window.location.search);
 
@@ -49,7 +54,7 @@ const App = () => {
 						/>
 					</div>
 				) : (
-					<Welcome />
+					<Welcome baseUrl={baseUrl} />
 				)}
 			</div>
 		</AuthProvider>

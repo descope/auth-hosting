@@ -26,6 +26,8 @@ server {
     ssl_certificate_key /etc/ssl/private/nginx-selfsigned.key;
     server_name  localhost;
 
+		rewrite ^/login/(.*)$ /$1 last;
+
     location / {
         root   /usr/share/nginx/html;
         index  index.html;

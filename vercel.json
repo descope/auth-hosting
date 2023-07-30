@@ -1,0 +1,8 @@
+{
+	"rewrites": [
+		{
+			"source": "/login/:path*",
+			"destination": "/:path*"
+		}
+	]
+}

@@ -3,9 +3,11 @@ import React, { useCallback } from 'react';
 import { useCopyToClipboard } from 'usehooks-ts';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import CheckIcon from '@mui/icons-material/Check';
+import packageJson from '../../package.json';
 
-const Welcome = () => {
-	const exampleText = `https://auth.descope.io/PROJECT_ID`;
+const Welcome = (props: { baseUrl: string }) => {
+	const { baseUrl } = props;
+	const exampleText = `${baseUrl}/${packageJson.homepage}/PROJECT_ID`;
 
 	const [value, copy] = useCopyToClipboard();
 	const onCopy = useCallback(async () => {
