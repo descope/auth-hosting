@@ -18,12 +18,16 @@ const App = () => {
 		process.env.DESCOPE_PROJECT_ID ?? ''
 	)?.[0];
 
-	// If exists in URI we will take it from the URI and save it in local storage
+	// If exists in URI save it in local storage
+	// and redirect to the same page without the project id in the URI
 	const pathnameProjectId = window.location.pathname?.split('/').at(-1) || '';
 	if (pathnameProjectId && projectRegex.test(pathnameProjectId)) {
-		projectId = pathnameProjectId;
-		window.localStorage.setItem('descope-project-id', projectId);
-		window.location.pathname = window.location.pathname.replace(projectId, '');
+		window.localStorage.setItem('descope-project-id', pathnameProjectId);
+		window.location.pathname = window.location.pathname.replace(
+			pathnameProjectId,
+			''
+		);
+		// execution will stop here and the page will reload
 	}
 
 	projectId =
