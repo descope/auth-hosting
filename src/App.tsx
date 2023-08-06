@@ -8,11 +8,9 @@ const projectRegex = /^P[a-zA-Z0-9]{27}$/;
 const App = () => {
 	const [error, setError] = useState(false);
 
-	const baseUrl =
-		process.env.REACT_APP_DESCOPE_BASE_URL ??
-		process.env.REACT_APP_ORIGIN_BASE_URL
-			? window.location.origin
-			: undefined;
+	let baseUrl = process.env.REACT_APP_DESCOPE_BASE_URL;
+
+	if (process.env.REACT_APP_ORIGIN_BASE_URL) baseUrl = window.location.origin;
 
 	let projectId = '';
 
@@ -44,11 +42,6 @@ const App = () => {
 	const debug =
 		urlParams.get('debug') === 'true' ||
 		process.env.DESCOPE_FLOW_DEBUG === 'true';
-
-	const contentBaseUrl = process.env.REACT_APP_CONTENT_BASE_URL;
-	if (contentBaseUrl) {
-		localStorage.setItem('base.content.url', contentBaseUrl);
-	}
 
 	return (
 		<AuthProvider projectId={projectId} baseUrl={baseUrl}>
