@@ -5,8 +5,8 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import CheckIcon from '@mui/icons-material/Check';
 import packageJson from '../../package.json';
 
-const Welcome = (props: { baseUrl: string }) => {
-	const { baseUrl } = props;
+const Welcome = () => {
+	const baseUrl = window.location.origin;
 	const exampleText = `${baseUrl}/${packageJson.homepage}/PROJECT_ID`;
 
 	const [value, copy] = useCopyToClipboard();

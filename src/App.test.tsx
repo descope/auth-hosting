@@ -71,6 +71,10 @@ describe('App component', () => {
 		window.location.pathname = `/${packageJson.homepage}/${validProjectId}`;
 		render(<App />);
 		expect(screen.getByTestId('descope-component')).toBeInTheDocument();
+		expect(mockAuthProvider).toHaveBeenCalledWith(
+			// baseUrl is undefined by default
+			expect.objectContaining({ baseUrl: undefined })
+		);
 	});
 
 	test('displays welcome component when projectId is invalid and part of the location', async () => {
@@ -106,6 +110,7 @@ describe('App component', () => {
 	});
 
 	test('that the baseUrl is the same as the origin', async () => {
+		process.env.REACT_APP_ORIGIN_BASE_URL = 'true';
 		Object.defineProperty(window.location, 'origin', {
 			value: baseUrl
 		});

@@ -9,7 +9,10 @@ const App = () => {
 	const [error, setError] = useState(false);
 
 	const baseUrl =
-		process.env.REACT_APP_DESCOPE_BASE_URL || window.location.origin;
+		process.env.REACT_APP_DESCOPE_BASE_URL ??
+		process.env.REACT_APP_ORIGIN_BASE_URL
+			? window.location.origin
+			: undefined;
 
 	let projectId = '';
 
@@ -42,6 +45,11 @@ const App = () => {
 		urlParams.get('debug') === 'true' ||
 		process.env.DESCOPE_FLOW_DEBUG === 'true';
 
+	const contentBaseUrl = process.env.REACT_APP_CONTENT_BASE_URL;
+	if (contentBaseUrl) {
+		localStorage.setItem('base.content.url', contentBaseUrl);
+	}
+
 	return (
 		<AuthProvider projectId={projectId} baseUrl={baseUrl}>
 			<div className="app">
@@ -54,7 +62,7 @@ const App = () => {
 						/>
 					</div>
 				) : (
-					<Welcome baseUrl={baseUrl} />
+					<Welcome />
 				)}
 			</div>
 		</AuthProvider>
