@@ -99,5 +99,11 @@
 			"typescript": "<5.1.4"
 		}
 	},
-	"homepage": "login"
+	"homepage": "login",
+	"jest": {
+		"collectCoverageFrom": [
+			"src/**/*.{js,jsx,ts,tsx}",
+			"!src/index.tsx"
+		]
+	}
 }
