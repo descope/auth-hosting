@@ -10,7 +10,8 @@ const App = () => {
 
 	let baseUrl = process.env.REACT_APP_DESCOPE_BASE_URL;
 
-	if (process.env.REACT_APP_ORIGIN_BASE_URL) baseUrl = window.location.origin;
+	if (process.env.REACT_APP_USE_ORIGIN_BASE_URL)
+		baseUrl = window.location.origin;
 
 	let projectId = '';
 

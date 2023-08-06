@@ -110,7 +110,7 @@ describe('App component', () => {
 	});
 
 	test('that the baseUrl is the same as the origin', async () => {
-		process.env.REACT_APP_ORIGIN_BASE_URL = 'true';
+		process.env.REACT_APP_USE_ORIGIN_BASE_URL = 'true';
 		Object.defineProperty(window.location, 'origin', {
 			value: baseUrl
 		});
