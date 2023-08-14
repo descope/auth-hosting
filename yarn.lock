@@ -1359,38 +1359,55 @@
   resolved "https://registry.npmjs.org/@csstools/selector-specificity/-/selector-specificity-2.2.0.tgz"
   integrity sha512-+OJ9konv95ClSTOJCmMZqpd5+YGsB2S+x6w3E1oaM8UuR5j8nTNHYSz8c9BEPGDOCMQYIEEGlVPj/VY64iTbGw==
 
-"@descope/core-js-sdk@1.3.7":
-  version "1.3.7"
-  resolved "https://registry.npmjs.org/@descope/core-js-sdk/-/core-js-sdk-1.3.7.tgz"
-  integrity sha512-Qsect/Yv7YNx+447LWN6JOCXT/TgN2c8F/ZyewjpxKEEcIeU4l5F2LCpkQZ8nDihAE7q1lgh+ehSsNIl3g6otg==
+"@descope/core-js-sdk@1.5.0":
+  version "1.5.0"
+  resolved "https://registry.yarnpkg.com/@descope/core-js-sdk/-/core-js-sdk-1.5.0.tgz#0249237be337003e4f702859142fc1a6c3baddeb"
+  integrity sha512-Y5XCcN1px5sUhgtvlH7niIWQlzsfXMZkij3cH9L3PJzUNwF4YEzi8tMl5rc6RvkLtPIAqdiXRU0mDg5/RykQNg==
   dependencies:
-    eslint-plugin-jsx-a11y "6.7.1"
     jwt-decode "3.1.2"
     lodash.get "4.4.2"
 
-"@descope/react-sdk@1.0.9":
-  version "1.0.9"
-  resolved "https://registry.npmjs.org/@descope/react-sdk/-/react-sdk-1.0.9.tgz"
-  integrity sha512-5hD33vp3t5lgWM9RQpsjUcKROBZub48iknIM5QwP/oNZF8jyau0qGvf1Gc/Qy28zfhn7Gw6YZ5wKcieldDa7mA==
+"@descope/core-js-sdk@1.6.0":
+  version "1.6.0"
+  resolved "https://registry.yarnpkg.com/@descope/core-js-sdk/-/core-js-sdk-1.6.0.tgz#bec655e86144e50bdf727ee1ebba29692cb7949d"
+  integrity sha512-Nn13b4pFnZkMBcds2/mKxFmfSpKRcycrAzECtf/UnVP3nciNgY+kUHtDhoD6gsVhqdUERcGj5xiNAVYStct/Sg==
   dependencies:
-    "@descope/web-component" "2.4.0"
-    react-router-dom "6.11.2"
+    jwt-decode "3.1.2"
+    lodash.get "4.4.2"
 
-"@descope/web-component@2.4.0":
-  version "2.4.0"
-  resolved "https://registry.npmjs.org/@descope/web-component/-/web-component-2.4.0.tgz"
-  integrity sha512-vhOwKilELTDgIfeBHQd6nh3eYKoEJpvaPZhtS6f3PBHsQZkO9sDFCD8H815HtXylyqtZ2pqaJdhzhK704l7J6Q==
+"@descope/react-sdk@1.0.10":
+  version "1.0.10"
+  resolved "https://registry.yarnpkg.com/@descope/react-sdk/-/react-sdk-1.0.10.tgz#0840287d3bf1f25c9403848252e5030792eed617"
+  integrity sha512-SnS+RvCATafWFcnKlpkotKMqAkEh2irU65EAgkEfDkhBrwVlb3k0YRBztmVNAR3GHc9rg2/yOStcccptE3a9dA==
   dependencies:
-    "@descope/web-js-sdk" "1.2.7"
-    tslib "2.5.0"
+    "@descope/web-component" "2.7.2"
+  optionalDependencies:
+    "@descope/web-js-sdk" ">=1"
 
-"@descope/web-js-sdk@1.2.7":
-  version "1.2.7"
-  resolved "https://registry.npmjs.org/@descope/web-js-sdk/-/web-js-sdk-1.2.7.tgz"
-  integrity sha512-g5CqcJKbAxH45zdH5fTQtP99YWpDtaOwMTvKjDnxUwn2YgHWRsM0d6k/cyUswU4F+U4gn60/5jXXQBM30Ot6LQ==
+"@descope/web-component@2.7.2":
+  version "2.7.2"
+  resolved "https://registry.yarnpkg.com/@descope/web-component/-/web-component-2.7.2.tgz#d83352b39be751a3c766c3c7ebdbf98ba569a06d"
+  integrity sha512-GY3kc7CTK2mBwuNJ6+TkMWXwTNhQ0mqptiwZ7SLCgg6lyiBcJu2/nW3ZxcYXR/i00De+t2m+Mf428Cwq+LKDkQ==
   dependencies:
-    "@descope/core-js-sdk" "1.3.7"
+    "@descope/web-js-sdk" "1.3.8"
+    tslib "2.6.0"
+
+"@descope/web-js-sdk@1.3.8":
+  version "1.3.8"
+  resolved "https://registry.yarnpkg.com/@descope/web-js-sdk/-/web-js-sdk-1.3.8.tgz#28047273048e61c86c2b19ed57fbcd26516a9d75"
+  integrity sha512-P6doeEAmU9ukaK6b+cp+hxQSickTVeclbIofYEx1/znqgmMwA9fK12rL+EA93ajiwtcd9sCDb81w8Hb5pDe+mw==
+  dependencies:
+    "@descope/core-js-sdk" "1.5.0"
     "@fingerprintjs/fingerprintjs-pro" "3.8.3"
+    js-cookie "3.0.5"
+
+"@descope/web-js-sdk@>=1":
+  version "1.3.9"
+  resolved "https://registry.yarnpkg.com/@descope/web-js-sdk/-/web-js-sdk-1.3.9.tgz#1c6caf49fbc3c91ad95a243c4408f500abf68337"
+  integrity sha512-R7DPhQBS9TTQ2H11cO2aQ4zmOQDSxUBcMg+xCntlWUesnuLHfHLTOV4KZt8OBvjL+GlXkThIjXCdblf1TjJvhA==
+  dependencies:
+    "@descope/core-js-sdk" "1.6.0"
+    "@fingerprintjs/fingerprintjs-pro" "3.8.5"
     js-cookie "3.0.5"
 
 "@emotion/babel-plugin@^11.11.0":
@@ -1536,6 +1553,13 @@
   version "3.8.3"
   resolved "https://registry.npmjs.org/@fingerprintjs/fingerprintjs-pro/-/fingerprintjs-pro-3.8.3.tgz"
   integrity sha512-Top2U6/DYVraSir49pIcSQX5DaJhd0farIX3gaNSogy+Ln9NHQz3arM5Q2pdT5mdvWnRLuTLiXw5qacZdvFuQA==
+  dependencies:
+    tslib "^2.4.1"
+
+"@fingerprintjs/fingerprintjs-pro@3.8.5":
+  version "3.8.5"
+  resolved "https://registry.yarnpkg.com/@fingerprintjs/fingerprintjs-pro/-/fingerprintjs-pro-3.8.5.tgz#9e14b5fadd14a90490be66ddd0d2678f56ac39e1"
+  integrity sha512-07bkz/BrQYIHh0FIQ8rMKx62IKu+gkZrUzNsoT1fLwYfnM0uk+s+XQXLeaDXGMGpHgkZSP4nPMAn+nkRfWy6ww==
   dependencies:
     tslib "^2.4.1"
 
@@ -2220,11 +2244,6 @@
   version "2.11.8"
   resolved "https://registry.npmjs.org/@popperjs/core/-/core-2.11.8.tgz"
   integrity sha512-P1st0aksCrn9sGZhp8GMYwBnQsbvAWsZAX44oXNNvLHGqAOcoVxmjZiohstwQ7SqKnbR47akdNi+uleWD8+g6A==
-
-"@remix-run/router@1.6.2":
-  version "1.6.2"
-  resolved "https://registry.npmjs.org/@remix-run/router/-/router-1.6.2.tgz"
-  integrity sha512-LzqpSrMK/3JBAVBI9u3NWtOhWNw5AMQfrUFYB0+bDHTSw17z++WJLsPsxAuK+oSddsxk4d7F/JcdDPM1M5YAhA==
 
 "@rollup/plugin-babel@^5.2.0":
   version "5.3.1"
@@ -9318,21 +9337,6 @@ react-refresh@^0.11.0:
   resolved "https://registry.npmjs.org/react-refresh/-/react-refresh-0.11.0.tgz"
   integrity sha512-F27qZr8uUqwhWZboondsPx8tnC3Ct3SxZA3V5WyEvujRyyNv0VYPhoBg1gZ8/MV5tubQp76Trw8lTv9hzRBa+A==
 
-react-router-dom@6.11.2:
-  version "6.11.2"
-  resolved "https://registry.npmjs.org/react-router-dom/-/react-router-dom-6.11.2.tgz"
-  integrity sha512-JNbKtAeh1VSJQnH6RvBDNhxNwemRj7KxCzc5jb7zvDSKRnPWIFj9pO+eXqjM69gQJ0r46hSz1x4l9y0651DKWw==
-  dependencies:
-    "@remix-run/router" "1.6.2"
-    react-router "6.11.2"
-
-react-router@6.11.2:
-  version "6.11.2"
-  resolved "https://registry.npmjs.org/react-router/-/react-router-6.11.2.tgz"
-  integrity sha512-74z9xUSaSX07t3LM+pS6Un0T55ibUE/79CzfZpy5wsPDZaea1F8QkrsiyRnA2YQ7LwE/umaydzXZV80iDCPkMg==
-  dependencies:
-    "@remix-run/router" "1.6.2"
-
 react-scripts@5.0.1:
   version "5.0.1"
   resolved "https://registry.npmjs.org/react-scripts/-/react-scripts-5.0.1.tgz"
@@ -10564,10 +10568,10 @@ tsconfig-paths@^3.14.1:
     minimist "^1.2.6"
     strip-bom "^3.0.0"
 
-tslib@2.5.0:
-  version "2.5.0"
-  resolved "https://registry.npmjs.org/tslib/-/tslib-2.5.0.tgz"
-  integrity sha512-336iVw3rtn2BUK7ORdIAHTyxHGRIHVReokCR3XjbckJMK7ms8FysBfhLR8IXnAgy7T0PTPNBWKiH514FOW/WSg==
+tslib@2.6.0, tslib@^2.1.0, tslib@^2.5.0, tslib@^2.6.0:
+  version "2.6.0"
+  resolved "https://registry.yarnpkg.com/tslib/-/tslib-2.6.0.tgz#b295854684dbda164e181d259a22cd779dcd7bc3"
+  integrity sha512-7At1WUettjcSRHXCyYtTselblcHl9PJFFVKiCAy/bY97+BPZXSQ2wbq0P9s8tK2G7dFQfNnlJnPAiArVBVBsfA==
 
 tslib@^1.8.1:
   version "1.14.1"
@@ -10578,11 +10582,6 @@ tslib@^2.0.3, tslib@^2.4.1:
   version "2.5.3"
   resolved "https://registry.npmjs.org/tslib/-/tslib-2.5.3.tgz"
   integrity sha512-mSxlJJwl3BMEQCUNnxXBU9jP4JBktcEGhURcPR6VQVlnP0FdDEsIaz0C35dXNGLyRfrATNofF0F5p2KPxQgB+w==
-
-tslib@^2.1.0, tslib@^2.5.0, tslib@^2.6.0:
-  version "2.6.0"
-  resolved "https://registry.yarnpkg.com/tslib/-/tslib-2.6.0.tgz#b295854684dbda164e181d259a22cd779dcd7bc3"
-  integrity sha512-7At1WUettjcSRHXCyYtTselblcHl9PJFFVKiCAy/bY97+BPZXSQ2wbq0P9s8tK2G7dFQfNnlJnPAiArVBVBsfA==
 
 tsutils@^3.21.0:
   version "3.21.0"
