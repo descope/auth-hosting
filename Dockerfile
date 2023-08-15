@@ -10,7 +10,7 @@ COPY ["package.json", "yarn.lock*", "./"]
 RUN yarn install --production=false
 COPY . .
 ARG REACT_APP_DESCOPE_BASE_URL=""
-ARG REACT_APP_CONTENT_BASE_URL="https://static.descope.org/pages"
+ARG REACT_APP_CONTENT_BASE_URL=""
 ARG REACT_APP_USE_ORIGIN_BASE_URL="true"
 RUN yarn build
 
