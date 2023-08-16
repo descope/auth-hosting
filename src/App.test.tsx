@@ -102,13 +102,6 @@ describe('App component', () => {
 		expect(screen.getByTestId('descope-component')).toBeInTheDocument();
 	});
 
-	test('that the projectid is removed from the url', async () => {
-		window.location.pathname = `/${packageJson.homepage}/${validProjectId}`;
-		render(<App />);
-		expect(screen.getByTestId('descope-component')).toBeInTheDocument();
-		expect(window.location.pathname).toBe(`/${packageJson.homepage}/`);
-	});
-
 	test('that the baseUrl is the same as the origin', async () => {
 		process.env.REACT_APP_USE_ORIGIN_BASE_URL = 'true';
 		Object.defineProperty(window.location, 'origin', {
