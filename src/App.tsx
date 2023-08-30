@@ -35,8 +35,7 @@ const App = () => {
 		urlParams.get('debug') === 'true' ||
 		process.env.DESCOPE_FLOW_DEBUG === 'true';
 
-	const tenantId = 
-		urlParams.get('tenant') || null;
+	const tenantId = urlParams.get('tenant') || null;
 
 	return (
 		<AuthProvider projectId={projectId} baseUrl={baseUrl}>

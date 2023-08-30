@@ -25,6 +25,7 @@ You can refer to either the [main documentation](https://docs.descope.com/custom
 - [Auth0](https://docs.descope.com/knowledgebase/sso/auth0oidc)
 - [Cognito](https://docs.descope.com/knowledgebase/sso/cognitooidc)
 - [Firebase](https://www.descope.com/blog/post/passkeys-firebase-oidc)
+- [Salesforce](https://www.descope.com/blog/post/sso-auth-salesforce)
 
 ---
 
@@ -42,6 +43,7 @@ You can refer to either the [main documentation](https://docs.descope.com/custom
 `<PROJECT_ID>` as part of the URL path is required to use the desired Descope's `PROJECT_ID`  
 `flow` query parameter is optional. If none provided the default flow is `sign-up-or-in`  
 `debug` query parameter is optional. If debug mode is needed use `debug=true`
+`tenant` query parameter is optional. If present, then you will be able to authenticate via SSO, without having to first specify an email with an input screen in your flow.
 
 **Using .env**
 
