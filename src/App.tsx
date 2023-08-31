@@ -35,7 +35,7 @@ const App = () => {
 		urlParams.get('debug') === 'true' ||
 		process.env.DESCOPE_FLOW_DEBUG === 'true';
 
-	const tenantId = urlParams.get('tenant') || null;
+	const tenantId = urlParams.get('tenant') || process.env.DESCOPE_TENANT_ID;
 
 	return (
 		<AuthProvider projectId={projectId} baseUrl={baseUrl}>
@@ -45,7 +45,7 @@ const App = () => {
 						<Descope
 							flowId={flowId}
 							debug={debug}
-							{...(tenantId ? { tenant: tenantId } : {})}
+							tenant={tenantId}
 							onError={() => setError(true)}
 						/>
 					</div>
