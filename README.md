@@ -40,10 +40,17 @@ You can refer to either the [main documentation](https://docs.descope.com/custom
 - Descope's deployment: `https://auth.descope.io/<PROJECT_ID>`
 - Locally: `http://localhost:3000/<PROJECT_ID>?flow=sign-in&debug=true`
 
-`<PROJECT_ID>` as part of the URL path is required to use the desired Descope's `PROJECT_ID`  
-`flow` query parameter is optional. If none provided the default flow is `sign-up-or-in`  
-`tenant` query parameter is optional. You can input a **Tenant ID** or **Tenant Domain** to use with this query parameter (e.g. `tenant=descope.com, tenant=T2UjlUN1tJsRnrV3jnAkJ3WziaEq). If present, then you will be able to authenticate via SSO, without having to first specify an email with an input screen in your flow.
-`debug`query parameter is optional. If debug mode is needed use`debug=true`
+These are the different query parameters you can use:
+
+1. `<PROJECT_ID>` as part of the URL path is required to use the desired Descope's `PROJECT_ID`
+
+2. `flow` query parameter is optional. If none provided the default flow is `sign-up-or-in`
+
+3. `tenant` query parameter is optional. You can input a **Tenant ID** or **Tenant Domain** to use with this query parameter (e.g. `tenant=descope.com` or `tenant=T2UjlUN1tJsRnrV3jnAkJ3WziaEq`).
+
+> If present, then you will be able to authenticate via SSO, without having to first specify an email with an input screen in your flow.
+
+4. `debug`query parameter is optional. If debug mode is needed use`debug=true`
 
 **Using .env**
 
