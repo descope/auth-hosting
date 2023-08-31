@@ -43,7 +43,7 @@ You can refer to either the [main documentation](https://docs.descope.com/custom
 `<PROJECT_ID>` as part of the URL path is required to use the desired Descope's `PROJECT_ID`  
 `flow` query parameter is optional. If none provided the default flow is `sign-up-or-in`  
 `debug` query parameter is optional. If debug mode is needed use `debug=true`
-`tenant` query parameter is optional. If present, then you will be able to authenticate via SSO, without having to first specify an email with an input screen in your flow.
+`tenant` query parameter is optional. You can input a **Tenant ID** or **Tenant Domain** to use with this query parameter (e.g. `tenant=descope.com, tenant=T2UjlUN1tJsRnrV3jnAkJ3WziaEq). If present, then you will be able to authenticate via SSO, without having to first specify an email with an input screen in your flow.
 
 **Using .env**
 
