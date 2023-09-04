@@ -19,7 +19,7 @@
 		"@babel/plugin-proposal-private-property-in-object": "7.21.11",
 		"@babel/preset-env": "^7.22.6",
 		"@babel/preset-react": "^7.22.5",
-		"@testing-library/jest-dom": "^5.16.5",
+		"@testing-library/jest-dom": "^6.0.0",
 		"@testing-library/react": "^14.0.0",
 		"@testing-library/user-event": "14.4.3",
 		"@types/jest": "29.5.3",
