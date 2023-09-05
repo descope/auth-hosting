@@ -1,6 +1,6 @@
 import './App.css';
 import React, { useState } from 'react';
-import { AuthProvider, Descope } from '@descope/react-sdk';
+import { AuthProvider, Descope } from '@descope-int/react-dynamic-sdk';
 import Welcome from './components/Welcome';
 
 const projectRegex = /^P[a-zA-Z0-9]{27}$/;

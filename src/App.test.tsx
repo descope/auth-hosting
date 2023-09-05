@@ -7,8 +7,8 @@ import packageJson from '../package.json';
 const mockDescope = jest.fn();
 const mockAuthProvider = jest.fn();
 
-jest.mock('@descope/react-sdk', () => ({
-	...jest.requireActual('@descope/react-sdk'),
+jest.mock('@descope-int/react-dynamic-sdk', () => ({
+	...jest.requireActual('@descope-int/react-dynamic-sdk'),
 	Descope: (props: unknown) => {
 		mockDescope(props);
 		return <div />;
