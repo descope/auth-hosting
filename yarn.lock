@@ -1298,10 +1298,10 @@
   resolved "https://registry.npmjs.org/@csstools/selector-specificity/-/selector-specificity-2.2.0.tgz"
   integrity sha512-+OJ9konv95ClSTOJCmMZqpd5+YGsB2S+x6w3E1oaM8UuR5j8nTNHYSz8c9BEPGDOCMQYIEEGlVPj/VY64iTbGw==
 
-"@descope-int/react-dynamic-sdk@1.0.9":
-  version "1.0.9"
-  resolved "https://registry.yarnpkg.com/@descope-int/react-dynamic-sdk/-/react-dynamic-sdk-1.0.9.tgz#a9458032d1591acd0f53484747e0ebcc3fa57e37"
-  integrity sha512-lfDAOHDKl0Yu3gL8FonWFs7dL/qgJELf+5+raQftltsdePP2XP0dJ0SOOc3ubhL2jvwDB2D6LeGrcGXLso2oGA==
+"@descope-int/react-dynamic-sdk@1.0.10":
+  version "1.0.10"
+  resolved "https://registry.yarnpkg.com/@descope-int/react-dynamic-sdk/-/react-dynamic-sdk-1.0.10.tgz#3b03ada44d7ef3ddb025b449701ccd0253528a1c"
+  integrity sha512-wltnEeafRKdWzoqXwjgiqMAU9RibZN5dJMUvrsi5oyn6tXuTNwICh2MHA3QOzaaWUFOxiP3ddXlFuduEtBrgEQ==
   dependencies:
     "@descope/react-sdk" "1.0.10"
     "@webcomponents/scoped-custom-element-registry" "^0.0.9"
