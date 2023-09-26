@@ -3,15 +3,15 @@
 	"version": "0.1.0",
 	"private": true,
 	"dependencies": {
-		"@descope-int/react-dynamic-sdk": "1.0.10",
+		"@descope-int/react-dynamic-sdk": "1.0.15",
 		"@emotion/react": "11.11.1",
 		"@emotion/styled": "11.11.0",
-		"@mui/icons-material": "5.14.3",
-		"@mui/material": "5.14.5",
+		"@mui/icons-material": "5.14.7",
+		"@mui/material": "5.14.7",
 		"react": "18.2.0",
 		"react-dom": "18.2.0",
 		"react-scripts": "5.0.1",
-		"typescript": "<5.1.7",
+		"typescript": "<5.2.3",
 		"usehooks-ts": "2.9.1",
 		"web-vitals": "3.4.0"
 	},
@@ -52,7 +52,7 @@
 		"husky": "^8.0.3",
 		"jest": "^29.0.0",
 		"lint-staged": "^14.0.0",
-		"prettier": "3.0.1"
+		"prettier": "3.0.2"
 	},
 	"scripts": {
 		"prepare": "husky install",
@@ -95,7 +95,7 @@
 	},
 	"overrides": {
 		"dependencies": {
-			"typescript": "<5.1.7"
+			"typescript": "<5.2.3"
 		}
 	},
 	"homepage": "login",
