@@ -1390,10 +1390,10 @@
   resolved "https://registry.yarnpkg.com/@csstools/selector-specificity/-/selector-specificity-2.2.0.tgz#2cbcf822bf3764c9658c4d2e568bd0c0cb748016"
   integrity sha512-+OJ9konv95ClSTOJCmMZqpd5+YGsB2S+x6w3E1oaM8UuR5j8nTNHYSz8c9BEPGDOCMQYIEEGlVPj/VY64iTbGw==
 
-"@descope-int/react-dynamic-sdk@1.0.15":
-  version "1.0.15"
-  resolved "https://registry.yarnpkg.com/@descope-int/react-dynamic-sdk/-/react-dynamic-sdk-1.0.15.tgz#8c65d1240bcaddd77c4728fc07a6b83775c879c6"
-  integrity sha512-LOP71H0482ikyNN+D/cdXBval3qyjesd2j5BwcmKcaWY9NyKy6G2T7jzM8JfUsy92QSaTgQiou+XPPHF+onuBw==
+"@descope-int/react-dynamic-sdk@1.0.18":
+  version "1.0.18"
+  resolved "https://registry.yarnpkg.com/@descope-int/react-dynamic-sdk/-/react-dynamic-sdk-1.0.18.tgz#b45df3398bc935ff32a26362656e3f86a9aea44b"
+  integrity sha512-DsLDxAoPLH8UB/uQtdZrio/S7qW4cMIFAVTG189Pjdp8DrxqY/x60l+jcYvGs8vU+EUXzftCEX16Pj6UfEIkwQ==
   dependencies:
     "@descope/react-sdk" "1.0.10"
     "@webcomponents/scoped-custom-element-registry" "^0.0.9"
