@@ -41,9 +41,7 @@ const App = () => {
 
 	return (
 		<AuthProvider projectId={projectId} baseUrl={baseUrl}>
-			<div className="app" style={
-						{ backgroundColor }
-					}>
+			<div className="app" style={{ backgroundColor }}>
 				{projectId && flowId && !error ? (
 					<div className="descope-container" data-testid="descope-component">
 						<Descope
