@@ -37,9 +37,11 @@ const App = () => {
 
 	const tenantId = urlParams.get('tenant') || process.env.DESCOPE_TENANT_ID;
 
+	const backgroundColor = urlParams.get('bg') || process.env.DESCOPE_BG_COLOR;
+
 	return (
 		<AuthProvider projectId={projectId} baseUrl={baseUrl}>
-			<div className="app">
+			<div className="app" style={{ backgroundColor }}>
 				{projectId && flowId && !error ? (
 					<div className="descope-container" data-testid="descope-component">
 						<Descope
