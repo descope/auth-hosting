@@ -5,11 +5,14 @@ import Welcome from './components/Welcome';
 
 const projectRegex = /^P[a-zA-Z0-9]{27}$/;
 
-
 const getV2Config = (projectId: string, cb: (res: any) => void) => {
-  const baseUrl = window.localStorage.getItem('base.content.url') || 'https://static.descope.com/pages';
-  fetch(`${baseUrl}/${projectId}/v2-beta/config.json`).then((res) => cb(res.ok))
-}
+	const baseUrl =
+		window.localStorage.getItem('base.content.url') ||
+		'https://static.descope.com/pages';
+	fetch(`${baseUrl}/${projectId}/v2-beta/config.json`).then((res) =>
+		cb(res.ok)
+	);
+};
 
 const App = () => {
 	const [error, setError] = useState(false);
@@ -36,14 +39,13 @@ const App = () => {
 
 	useEffect(() => {
 		getV2Config(projectId, (success) => {
-			setIsV2(success)
+			setIsV2(success);
 		});
-	}, [projectId])
+	}, [projectId]);
 
-
-  if (isV2 === null) {
-    return null;
-  }
+	if (isV2 === null) {
+		return null;
+	}
 
 	const urlParams = new URLSearchParams(window.location.search);
 
@@ -59,7 +61,11 @@ const App = () => {
 	const backgroundColor = urlParams.get('bg') || process.env.DESCOPE_BG_COLOR;
 
 	return (
-		<AuthProvider projectId={projectId} baseUrl={baseUrl} sdkVersion={isV2 ? 'v2' : 'v1'}>
+		<AuthProvider
+			projectId={projectId}
+			baseUrl={baseUrl}
+			sdkVersion={isV2 ? 'v2' : 'v1'}
+		>
 			<div className="app" style={{ backgroundColor }}>
 				{projectId && flowId && !error ? (
 					<div className="descope-container" data-testid="descope-component">
