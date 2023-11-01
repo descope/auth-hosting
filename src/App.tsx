@@ -1,13 +1,11 @@
 import './App.css';
-import React, { useState } from 'react';
+import React from 'react';
 import { AuthProvider, Descope } from '@descope/react-sdk';
 import Welcome from './components/Welcome';
 
 const projectRegex = /^P[a-zA-Z0-9]{27}$/;
 
 const App = () => {
-	const [error, setError] = useState(false);
-
 	let baseUrl = process.env.REACT_APP_DESCOPE_BASE_URL;
 
 	if (process.env.REACT_APP_USE_ORIGIN_BASE_URL)
@@ -42,14 +40,9 @@ const App = () => {
 	return (
 		<AuthProvider projectId={projectId} baseUrl={baseUrl}>
 			<div className="app" style={{ backgroundColor }}>
-				{projectId && flowId && !error ? (
+				{projectId && flowId ? (
 					<div className="descope-container" data-testid="descope-component">
-						<Descope
-							flowId={flowId}
-							debug={debug}
-							tenant={tenantId}
-							onError={() => setError(true)}
-						/>
+						<Descope flowId={flowId} debug={debug} tenant={tenantId} />
 					</div>
 				) : (
 					<Welcome />
