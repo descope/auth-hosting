@@ -7,7 +7,7 @@
   resolved "https://registry.yarnpkg.com/@aashutoshrathi/word-wrap/-/word-wrap-1.2.6.tgz#bd9154aec9983f77b3a034ecaa015c2e4201f6cf"
   integrity sha512-1Yjs2SvM8TflER/OD3cOjhWWOZb58A2t7wpE2S9XfBYTiIl+XFhQG2bjy4Pu1I+EAlCNUzRDYDdFwFYUKvXcIA==
 
-"@adobe/css-tools@^4.3.0":
+"@adobe/css-tools@^4.3.1":
   version "4.3.1"
   resolved "https://registry.yarnpkg.com/@adobe/css-tools/-/css-tools-4.3.1.tgz#abfccb8ca78075a2b6187345c26243c1a0842f28"
   integrity sha512-/62yikz7NLScCGAAST5SHdnjaDJQBDq0M2muyRTpf2VQhw6StBg2ALiu73zSJQ4fMVLA+0uBhBHAle7Wg+2kSg==
@@ -2320,12 +2320,12 @@
     lz-string "^1.5.0"
     pretty-format "^27.0.2"
 
-"@testing-library/jest-dom@6.1.3":
-  version "6.1.3"
-  resolved "https://registry.yarnpkg.com/@testing-library/jest-dom/-/jest-dom-6.1.3.tgz#443118c9e4043f96396f120de2c7122504a079c5"
-  integrity sha512-YzpjRHoCBWPzpPNtg6gnhasqtE/5O4qz8WCwDEaxtfnPO6gkaLrnuXusrGSPyhIGPezr1HM7ZH0CFaUTY9PJEQ==
+"@testing-library/jest-dom@6.1.4":
+  version "6.1.4"
+  resolved "https://registry.yarnpkg.com/@testing-library/jest-dom/-/jest-dom-6.1.4.tgz#cf0835c33bc5ef00befb9e672b1e3e6a710e30e3"
+  integrity sha512-wpoYrCYwSZ5/AxcrjLxJmCU6I5QAJXslEeSiMQqaWmP2Kzpd1LvF/qxmAIW2qposULGWq2gw30GgVNFLSc2Jnw==
   dependencies:
-    "@adobe/css-tools" "^4.3.0"
+    "@adobe/css-tools" "^4.3.1"
     "@babel/runtime" "^7.9.2"
     aria-query "^5.0.0"
     chalk "^3.0.0"
@@ -2538,10 +2538,10 @@
   resolved "https://registry.yarnpkg.com/@types/mime/-/mime-1.3.2.tgz#93e25bf9ee75fe0fd80b594bc4feb0e862111b5a"
   integrity sha512-YATxVxgRqNH6nHEIsvg6k2Boc1JHI9ZbH5iWFFv/MTkchz3b1ieGDa5T0a9RznNdI0KhVbdbWSN+KWWrQZRxTw==
 
-"@types/node@*", "@types/node@20.8.4":
-  version "20.8.4"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-20.8.4.tgz#0e9ebb2ff29d5c3302fc84477d066fa7c6b441aa"
-  integrity sha512-ZVPnqU58giiCjSxjVUESDtdPk4QR5WQhhINbc9UBrKLU68MX5BF6kbQzTrkwbolyr0X8ChBpXfavr5mZFKZQ5A==
+"@types/node@*", "@types/node@20.8.5":
+  version "20.8.5"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-20.8.5.tgz#13352ae1f80032171616910e8aba2e3e52e57d96"
+  integrity sha512-SPlobFgbidfIeOYlzXiEjSYeIJiOCthv+9tSQVpvk4PAdIIc+2SmjNVzWXk9t0Y7dl73Zdf+OgXKHX9XtkqUpw==
   dependencies:
     undici-types "~5.25.1"
 
@@ -5137,10 +5137,10 @@ eslint-plugin-security@1.7.1:
   dependencies:
     safe-regex "^2.1.1"
 
-eslint-plugin-testing-library@6.0.2:
-  version "6.0.2"
-  resolved "https://registry.yarnpkg.com/eslint-plugin-testing-library/-/eslint-plugin-testing-library-6.0.2.tgz#a0884f603d8744695919413e7cf2adfb42223e2c"
-  integrity sha512-3BV6FWtLbpKFb4Y1obSdt8PC9xSqz6T+7EHB/6pSCXqVjKPoS67ck903feKMKQphd5VhrX+N51yHuVaPa7elsw==
+eslint-plugin-testing-library@6.1.0:
+  version "6.1.0"
+  resolved "https://registry.yarnpkg.com/eslint-plugin-testing-library/-/eslint-plugin-testing-library-6.1.0.tgz#6f4fbc50dfbac100b0c6083b1e6b06cea9a86feb"
+  integrity sha512-r7kE+az3tbp8vyRwfyAGZ6V/xw+XvdWFPicIo6jbOPZoossOFDeHizARqPGV6gEkyF8hyCFhhH3mlQOGS3N5Sg==
   dependencies:
     "@typescript-eslint/utils" "^5.58.0"
 
