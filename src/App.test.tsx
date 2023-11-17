@@ -58,7 +58,9 @@ describe('App component', () => {
 
 		render(<App />);
 		expect(await screen.findByTestId('welcome-component')).toBeInTheDocument();
-		expect(await screen.findByTestId('welcome-copy-component')).toBeInTheDocument();
+		expect(
+			await screen.findByTestId('welcome-copy-component')
+		).toBeInTheDocument();
 		expect(await screen.findByTestId('welcome-copy-icon')).toBeInTheDocument();
 		fireEvent.click(screen.getByTestId('welcome-copy-component'));
 		await screen.findByTestId('welcome-copied-icon');
@@ -139,8 +141,10 @@ describe('App component', () => {
 		window.location.pathname = `/${packageJson.homepage}/${validProjectId}`;
 		window.location.search = `?debug=${debug}&flow=${flowId}`;
 		render(<App />);
-		await waitFor(() => expect(mockDescope).toHaveBeenCalledWith(
-			expect.objectContaining({ debug, flowId })
-		));
+		await waitFor(() =>
+			expect(mockDescope).toHaveBeenCalledWith(
+				expect.objectContaining({ debug, flowId })
+			)
+		);
 	});
 });
