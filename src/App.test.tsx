@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom';
 import React, { PropsWithChildren } from 'react';
-import { render, fireEvent, screen } from '@testing-library/react';
+import { render, fireEvent, screen, waitFor } from '@testing-library/react';
 import App from './App';
 import packageJson from '../package.json';
 
@@ -57,9 +57,11 @@ describe('App component', () => {
 		window.location.pathname = `/${packageJson.homepage}/${invalidProjectId}`;
 
 		render(<App />);
-		expect(screen.getByTestId('welcome-component')).toBeInTheDocument();
-		expect(screen.getByTestId('welcome-copy-component')).toBeInTheDocument();
-		expect(screen.getByTestId('welcome-copy-icon')).toBeInTheDocument();
+		expect(await screen.findByTestId('welcome-component')).toBeInTheDocument();
+		expect(
+			await screen.findByTestId('welcome-copy-component')
+		).toBeInTheDocument();
+		expect(await screen.findByTestId('welcome-copy-icon')).toBeInTheDocument();
 		fireEvent.click(screen.getByTestId('welcome-copy-component'));
 		await screen.findByTestId('welcome-copied-icon');
 		expect(screen.getByTestId('welcome-component')).toHaveTextContent(
@@ -70,7 +72,7 @@ describe('App component', () => {
 	test('displays Descope component when projectId is valid and part of the location', async () => {
 		window.location.pathname = `/${packageJson.homepage}/${validProjectId}`;
 		render(<App />);
-		expect(screen.getByTestId('descope-component')).toBeInTheDocument();
+		expect(await screen.findByTestId('descope-component')).toBeInTheDocument();
 		expect(mockAuthProvider).toHaveBeenCalledWith(
 			// baseUrl is undefined by default
 			expect.objectContaining({ baseUrl: undefined })
@@ -80,26 +82,26 @@ describe('App component', () => {
 	test('displays welcome component when projectId is invalid and part of the location', async () => {
 		window.location.pathname = `/${packageJson.homepage}/${invalidProjectId}`;
 		render(<App />);
-		expect(screen.getByTestId('welcome-component')).toBeInTheDocument();
+		expect(await screen.findByTestId('welcome-component')).toBeInTheDocument();
 	});
 
 	test('displays Descope component when projectId is valid and as an env var', async () => {
 		process.env.DESCOPE_PROJECT_ID = validProjectId;
 		render(<App />);
-		expect(screen.getByTestId('descope-component')).toBeInTheDocument();
+		expect(await screen.findByTestId('descope-component')).toBeInTheDocument();
 	});
 
 	test('displays welcome component when projectId is invalid and as an env var', async () => {
 		process.env.DESCOPE_PROJECT_ID = invalidProjectId;
 		render(<App />);
-		expect(screen.getByTestId('welcome-component')).toBeInTheDocument();
+		expect(await screen.findByTestId('welcome-component')).toBeInTheDocument();
 	});
 
 	test('displays Descope component when projectId is valid and part of the location and env', async () => {
 		process.env.DESCOPE_PROJECT_ID = validProjectId;
 		window.location.pathname = `/${packageJson.homepage}/${validProjectId}`;
 		render(<App />);
-		expect(screen.getByTestId('descope-component')).toBeInTheDocument();
+		expect(await screen.findByTestId('descope-component')).toBeInTheDocument();
 	});
 
 	test('that the baseUrl is the same as the origin', async () => {
@@ -109,8 +111,10 @@ describe('App component', () => {
 		});
 		window.location.pathname = `/${packageJson.homepage}/${validProjectId}`;
 		render(<App />);
-		expect(mockAuthProvider).toHaveBeenCalledWith(
-			expect.objectContaining({ baseUrl })
+		await waitFor(() =>
+			expect(mockAuthProvider).toHaveBeenCalledWith(
+				expect.objectContaining({ baseUrl })
+			)
 		);
 	});
 
@@ -121,11 +125,15 @@ describe('App component', () => {
 
 		window.location.pathname = `/${packageJson.homepage}/${validProjectId}`;
 		render(<App />);
-		expect(mockAuthProvider).toHaveBeenCalledWith(
-			expect.objectContaining({ baseUrl })
+		await waitFor(() =>
+			expect(mockAuthProvider).toHaveBeenCalledWith(
+				expect.objectContaining({ baseUrl })
+			)
 		);
-		expect(mockDescope).toHaveBeenCalledWith(
-			expect.objectContaining({ debug, flowId })
+		await waitFor(() =>
+			expect(mockDescope).toHaveBeenCalledWith(
+				expect.objectContaining({ debug, flowId })
+			)
 		);
 	});
 
@@ -133,8 +141,10 @@ describe('App component', () => {
 		window.location.pathname = `/${packageJson.homepage}/${validProjectId}`;
 		window.location.search = `?debug=${debug}&flow=${flowId}`;
 		render(<App />);
-		expect(mockDescope).toHaveBeenCalledWith(
-			expect.objectContaining({ debug, flowId })
+		await waitFor(() =>
+			expect(mockDescope).toHaveBeenCalledWith(
+				expect.objectContaining({ debug, flowId })
+			)
 		);
 	});
 });
