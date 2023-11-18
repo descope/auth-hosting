@@ -52,6 +52,7 @@
 		"jest": "29.7.0",
 		"lint-staged": "14.0.1",
 		"prettier": "3.0.3",
+		"react-app-rewired": "^2.2.1",
 		"typescript": "<5.2.3"
 	},
 	"scripts": {
@@ -62,8 +63,8 @@
 		"lint:ci": "eslint . --max-warnings 0",
 		"lint": "eslint --fix --max-warnings 0",
 		"lint:all": "yarn run lint .",
-		"start": "react-scripts start",
-		"build": "react-scripts build",
+		"start": "react-app-rewired start",
+		"build": "react-app-rewired build",
 		"test": "react-scripts test --coverage",
 		"eject": "react-scripts eject"
 	},
