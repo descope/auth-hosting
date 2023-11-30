@@ -1245,10 +1245,10 @@
   "resolved" "https://registry.npmjs.org/@csstools/selector-specificity/-/selector-specificity-2.2.0.tgz"
   "version" "2.2.0"
 
-"@descope-int/react-dynamic-sdk@^1.0.24":
-  "integrity" "sha512-jXZ43QNDQe0fNShnm3yozM1zdMK3BJTQQqEp27bnsskuHkUVlE8aQ7yAa0pGt5E9A1YdPlnq2ZjUdcjsZH1HTg=="
-  "resolved" "https://registry.npmjs.org/@descope-int/react-dynamic-sdk/-/react-dynamic-sdk-1.0.24.tgz"
-  "version" "1.0.24"
+"@descope-int/react-dynamic-sdk@^1.0.25":
+  "integrity" "sha512-sBXTfmc9LqBL/X+DZWFsZOPo/BdtMNd0r7A+aL5PVxtGPkW/Nx1QJgXuzL0+IQ0/crmQ7D6tCqrbDZZoLiZCPQ=="
+  "resolved" "https://registry.npmjs.org/@descope-int/react-dynamic-sdk/-/react-dynamic-sdk-1.0.25.tgz"
+  "version" "1.0.25"
   dependencies:
     "@descope/react-sdk" "^1.0.14"
     "element-internals-polyfill" "^1.3.9"
