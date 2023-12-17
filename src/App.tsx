@@ -15,8 +15,6 @@ const getV2Config = (projectId: string, cb: (res: any) => void) => {
 };
 
 const App = () => {
-	const [error, setError] = useState(false);
-
 	let baseUrl = process.env.REACT_APP_DESCOPE_BASE_URL;
 
 	if (process.env.REACT_APP_USE_ORIGIN_BASE_URL)
@@ -67,14 +65,9 @@ const App = () => {
 			sdkVersion={isV2 ? 'v2' : 'v1'}
 		>
 			<div className="app" style={{ backgroundColor }}>
-				{projectId && flowId && !error ? (
+				{projectId && flowId ? (
 					<div className="descope-container" data-testid="descope-component">
-						<Descope
-							flowId={flowId}
-							debug={debug}
-							tenant={tenantId}
-							onError={() => setError(true)}
-						/>
+						<Descope flowId={flowId} debug={debug} tenant={tenantId} />
 					</div>
 				) : (
 					<Welcome />
