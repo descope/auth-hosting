@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { AuthProvider, Descope } from '@descope-int/react-dynamic-sdk';
 import Welcome from './components/Welcome';
 
-const projectRegex = /^P[a-zA-Z0-9]{27}$/;
+const projectRegex = /^P([a-zA-Z0-9]{27}|[a-zA-Z0-9]{31})$/;
 
 const getV2Config = (projectId: string, cb: (res: any) => void) => {
 	const baseUrl =
