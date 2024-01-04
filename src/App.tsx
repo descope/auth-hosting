@@ -59,7 +59,10 @@ const App = () => {
 	const backgroundColor = urlParams.get('bg') || process.env.DESCOPE_BG_COLOR;
 
 	const theme =
-		urlParams.get('theme') || process.env.DESCOPE_FLOW_THEME || 'light';
+		['light', 'dark', 'os'].find(
+			(t) =>
+				t === urlParams.get('theme') || t === process.env.DESCOPE_FLOW_THEME
+		) || 'light';
 
 	return (
 		<AuthProvider
