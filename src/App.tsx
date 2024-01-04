@@ -72,8 +72,8 @@ const App = () => {
 						<Descope
 							flowId={flowId}
 							debug={debug}
-							tenant={tenantId}
 							theme={theme}
+							tenant={tenantId}
 						/>
 					</div>
 				) : (
