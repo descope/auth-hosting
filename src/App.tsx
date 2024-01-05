@@ -59,7 +59,9 @@ const App = () => {
 	const backgroundColor = urlParams.get('bg') || process.env.DESCOPE_BG_COLOR;
 
 	const theme = (urlParams.get('theme') ||
-		process.env.DESCOPE_FLOW_THEME) as React.ComponentProps<typeof Descope>['theme'];
+		process.env.DESCOPE_FLOW_THEME) as React.ComponentProps<
+		typeof Descope
+	>['theme'];
 
 	return (
 		<AuthProvider
