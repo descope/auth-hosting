@@ -58,6 +58,11 @@ const App = () => {
 
 	const backgroundColor = urlParams.get('bg') || process.env.DESCOPE_BG_COLOR;
 
+	const theme = (urlParams.get('theme') ||
+		process.env.DESCOPE_FLOW_THEME) as React.ComponentProps<
+		typeof Descope
+	>['theme'];
+
 	return (
 		<AuthProvider
 			projectId={projectId}
@@ -67,7 +72,12 @@ const App = () => {
 			<div className="app" style={{ backgroundColor }}>
 				{projectId && flowId ? (
 					<div className="descope-container" data-testid="descope-component">
-						<Descope flowId={flowId} debug={debug} tenant={tenantId} />
+						<Descope
+							flowId={flowId}
+							debug={debug}
+							tenant={tenantId}
+							theme={theme}
+						/>
 					</div>
 				) : (
 					<Welcome />
