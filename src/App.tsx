@@ -59,10 +59,9 @@ const App = () => {
 	const backgroundColor = urlParams.get('bg') || process.env.DESCOPE_BG_COLOR;
 
 	const theme =
-		['light', 'dark', 'os'].find(
-			(t) =>
-				t === urlParams.get('theme') || t === process.env.DESCOPE_FLOW_THEME
-		) || 'light';
+		urlParams.get('theme') ||
+		process.env.DESCOPE_FLOW_THEME ||
+		('light' as any);
 
 	return (
 		<AuthProvider
@@ -76,8 +75,8 @@ const App = () => {
 						<Descope
 							flowId={flowId}
 							debug={debug}
-							theme={theme}
 							tenant={tenantId}
+							theme={theme}
 						/>
 					</div>
 				) : (
