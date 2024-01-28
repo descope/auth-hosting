@@ -1349,39 +1349,40 @@
     normalize-package-data "^3||^4||^5||^6"
     xmlbuilder2 "^3.0.2"
 
-"@descope/core-js-sdk@1.9.2":
-  version "1.9.2"
-  resolved "https://registry.npmjs.org/@descope/core-js-sdk/-/core-js-sdk-1.9.2.tgz"
-  integrity sha512-FlQs4fDBN4rHoq9RC7LQC3F67Gwfkiqwfn/CLWU77s02hD/iKpPUm66hp1JnW7kA/YICTwj5Mzq11mH3q4OvLw==
+"@descope/core-js-sdk@2.8.0":
+  version "2.8.0"
+  resolved "https://registry.yarnpkg.com/@descope/core-js-sdk/-/core-js-sdk-2.8.0.tgz#b135d6c4659371a3f60b556f6d9e95e84ab132de"
+  integrity sha512-2MTgEInuLGSPsfnnMxaEInp7JyQjHhHU++TEoLhaoX0jmDT2tWrCLh6Lgyv5sSfST957T6CPxBSjjG9ItwTRKA==
   dependencies:
     jwt-decode "3.1.2"
     lodash.get "4.4.2"
 
-"@descope/react-sdk@1.0.14":
-  version "1.0.14"
-  resolved "https://registry.npmjs.org/@descope/react-sdk/-/react-sdk-1.0.14.tgz"
-  integrity sha512-x2vj8g2YgezGlEt1S0OI6HJ0kewOz73gUpL5ZwqOP9nXO6z3dGIdcJBZJYnVNZ6n0IrAn/YlzR3GIWSoFTcMsQ==
+"@descope/react-sdk@2.0.5":
+  version "2.0.5"
+  resolved "https://registry.yarnpkg.com/@descope/react-sdk/-/react-sdk-2.0.5.tgz#7ec943a6c466fd2388b952a1962f8b0146f6281f"
+  integrity sha512-Ym1MUf6GlONIUNloSUtXjWjOXVtciwV7LqsZkrL2qXnFRGaWUuDsm+15J+77M34eQqEb9J8oAScQ45MWEAYyHg==
   dependencies:
-    "@descope/web-component" "2.11.3"
+    "@descope/web-component" "3.7.0"
   optionalDependencies:
     "@descope/web-js-sdk" ">=1"
 
-"@descope/web-component@2.11.3":
-  version "2.11.3"
-  resolved "https://registry.npmjs.org/@descope/web-component/-/web-component-2.11.3.tgz"
-  integrity sha512-I67kDxNZrr9LAfXUpB8gEL8u6oWoAJMHMxynHYRJIWhbfZ0zqAP/Z/V/rf9Rmn1GVqF02x0pHvW0ek6e4en8AQ==
+"@descope/web-component@3.7.0":
+  version "3.7.0"
+  resolved "https://registry.yarnpkg.com/@descope/web-component/-/web-component-3.7.0.tgz#aa6c6de877f1e02201d262ce4912b807d9fe69ed"
+  integrity sha512-nMfCL6nixPHy9CKGbVtiKuG3t46J0oH5/bXG4FhERoXm20Ind/AkVHoSv+Smg0FRJIfJ/LquYS+SXP2M+B9zsA==
   dependencies:
-    "@descope/web-js-sdk" "1.6.2"
+    "@descope/web-js-sdk" "1.9.0"
     tslib "2.6.2"
 
-"@descope/web-js-sdk@1.6.2", "@descope/web-js-sdk@>=1":
-  version "1.6.2"
-  resolved "https://registry.npmjs.org/@descope/web-js-sdk/-/web-js-sdk-1.6.2.tgz"
-  integrity sha512-hw4jAG1uwh/jyH50k+v82uuG9R/EdygkRakSY1n296gE4r5hNpOOp+GXYDSPfuIxW7DSA26XcE8Rd6lbepoXqA==
+"@descope/web-js-sdk@1.9.0", "@descope/web-js-sdk@>=1":
+  version "1.9.0"
+  resolved "https://registry.yarnpkg.com/@descope/web-js-sdk/-/web-js-sdk-1.9.0.tgz#9f017edc8a4c6f985e23f284769273983485c951"
+  integrity sha512-ESBLVf/Edmo2joUATy16mnXXmJ/MjyPQg+LuvMNN8Ngpnvli23C9eHo3Z+XxSkflzcV3KhtpOCNyxmbjRR2u2g==
   dependencies:
-    "@descope/core-js-sdk" "1.9.2"
+    "@descope/core-js-sdk" "2.8.0"
     "@fingerprintjs/fingerprintjs-pro" "3.8.5"
     js-cookie "3.0.5"
+    tslib "2.6.2"
 
 "@emotion/babel-plugin@^11.11.0":
   version "11.11.0"
