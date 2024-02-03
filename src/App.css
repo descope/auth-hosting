@@ -105,15 +105,6 @@ p {
 	margin-top: 8px;
 }
 
-.flow-shown {
-	border: 1px solid var(--auth-border);
-	border-radius: 14px;
-	border-top-right-radius: 0;
-	border-top-left-radius: 0;
-	padding: 0 4vh;
-	width: 80vh;
-}
-
 /* Extra small devices (phones, 600px and down) */
 @media only screen and (max-width: 600px) {
 	.app-content {
