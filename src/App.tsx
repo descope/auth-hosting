@@ -37,10 +37,17 @@ const App = () => {
 
 	const backgroundColor = urlParams.get('bg') || process.env.DESCOPE_BG_COLOR;
 
-	const containerClassName =
-		urlParams.get('wide') === 'true' || flowId === 'saml-config'
-			? 'descope-wide-container'
-			: '';
+	const isWideContainer =
+		urlParams.get('wide') === 'true' || flowId === 'saml-config';
+
+	const containerClassName = isWideContainer ? 'descope-wide-container' : '';
+
+	const flowProps = {
+		flowId,
+		debug,
+		tenant: tenantId,
+		...(isWideContainer && { autoFocus: false })
+	};
 
 	return (
 		<AuthProvider projectId={projectId} baseUrl={baseUrl}>
@@ -50,12 +57,7 @@ const App = () => {
 						className={`descope-base-container ${containerClassName}`}
 						data-testid="descope-component"
 					>
-						<Descope
-							flowId={flowId}
-							debug={debug}
-							tenant={tenantId}
-							autoFocus={false}
-						/>
+						<Descope {...flowProps} />
 					</div>
 				) : (
 					<Welcome />
