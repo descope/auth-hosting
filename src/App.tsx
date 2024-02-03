@@ -37,11 +37,14 @@ const App = () => {
 
 	const backgroundColor = urlParams.get('bg') || process.env.DESCOPE_BG_COLOR;
 
+	const samlConfigContainer =
+		flowId === 'saml-config' ? 'descope-saml-container' : 'descope-container';
+
 	return (
 		<AuthProvider projectId={projectId} baseUrl={baseUrl}>
 			<div className="app" style={{ backgroundColor }}>
 				{projectId && flowId ? (
-					<div className="descope-container" data-testid="descope-component">
+					<div className={samlConfigContainer} data-testid="descope-component">
 						<Descope flowId={flowId} debug={debug} tenant={tenantId} />
 					</div>
 				) : (

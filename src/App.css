@@ -32,6 +32,17 @@ body,
 	max-width: 400px;
 }
 
+.descope-saml-container {
+	border-radius: 15px;
+	box-shadow: 0px 1px 50px 0px #b2b2b2;
+	max-width: 90%;
+	width: auto;
+	min-width: 400px;
+	overflow-y: auto;
+	max-height: 90vh;
+	margin: 20px auto;
+}
+
 .welcome-title {
 	margin-bottom: 0px;
 	font-family: 'JetBrains Mono';
@@ -92,6 +103,15 @@ p {
 	letter-spacing: 0.6px;
 	color: rgba(0, 0, 0, 0.87);
 	margin-top: 8px;
+}
+
+.flow-shown {
+	border: 1px solid var(--auth-border);
+	border-radius: 14px;
+	border-top-right-radius: 0;
+	border-top-left-radius: 0;
+	padding: 0 4vh;
+	width: 80vh;
 }
 
 /* Extra small devices (phones, 600px and down) */
