@@ -26,18 +26,15 @@ body,
 	align-items: center;
 }
 
-.descope-container {
+.descope-base-container {
 	border-radius: 15px;
 	box-shadow: 0px 1px 50px 0px #b2b2b2;
 	max-width: 400px;
 }
 
-.descope-saml-container {
-	border-radius: 15px;
-	box-shadow: 0px 1px 50px 0px #b2b2b2;
+.descope-wide-container {
 	max-width: 90%;
 	width: auto;
-	min-width: 400px;
 	overflow-y: auto;
 	max-height: 90vh;
 	margin: 20px auto;
