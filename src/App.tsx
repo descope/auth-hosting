@@ -46,7 +46,7 @@ const App = () => {
 		flowId,
 		debug,
 		tenant: tenantId,
-		...(isWideContainer && { autoFocus: false })
+		...(flowId === 'saml-config' && { autoFocus: false })
 	};
 
 	return (
