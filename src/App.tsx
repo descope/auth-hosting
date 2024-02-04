@@ -40,7 +40,9 @@ const App = () => {
 	const isWideContainer =
 		urlParams.get('wide') === 'true' || flowId === 'saml-config';
 
-	const containerClassName = isWideContainer ? 'descope-wide-container' : '';
+	const containerClassName = isWideContainer
+		? 'descope-wide-container'
+		: 'descope-login-container';
 
 	const flowProps = {
 		flowId,
