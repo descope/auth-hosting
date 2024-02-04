@@ -1,6 +1,7 @@
 import './App.css';
 import React from 'react';
 import { AuthProvider, Descope } from '@descope/react-sdk';
+import clsx from 'clsx';
 import Welcome from './components/Welcome';
 
 const projectRegex = /^P[a-zA-Z0-9]{27}$/;
@@ -37,12 +38,27 @@ const App = () => {
 
 	const backgroundColor = urlParams.get('bg') || process.env.DESCOPE_BG_COLOR;
 
+	const isWideContainer =
+		urlParams.get('wide') === 'true' || flowId === 'saml-config';
+
+	const containerClasses = clsx('descope-base-container', {
+		'descope-wide-container': isWideContainer,
+		'descope-login-container': !isWideContainer
+	});
+
+	const flowProps = {
+		flowId,
+		debug,
+		tenant: tenantId,
+		...(flowId === 'saml-config' && { autoFocus: false })
+	};
+
 	return (
 		<AuthProvider projectId={projectId} baseUrl={baseUrl}>
 			<div className="app" style={{ backgroundColor }}>
 				{projectId && flowId ? (
-					<div className="descope-container" data-testid="descope-component">
-						<Descope flowId={flowId} debug={debug} tenant={tenantId} />
+					<div className={containerClasses} data-testid="descope-component">
+						<Descope {...flowProps} />
 					</div>
 				) : (
 					<Welcome />
