@@ -52,7 +52,9 @@ These are the different query parameters you can use:
 
 4. `debug` query parameter is optional. If debug mode is needed use `debug=true`.
 
-5. `wide` query parameter is optional. If wide mode is nedded use `wide=true`. This will widen the flow component that is rendered, which is used for large forms made with Flow screens.
+5. `bg` query parameter is optional. If you wish to use a different background color, you can use this parameter. (ex. `bg=black` or `bg=gray`)
+
+6. `wide` query parameter is optional. If wide mode is nedded use `wide=true`. This will widen the flow component that is rendered, which is used for large forms made with Flow screens.
 
 **Using .env**
 
