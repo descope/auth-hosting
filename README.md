@@ -42,15 +42,19 @@ You can refer to either the [main documentation](https://docs.descope.com/custom
 
 These are the different query parameters you can use:
 
-1. `<PROJECT_ID>` as part of the URL path is required to use the desired Descope's `PROJECT_ID`
+1. `<PROJECT_ID>` as part of the URL path is required to use the desired Descope's `PROJECT_ID`.
 
-2. `flow` query parameter is optional. If none provided the default flow is `sign-up-or-in`
+2. `flow` query parameter is optional. If none provided the default flow is `sign-up-or-in`.
 
 3. `tenant` query parameter is optional. You can input a **Tenant ID** or **Tenant Domain** to use with this query parameter (e.g. `tenant=descope.com` or `tenant=T2UjlUN1tJsRnrV3jnAkJ3WziaEq`).
 
 > If present, then you will be able to authenticate via SSO, without having to first specify an email with an input screen in your flow.
 
-4. `debug`query parameter is optional. If debug mode is needed use`debug=true`
+4. `debug` query parameter is optional. If debug mode is needed use `debug=true`.
+
+5. `bg` query parameter is optional. If you wish to use a different background color, you can use this parameter. (ex. `bg=black` or `bg=gray`)
+
+6. `wide` query parameter is optional. If wide mode is nedded use `wide=true`. This will widen the flow component that is rendered, which is used for large forms made with Flow screens.
 
 **Using .env**
 
