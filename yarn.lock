@@ -11252,10 +11252,10 @@ url-parse@^1.5.3:
     querystringify "^2.1.1"
     requires-port "^1.0.0"
 
-usehooks-ts@2.10.0:
-  version "2.10.0"
-  resolved "https://registry.npmjs.org/usehooks-ts/-/usehooks-ts-2.10.0.tgz"
-  integrity sha512-hN22L5pqcsM1LwL6Q3p1QfxI9K+wuP4lrBXyCQ4Vi5Zo94YhphqRh2l7G7uhqPzLunAObLUAoSKzo64lisNyWQ==
+usehooks-ts@2.11.0:
+  version "2.11.0"
+  resolved "https://registry.npmjs.org/usehooks-ts/-/usehooks-ts-2.11.0.tgz"
+  integrity sha512-JRRTyS7QXR4Qv9laNQE3BOMWsvPlrOolu1nfIGXQLCOGJhbim/STBFopKOoi0ktK6PDFAEx+Xa0Yn0PKIQVgzQ==
 
 util-deprecate@^1.0.1, util-deprecate@^1.0.2, util-deprecate@~1.0.1:
   version "1.0.2"
