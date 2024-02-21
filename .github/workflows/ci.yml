@@ -19,10 +19,11 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+      - run: corepack enable
       - uses: actions/setup-node@v4
         with:
           cache: 'yarn'
-          node-version-file: .nvmrc
+          node-version-file: package.json
           cache-dependency-path: '**/yarn.lock'
       - name: Install dependencies
         run: yarn install
@@ -37,10 +38,11 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+      - run: corepack enable
       - uses: actions/setup-node@v4
         with:
           cache: 'yarn'
-          node-version-file: .nvmrc
+          node-version-file: package.json
           cache-dependency-path: '**/yarn.lock'
       - name: Install dependencies
         run: yarn install
@@ -61,10 +63,11 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+      - run: corepack enable
       - uses: actions/setup-node@v4
         with:
           cache: 'yarn'
-          node-version-file: .nvmrc
+          node-version-file: package.json
           cache-dependency-path: '**/yarn.lock'
       - name: Install dependencies
         run: yarn install
@@ -86,17 +89,14 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+      - run: corepack enable
       - uses: actions/setup-node@v4
         with:
           cache: 'yarn'
-          node-version-file: .nvmrc
+          node-version-file: package.json
           cache-dependency-path: '**/yarn.lock'
-          registry-url: https://npm.pkg.github.com/
       - name: Install dependencies
         run: yarn install
-        env:
-          CI: true
-          NODE_AUTH_TOKEN: ${{ secrets.CI_NPM_READ_ORG }}
       - name: License validation
         shell: bash
         run: ./thirdPartyLicenseCollector_linux_amd64 -npm-project .
@@ -152,7 +152,6 @@ jobs:
           push: true
           build-args: |
             NODE_VERSION=${{ env.NODE_VERSION }}
-            NODE_AUTH_TOKEN=${{ secrets.CI_NPM_READ_ORG }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: |
             ${{ steps.meta.outputs.labels }}
