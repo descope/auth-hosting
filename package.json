@@ -97,7 +97,6 @@
 			"last 1 safari version"
 		]
 	},
-	"packageManager": "yarn@4.0.2",
 	"engines": {
 		"node": "^18 || ^20"
 	},
