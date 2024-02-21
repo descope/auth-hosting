@@ -73,10 +73,10 @@
 	},
 	"lint-staged": {
 		"src/**/*.{js,ts,jsx,tsx}": [
-			"npm run lint"
+			"yarn lint"
 		],
 		"*": [
-			"npm run format"
+			"yarn format"
 		]
 	},
 	"eslintConfig": {
@@ -97,8 +97,9 @@
 			"last 1 safari version"
 		]
 	},
+	"packageManager": "yarn@4.0.2",
 	"engines": {
-		"yarn": ">=1.22.0"
+		"node": "^18 || ^20"
 	},
 	"homepage": "login",
 	"jest": {
