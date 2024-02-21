@@ -9,7 +9,10 @@ const projectRegex = /^P[a-zA-Z0-9]{27}$/;
 const App = () => {
 	let baseUrl = process.env.REACT_APP_DESCOPE_BASE_URL;
 
-	if (process.env.REACT_APP_USE_ORIGIN_BASE_URL)
+  if (
+    process.env.REACT_APP_USE_ORIGIN_BASE_URL &&
+    !window.location.origin.endsWith("descope.io")
+  )
 		baseUrl = window.location.origin;
 
 	let projectId = '';
