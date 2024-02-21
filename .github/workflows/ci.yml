@@ -95,7 +95,6 @@ jobs:
           cache: 'yarn'
           node-version-file: package.json
           cache-dependency-path: '**/yarn.lock'
-          registry-url: https://npm.pkg.github.com/
       - name: Install dependencies
         run: yarn install
       - name: License validation
