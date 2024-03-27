@@ -98,8 +98,9 @@
 		]
 	},
 	"engines": {
-		"yarn": ">=1.22.0"
+		"node": "^20"
 	},
+	"packageManager": "yarn@4.1.1",
 	"homepage": "login",
 	"jest": {
 		"collectCoverageFrom": [
