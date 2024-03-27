@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-ARG NODE_VERSION=20
+ARG NODE_VERSION=18
 
 FROM --platform=$BUILDPLATFORM node:${NODE_VERSION}-alpine as builder
 ENV NODE_ENV=production
@@ -7,7 +7,7 @@ ENV NODE_ENV=production
 WORKDIR /app
 COPY ["package.json", "yarn.lock*", "./"]
 
-RUN yarn install --production=false
+RUN yarn install --production=false --frozen-lockfile
 COPY . .
 ARG REACT_APP_DESCOPE_BASE_URL=""
 ARG REACT_APP_CONTENT_BASE_URL=""
@@ -27,7 +27,7 @@ server {
     ssl_certificate_key /etc/ssl/private/nginx-selfsigned.key;
     server_name  localhost;
 
-		rewrite ^/login/(.*)$ /$1 last;
+		rewrite ^/login(.*)$ $1 last;
 
     location / {
         root   /usr/share/nginx/html;
