@@ -1347,10 +1347,10 @@
     normalize-package-data "^3||^4||^5||^6"
     xmlbuilder2 "^3.0.2"
 
-"@descope/access-key-management-widget@0.1.25":
-  version "0.1.25"
-  resolved "https://registry.npmjs.org/@descope/access-key-management-widget/-/access-key-management-widget-0.1.25.tgz"
-  integrity sha512-rQkldMaRpc918fqdAMDgLCdh69rej6oppUovJvddU4bakQZ1sTVblbTVip+RoAz0aC8ETo9ikWZhEX2DeI2jIQ==
+"@descope/access-key-management-widget@0.1.26":
+  version "0.1.26"
+  resolved "https://registry.npmjs.org/@descope/access-key-management-widget/-/access-key-management-widget-0.1.26.tgz"
+  integrity sha512-+r4hMtAaTD6W77D4/zTNvJ3bhKuSWqEQjr49TlFwIyPLmtfQtq7e35j7RQFArzi3lrhjixtouRXcELdSjwiOZQ==
   dependencies:
     "@descope/sdk-component-drivers" "0.1.14"
     "@descope/sdk-helpers" "0.1.14"
@@ -1370,22 +1370,22 @@
   dependencies:
     jwt-decode "3.1.2"
 
-"@descope/react-sdk@2.0.15":
-  version "2.0.15"
-  resolved "https://registry.npmjs.org/@descope/react-sdk/-/react-sdk-2.0.15.tgz"
-  integrity sha512-xpqJseUFR0cdHITsR03chcJ8OuuGjxhzIJpbMATX5k8EMaeOK8Maiznfb9EkCQ2b27N6W8MDyzSX7vCoAPftwA==
+"@descope/react-sdk@2.0.16":
+  version "2.0.16"
+  resolved "https://registry.npmjs.org/@descope/react-sdk/-/react-sdk-2.0.16.tgz"
+  integrity sha512-615zThVAnFbfJMjAwzvYQh9D0LUGLzQ4IB5MowfRoAAEXlggeZ5ECSPhSjUKIKlmgECQ2gypBxJ3pl2iaz2Kzw==
   dependencies:
-    "@descope/access-key-management-widget" "0.1.25"
-    "@descope/role-management-widget" "0.1.25"
-    "@descope/user-management-widget" "0.4.26"
+    "@descope/access-key-management-widget" "0.1.26"
+    "@descope/role-management-widget" "0.1.26"
+    "@descope/user-management-widget" "0.4.27"
     "@descope/web-component" "3.8.32"
   optionalDependencies:
     "@descope/web-js-sdk" ">=1"
 
-"@descope/role-management-widget@0.1.25":
-  version "0.1.25"
-  resolved "https://registry.npmjs.org/@descope/role-management-widget/-/role-management-widget-0.1.25.tgz"
-  integrity sha512-yHF7BU96rEb0JdW9/AEVWXE3yleu88hFnfFTrhZF/eO4xw3WJNU9dBUA21QSlxFQFjDd67+vht9G5v09AUhBpg==
+"@descope/role-management-widget@0.1.26":
+  version "0.1.26"
+  resolved "https://registry.npmjs.org/@descope/role-management-widget/-/role-management-widget-0.1.26.tgz"
+  integrity sha512-hyD9JkKTz51tC6zZJl0gz2r8E1vndCyizvaapZYvoLq/cd0uBeO49OQ1PA23EPQh/3QsQCAhuPOl8mcgo61D/Q==
   dependencies:
     "@descope/sdk-component-drivers" "0.1.14"
     "@descope/sdk-helpers" "0.1.14"
@@ -1422,10 +1422,10 @@
     "@descope/sdk-helpers" "0.1.14"
     tslib "2.6.2"
 
-"@descope/user-management-widget@0.4.26":
-  version "0.4.26"
-  resolved "https://registry.npmjs.org/@descope/user-management-widget/-/user-management-widget-0.4.26.tgz"
-  integrity sha512-VzDUAWO42Gf3lu412O8zwJ6A9hOvUbP/BNgyf8XbJuKeVyLQ9n6WcK99FSTZZxEbdVCR+BhP18dM9P/x/gGMPQ==
+"@descope/user-management-widget@0.4.27":
+  version "0.4.27"
+  resolved "https://registry.npmjs.org/@descope/user-management-widget/-/user-management-widget-0.4.27.tgz"
+  integrity sha512-lo9BKYunHPO17HwhrWEebrtzS45g0RYsKX6t19sMC+yM/REA7Yrqx72VrKc156iqOD1TeDdrhZ3cueBbvihYsQ==
   dependencies:
     "@descope/sdk-component-drivers" "0.1.14"
     "@descope/sdk-helpers" "0.1.14"
@@ -2326,9 +2326,9 @@
   integrity sha512-P1st0aksCrn9sGZhp8GMYwBnQsbvAWsZAX44oXNNvLHGqAOcoVxmjZiohstwQ7SqKnbR47akdNi+uleWD8+g6A==
 
 "@reduxjs/toolkit@^2.0.1":
-  version "2.2.2"
-  resolved "https://registry.npmjs.org/@reduxjs/toolkit/-/toolkit-2.2.2.tgz"
-  integrity sha512-454GZrEx3G6QSYwIx9ROaso1HR6sTH8qyZBe3KEsdWVGU3ayV8jYCwdaEJV3vl9V6+pi3GRl+7Xl7AeDna6qwQ==
+  version "2.2.3"
+  resolved "https://registry.npmjs.org/@reduxjs/toolkit/-/toolkit-2.2.3.tgz"
+  integrity sha512-76dll9EnJXg4EVcI5YNxZA/9hSAmZsFqzMmNRHvIlzw2WS/twfcVX3ysYrWGJMClwEmChQFC4yRq74tn6fdzRA==
   dependencies:
     immer "^10.0.3"
     redux "^5.0.1"
