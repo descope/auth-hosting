@@ -1381,10 +1381,10 @@
   dependencies:
     jwt-decode "3.1.2"
 
-"@descope/react-sdk@2.0.17":
-  version "2.0.17"
-  resolved "https://registry.npmjs.org/@descope/react-sdk/-/react-sdk-2.0.17.tgz"
-  integrity sha512-552XyNqMrbLjXTvo3TaIUnKgldYd3isLFQt6Ss8e2zYnVhfijG0AcC9UILJbIjfHbMJw3iuXlc38ISvmlrmz9A==
+"@descope/react-sdk@2.0.19":
+  version "2.0.19"
+  resolved "https://registry.npmjs.org/@descope/react-sdk/-/react-sdk-2.0.19.tgz"
+  integrity sha512-6eOvOe/kiGiLaVFN6eniPAs+8dudPAimpFelWo8xTlrUJ/ErpieREJJrgOGjN42kLa4PbcKt/9VRzOMzTT6TCA==
   dependencies:
     "@descope/access-key-management-widget" "0.1.31"
     "@descope/role-management-widget" "0.1.31"
