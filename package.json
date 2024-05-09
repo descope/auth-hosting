@@ -104,7 +104,7 @@
 	"engines": {
 		"node": "^18"
 	},
-	"packageManager": "yarn@1.22.19",
+	"packageManager": "yarn@1.22.22",
 	"homepage": "login",
 	"jest": {
 		"collectCoverageFrom": [
