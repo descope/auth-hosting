@@ -479,7 +479,7 @@
 
 "@babel/plugin-syntax-jsx@^7.22.5", "@babel/plugin-syntax-jsx@^7.23.3", "@babel/plugin-syntax-jsx@^7.7.2":
   version "7.23.3"
-  resolved "https://registry.yarnpkg.com/@babel/plugin-syntax-jsx/-/plugin-syntax-jsx-7.23.3.tgz#8f2e4f8a9b5f9aa16067e142c1ac9cd9f810f473"
+  resolved "https://registry.npmjs.org/@babel/plugin-syntax-jsx/-/plugin-syntax-jsx-7.23.3.tgz"
   integrity sha512-EB2MELswq55OHUoRZLGg/zC7QWUKfNLpE57m/S2yr1uEneIgsTgrSzXP3NXEsMkVn76OlaVVnzN+ugObuYGwhg==
   dependencies:
     "@babel/helper-plugin-utils" "^7.22.5"
@@ -1348,177 +1348,62 @@
     normalize-package-data "^3||^4||^5||^6"
     xmlbuilder2 "^3.0.2"
 
-"@descope-int/react-dynamic-sdk@^1.0.88":
-  version "1.0.88"
-  resolved "https://registry.yarnpkg.com/@descope-int/react-dynamic-sdk/-/react-dynamic-sdk-1.0.88.tgz#838082751dae8bd4ccfbaffbcfb4c53b2e352fe6"
-  integrity sha512-QvdrkZ1EE38fYeUkrUeQFGzVdbSsQkvFLVbxElWXQ686qNM2+ZonTD7wYcpDfAFc4Aj0GgIIXavxjzOYv/5qhg==
+"@descope-int/react-dynamic-sdk@^1.0.96":
+  version "1.0.96"
+  resolved "https://registry.npmjs.org/@descope-int/react-dynamic-sdk/-/react-dynamic-sdk-1.0.96.tgz"
+  integrity sha512-Na6OoUV/lIHe3DG1RV82bCh4bORy/BQePZgmU0+CHXO3zx1tUdfK5/gBeMChqyV82DLlkMaMXBYLYA4Ltvelpw==
   dependencies:
-    "@descope/react-sdk" "^2.0.24"
+    "@descope/react-sdk" "^1.0.14"
     element-internals-polyfill "^1.3.9"
 
-"@descope/access-key-management-widget@0.1.47":
-  version "0.1.47"
-  resolved "https://registry.yarnpkg.com/@descope/access-key-management-widget/-/access-key-management-widget-0.1.47.tgz#cd7a061673da457d1f4929f009a604ff9a221eda"
-  integrity sha512-yWHKxsEpDDtEJZh/LMJE7i8smjjbLtlqIP8BP5MHfsprTISSIyddQgE4lTWwaSpV+BTka6zry3kbXJhM4YxYLA==
-  dependencies:
-    "@descope/sdk-component-drivers" "0.2.3"
-    "@descope/sdk-helpers" "0.1.22"
-    "@descope/sdk-mixins" "0.2.4"
-    "@descope/web-js-sdk" "1.10.37"
-    "@reduxjs/toolkit" "^2.0.1"
-    immer "^10.0.3"
-    redux "5.0.1"
-    redux-thunk "3.1.0"
-    reselect "5.1.0"
-    tslib "2.6.2"
-
-"@descope/audit-management-widget@0.1.10":
-  version "0.1.10"
-  resolved "https://registry.yarnpkg.com/@descope/audit-management-widget/-/audit-management-widget-0.1.10.tgz#b0e83d5477b5d2c9aa317a9b357c515442944fd6"
-  integrity sha512-UU7d21diWGe1nZHIpc8QeCkxNAXO44+CYWeuApcu7heVIXRC1ATlwPvYv+vMqJpu5pELwft9Szsy2rA4mVP0qg==
-  dependencies:
-    "@descope/sdk-component-drivers" "0.2.3"
-    "@descope/sdk-helpers" "0.1.22"
-    "@descope/sdk-mixins" "0.2.4"
-    "@descope/web-js-sdk" "1.10.37"
-    "@reduxjs/toolkit" "^2.0.1"
-    immer "^10.0.3"
-    redux "5.0.1"
-    redux-thunk "3.1.0"
-    reselect "5.1.0"
-    tslib "2.6.2"
-
-"@descope/core-js-sdk@2.14.1":
-  version "2.14.1"
-  resolved "https://registry.yarnpkg.com/@descope/core-js-sdk/-/core-js-sdk-2.14.1.tgz#a9586628ec0935a4c7c89d5b51c0e2a2ef8b18c2"
-  integrity sha512-orF8I3mQpWBOAHCEJZbgpdenPaO+WnlkZyef0XMZnTWLIoF8WBh7rto1mxyUTfiHSOwT29JPRUnq6rEqb5OLkA==
-  dependencies:
-    jwt-decode "3.1.2"
-
-"@descope/core-js-sdk@2.8.0":
-  version "2.8.0"
-  resolved "https://registry.npmjs.org/@descope/core-js-sdk/-/core-js-sdk-2.8.0.tgz"
-  integrity sha512-2MTgEInuLGSPsfnnMxaEInp7JyQjHhHU++TEoLhaoX0jmDT2tWrCLh6Lgyv5sSfST957T6CPxBSjjG9ItwTRKA==
+"@descope/core-js-sdk@1.9.2":
+  version "1.9.2"
+  resolved "https://registry.npmjs.org/@descope/core-js-sdk/-/core-js-sdk-1.9.2.tgz"
+  integrity sha512-FlQs4fDBN4rHoq9RC7LQC3F67Gwfkiqwfn/CLWU77s02hD/iKpPUm66hp1JnW7kA/YICTwj5Mzq11mH3q4OvLw==
   dependencies:
     jwt-decode "3.1.2"
     lodash.get "4.4.2"
 
-"@descope/react-sdk@^2.0.24":
-  version "2.0.24"
-  resolved "https://registry.yarnpkg.com/@descope/react-sdk/-/react-sdk-2.0.24.tgz#74c640fc5b09761cec051825403fb5c966cda2ee"
-  integrity sha512-a3IhFAj0B6IZO5TBothsbFdWDuSh2ZHRqk3S2APchwj/yUL+L5DhBJJKgzex6z32+oVeltwCFYyK78BgtE0V6A==
+"@descope/core-js-sdk@2.14.7":
+  version "2.14.7"
+  resolved "https://registry.npmjs.org/@descope/core-js-sdk/-/core-js-sdk-2.14.7.tgz"
+  integrity sha512-338aJVzknPeDnheLZp0dm6KH9c2V9AFciy9XivyhNF0aUNjP1OXaGgQM2nqdFbn6OZY0YqHOUBwS5LU2zAaH8w==
   dependencies:
-    "@descope/access-key-management-widget" "0.1.47"
-    "@descope/audit-management-widget" "0.1.10"
-    "@descope/role-management-widget" "0.1.45"
-    "@descope/user-management-widget" "0.4.47"
-    "@descope/user-profile-widget" "0.0.11"
-    "@descope/web-component" "3.11.5"
+    jwt-decode "3.1.2"
+
+"@descope/react-sdk@^1.0.14":
+  version "1.0.14"
+  resolved "https://registry.npmjs.org/@descope/react-sdk/-/react-sdk-1.0.14.tgz"
+  integrity sha512-x2vj8g2YgezGlEt1S0OI6HJ0kewOz73gUpL5ZwqOP9nXO6z3dGIdcJBZJYnVNZ6n0IrAn/YlzR3GIWSoFTcMsQ==
+  dependencies:
+    "@descope/web-component" "2.11.3"
   optionalDependencies:
     "@descope/web-js-sdk" ">=1"
 
-"@descope/role-management-widget@0.1.45":
-  version "0.1.45"
-  resolved "https://registry.yarnpkg.com/@descope/role-management-widget/-/role-management-widget-0.1.45.tgz#8fbc98f9385c3ddc8109f60443063c776ccf7332"
-  integrity sha512-Jmn9DCosPFgNvml7g/VwJlaUsg/K9YTEibsnJsg/tlfxXdHDyjXu9zvLCz/5N5pG/szEsBbhAOIRHOFouuHhlA==
+"@descope/web-component@2.11.3":
+  version "2.11.3"
+  resolved "https://registry.npmjs.org/@descope/web-component/-/web-component-2.11.3.tgz"
+  integrity sha512-I67kDxNZrr9LAfXUpB8gEL8u6oWoAJMHMxynHYRJIWhbfZ0zqAP/Z/V/rf9Rmn1GVqF02x0pHvW0ek6e4en8AQ==
   dependencies:
-    "@descope/sdk-component-drivers" "0.2.3"
-    "@descope/sdk-helpers" "0.1.22"
-    "@descope/sdk-mixins" "0.2.4"
-    "@descope/web-js-sdk" "1.10.37"
-    "@reduxjs/toolkit" "^2.0.1"
-    immer "^10.0.3"
-    redux "5.0.1"
-    redux-thunk "3.1.0"
-    reselect "5.1.0"
+    "@descope/web-js-sdk" "1.6.2"
     tslib "2.6.2"
 
-"@descope/sdk-component-drivers@0.2.3":
-  version "0.2.3"
-  resolved "https://registry.yarnpkg.com/@descope/sdk-component-drivers/-/sdk-component-drivers-0.2.3.tgz#9ef9fc969c80cde69aebc5513339a63ab0002a8f"
-  integrity sha512-N+kZ+Wt+dOiaLScvN72hqpLRLCU6i/rM293IeXo5If8na/NPyjoHNHh3L7+XiuY8zSCFIKSsvEBywkETAYENVw==
+"@descope/web-js-sdk@1.6.2":
+  version "1.6.2"
+  resolved "https://registry.npmjs.org/@descope/web-js-sdk/-/web-js-sdk-1.6.2.tgz"
+  integrity sha512-hw4jAG1uwh/jyH50k+v82uuG9R/EdygkRakSY1n296gE4r5hNpOOp+GXYDSPfuIxW7DSA26XcE8Rd6lbepoXqA==
   dependencies:
-    "@descope/sdk-helpers" "0.1.22"
-    tslib "2.6.2"
-
-"@descope/sdk-helpers@0.1.22":
-  version "0.1.22"
-  resolved "https://registry.yarnpkg.com/@descope/sdk-helpers/-/sdk-helpers-0.1.22.tgz#8a0ccec389af4eb56e87ade08f63f487187d8648"
-  integrity sha512-rNZKrb2XkM2sMaqCw722cMoaypILp/kqAPpfbszrlglA/l5E38AvBm6rwOUcTBmqLEEc4nnsmweO24hTLeOIUQ==
-  dependencies:
-    tslib "2.6.2"
-
-"@descope/sdk-mixins@0.2.4":
-  version "0.2.4"
-  resolved "https://registry.yarnpkg.com/@descope/sdk-mixins/-/sdk-mixins-0.2.4.tgz#6c7fb9af6d5eb22d0e1c3dba97e741f9b3a9cd1b"
-  integrity sha512-l+GP03hMm3vaUSlNhnpUJRKhfCrlZHXf5xTqswQ5PSNUDDZzpG2ySkeGX9D4Ti+79KduPr+yqbszsXrKPmNOCA==
-  dependencies:
-    "@descope/sdk-component-drivers" "0.2.3"
-    "@descope/sdk-helpers" "0.1.22"
-    tslib "2.6.2"
-
-"@descope/user-management-widget@0.4.47":
-  version "0.4.47"
-  resolved "https://registry.yarnpkg.com/@descope/user-management-widget/-/user-management-widget-0.4.47.tgz#34bd37650e3a173eefa479246c01ed7575558642"
-  integrity sha512-nOCDQEywa41OXPpO7i4DjRC+bybFWNVlQfnADxAWvbS0UDEdrisMq9Q+Y+5P797AtR4bZv7x3bbVa46V8JO+7g==
-  dependencies:
-    "@descope/sdk-component-drivers" "0.2.3"
-    "@descope/sdk-helpers" "0.1.22"
-    "@descope/sdk-mixins" "0.2.4"
-    "@descope/web-js-sdk" "1.10.37"
-    "@reduxjs/toolkit" "^2.0.1"
-    immer "^10.0.3"
-    libphonenumber-js "1.10.59"
-    redux "5.0.1"
-    redux-thunk "3.1.0"
-    reselect "5.1.0"
-    tslib "2.6.2"
-
-"@descope/user-profile-widget@0.0.11":
-  version "0.0.11"
-  resolved "https://registry.yarnpkg.com/@descope/user-profile-widget/-/user-profile-widget-0.0.11.tgz#d50ac408cf8df7e3d769541f16b88d115115110e"
-  integrity sha512-/enRJKSpRWhKpSnFXa0dfgWv66NaLhP3ExeNzGkA/eXx5rahP00utZXo6oChYRJKMfYKXcQu9urgbZj0mO3/Gg==
-  dependencies:
-    "@descope/sdk-component-drivers" "0.2.3"
-    "@descope/sdk-helpers" "0.1.22"
-    "@descope/sdk-mixins" "0.2.4"
-    "@descope/web-component" "3.11.5"
-    "@descope/web-js-sdk" "1.10.37"
-    "@reduxjs/toolkit" "^2.0.1"
-    immer "^10.0.3"
-    libphonenumber-js "1.10.58"
-    redux "5.0.1"
-    redux-thunk "3.1.0"
-    reselect "5.1.0"
-    tslib "2.6.2"
-  optionalDependencies:
-    "@descope/core-js-sdk" "2.14.1"
-
-"@descope/web-component@3.11.5":
-  version "3.11.5"
-  resolved "https://registry.yarnpkg.com/@descope/web-component/-/web-component-3.11.5.tgz#206eec1550a0fb94262cfc5869615dd98b8ee88e"
-  integrity sha512-jCJyalbIF0Fn/Hdo5np8UFI1MZC+mi1eyTCSmfjrKH+zF+8YqoO1kD5vws+LMYwkW/AVmYIIi4D+6CiQUDL1AQ==
-  dependencies:
-    "@descope/web-js-sdk" "1.10.37"
-    tslib "2.6.2"
-
-"@descope/web-js-sdk@1.10.37":
-  version "1.10.37"
-  resolved "https://registry.yarnpkg.com/@descope/web-js-sdk/-/web-js-sdk-1.10.37.tgz#d9c2454bd3d8639bce4e63b4067f772bc6dc35db"
-  integrity sha512-Y6e7XBzPvF+SBG9pehBmxgZEdJ34Wfyunb1eMOdMqC7f4QMUCSpykdpniythoObMP8UTNnA410ANT6zFEA+IJg==
-  dependencies:
-    "@descope/core-js-sdk" "2.14.1"
-    "@fingerprintjs/fingerprintjs-pro" "3.9.3"
+    "@descope/core-js-sdk" "1.9.2"
+    "@fingerprintjs/fingerprintjs-pro" "3.8.5"
     js-cookie "3.0.5"
-    tslib "2.6.2"
 
 "@descope/web-js-sdk@>=1":
-  version "1.9.0"
-  resolved "https://registry.yarnpkg.com/@descope/web-js-sdk/-/web-js-sdk-1.9.0.tgz#9f017edc8a4c6f985e23f284769273983485c951"
-  integrity sha512-ESBLVf/Edmo2joUATy16mnXXmJ/MjyPQg+LuvMNN8Ngpnvli23C9eHo3Z+XxSkflzcV3KhtpOCNyxmbjRR2u2g==
+  version "1.10.45"
+  resolved "https://registry.npmjs.org/@descope/web-js-sdk/-/web-js-sdk-1.10.45.tgz"
+  integrity sha512-3Y17dVfH9fdqRtyWGc5FkSPZP5bbopu5MrEtjBnu43ZAANPJ56MirjvvusQHNxkrqxumMfZpbFDj5pu3JQl0yQ==
   dependencies:
-    "@descope/core-js-sdk" "2.8.0"
-    "@fingerprintjs/fingerprintjs-pro" "3.8.5"
+    "@descope/core-js-sdk" "2.14.7"
+    "@fingerprintjs/fingerprintjs-pro" "3.9.3"
     js-cookie "3.0.5"
     tslib "2.6.2"
 
@@ -1670,7 +1555,7 @@
 
 "@fingerprintjs/fingerprintjs-pro@3.9.3":
   version "3.9.3"
-  resolved "https://registry.yarnpkg.com/@fingerprintjs/fingerprintjs-pro/-/fingerprintjs-pro-3.9.3.tgz#f2cc9904e9896804467739e46237334f54767a65"
+  resolved "https://registry.npmjs.org/@fingerprintjs/fingerprintjs-pro/-/fingerprintjs-pro-3.9.3.tgz"
   integrity sha512-Hm/7IQiJGGjCA6zDs34YOwtNjr1PueftdX6cR24Blh479HDcZedAlVslaQlV8aZcBdvlIlKxyqkWNQwHTXVahQ==
   dependencies:
     tslib "^2.4.1"
@@ -1718,7 +1603,7 @@
 
 "@humanwhocodes/object-schema@^2.0.1":
   version "2.0.2"
-  resolved "https://registry.yarnpkg.com/@humanwhocodes/object-schema/-/object-schema-2.0.2.tgz#d9fae00a2d5cb40f92cfe64b47ad749fbc38f917"
+  resolved "https://registry.npmjs.org/@humanwhocodes/object-schema/-/object-schema-2.0.2.tgz"
   integrity sha512-6EwiSjwWYP7pTckG6I5eyFANjPhmPjUX9JRLUSfNPC7FX7zK9gyZAfUEaECL6ALTpGX5AjnBq3C9XmVWPitNpw==
 
 "@isaacs/cliui@^8.0.2":
@@ -2397,16 +2282,6 @@
   resolved "https://registry.npmjs.org/@popperjs/core/-/core-2.11.8.tgz"
   integrity sha512-P1st0aksCrn9sGZhp8GMYwBnQsbvAWsZAX44oXNNvLHGqAOcoVxmjZiohstwQ7SqKnbR47akdNi+uleWD8+g6A==
 
-"@reduxjs/toolkit@^2.0.1":
-  version "2.2.3"
-  resolved "https://registry.yarnpkg.com/@reduxjs/toolkit/-/toolkit-2.2.3.tgz#5ce71cbf162f98c5dafb49bd3f1e11c5486ab9c4"
-  integrity sha512-76dll9EnJXg4EVcI5YNxZA/9hSAmZsFqzMmNRHvIlzw2WS/twfcVX3ysYrWGJMClwEmChQFC4yRq74tn6fdzRA==
-  dependencies:
-    immer "^10.0.3"
-    redux "^5.0.1"
-    redux-thunk "^3.1.0"
-    reselect "^5.0.1"
-
 "@rollup/plugin-babel@^5.2.0":
   version "5.3.1"
   resolved "https://registry.npmjs.org/@rollup/plugin-babel/-/plugin-babel-5.3.1.tgz"
@@ -2467,9 +2342,9 @@
     type-detect "4.0.8"
 
 "@sinonjs/commons@^3.0.0":
-  version "3.0.0"
-  resolved "https://registry.npmjs.org/@sinonjs/commons/-/commons-3.0.0.tgz"
-  integrity sha512-jXBtWAF4vmdNmZgD5FoKsVLv3rPgDnLgPbU84LIJ3otV44vJlDRokVng5v8NFJdCf/da9legHcKaRuZs4L7faA==
+  version "3.0.1"
+  resolved "https://registry.npmjs.org/@sinonjs/commons/-/commons-3.0.1.tgz"
+  integrity sha512-K3mCHKQ9sVh8o1C9cxkwxaOmXoAMlDxC1mYyHrjqOWEcBjYr76t96zL2zlj5dUGZ3HSw240X1qgH3Mjf1yJWpQ==
   dependencies:
     type-detect "4.0.8"
 
@@ -3442,14 +3317,14 @@ ajv@^6.12.2, ajv@^6.12.4, ajv@^6.12.5:
     uri-js "^4.2.2"
 
 ajv@^8.0.0, ajv@^8.12.0, ajv@^8.6.0, ajv@^8.9.0:
-  version "8.12.0"
-  resolved "https://registry.npmjs.org/ajv/-/ajv-8.12.0.tgz"
-  integrity sha512-sRu1kpcO9yLtYxBKvqfTeh9KzZEwO3STyX1HT+4CaDzC6HpTGYhIhPIzj9XuKU7KYDwnaeh5hcOwjy1QuJzBPA==
+  version "8.13.0"
+  resolved "https://registry.npmjs.org/ajv/-/ajv-8.13.0.tgz"
+  integrity sha512-PRA911Blj99jR5RMeTunVbNXMF6Lp4vZXnk5GQjcnUWUTsrXtekg/pnmFFI2u/I36Y/2bITGS30GZCXei6uNkA==
   dependencies:
-    fast-deep-equal "^3.1.1"
+    fast-deep-equal "^3.1.3"
     json-schema-traverse "^1.0.0"
     require-from-string "^2.0.2"
-    uri-js "^4.2.2"
+    uri-js "^4.4.1"
 
 ansi-escapes@^4.2.1, ansi-escapes@^4.3.1:
   version "4.3.2"
@@ -3581,7 +3456,7 @@ array-flatten@1.1.1:
 
 array-flatten@^2.1.2:
   version "2.1.2"
-  resolved "https://registry.yarnpkg.com/array-flatten/-/array-flatten-2.1.2.tgz#24ef80a28c1a893617e2149b0c6d0d788293b099"
+  resolved "https://registry.npmjs.org/array-flatten/-/array-flatten-2.1.2.tgz"
   integrity sha512-hNfzcOV8W4NdualtqBFPyVO+54DSJuZGY9qT4pRroB6S9e3iiido2ISIC5h9R2sPJ8H3FHCIiEnsv1lPXO3KtQ==
 
 array-includes@^3.1.6, array-includes@^3.1.7:
@@ -4030,7 +3905,7 @@ browserslist@^4.0.0, browserslist@^4.14.5, browserslist@^4.18.1, browserslist@^4
 
 browserslist@^4.21.10:
   version "4.22.3"
-  resolved "https://registry.yarnpkg.com/browserslist/-/browserslist-4.22.3.tgz#299d11b7e947a6b843981392721169e27d60c5a6"
+  resolved "https://registry.npmjs.org/browserslist/-/browserslist-4.22.3.tgz"
   integrity sha512-UAp55yfwNv0klWNapjs/ktHoguxuQNGnOzxYmfnXIS+8AsRDZkSDxg7R1AX3GKzn078SBI5dzwzj/Yx0Or0e3A==
   dependencies:
     caniuse-lite "^1.0.30001580"
@@ -4126,7 +4001,7 @@ caniuse-lite@^1.0.0, caniuse-lite@^1.0.30001565:
 
 caniuse-lite@^1.0.30001538, caniuse-lite@^1.0.30001580:
   version "1.0.30001583"
-  resolved "https://registry.yarnpkg.com/caniuse-lite/-/caniuse-lite-1.0.30001583.tgz#abb2970cc370801dc7e27bf290509dc132cfa390"
+  resolved "https://registry.npmjs.org/caniuse-lite/-/caniuse-lite-1.0.30001583.tgz"
   integrity sha512-acWTYaha8xfhA/Du/z4sNZjHUWjkiuoAi2LM+T/aL+kemKQgPT1xBb/YKjlQ0Qo8gvbHsGNplrEJ+9G3gL7i4Q==
 
 case-sensitive-paths-webpack-plugin@^2.4.0:
@@ -4265,7 +4140,7 @@ clone-deep@^4.0.1:
 
 clsx@2.1.0, clsx@^2.1.0:
   version "2.1.0"
-  resolved "https://registry.yarnpkg.com/clsx/-/clsx-2.1.0.tgz#e851283bcb5c80ee7608db18487433f7b23f77cb"
+  resolved "https://registry.npmjs.org/clsx/-/clsx-2.1.0.tgz"
   integrity sha512-m3iNNWpd9rl3jvvcBnu70ylMdrXt8Vlq4HYadnU5fwcOtvkSQWPmj7amUcDT2qYI7risszBjI5AUIUox9D16pg==
 
 co@^4.6.0:
@@ -4935,7 +4810,7 @@ dlv@^1.1.3:
 
 dns-equal@^1.0.0:
   version "1.0.0"
-  resolved "https://registry.yarnpkg.com/dns-equal/-/dns-equal-1.0.0.tgz#b39e7f1da6eb0a75ba9c17324b34753c47e0654d"
+  resolved "https://registry.npmjs.org/dns-equal/-/dns-equal-1.0.0.tgz"
   integrity sha512-z+paD6YUQsk+AbGCEM4PrOXSss5gd66QfcVBFTKR/HpFL9jCqikS94HYwKww6fQyO7IxrIIyUu+g0Ka9tUS2Cg==
 
 dns-packet@^5.2.2:
@@ -5089,12 +4964,12 @@ electron-to-chromium@^1.4.601:
 
 electron-to-chromium@^1.4.648:
   version "1.4.656"
-  resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.4.656.tgz#b374fb7cab9b782a5bc967c0ce0e19826186b9c9"
+  resolved "https://registry.npmjs.org/electron-to-chromium/-/electron-to-chromium-1.4.656.tgz"
   integrity sha512-9AQB5eFTHyR3Gvt2t/NwR0le2jBSUNwCnMbUCejFWHD+so4tH40/dRLgoE+jxlPeWS43XJewyvCv+I8LPMl49Q==
 
 element-internals-polyfill@^1.3.9:
   version "1.3.10"
-  resolved "https://registry.yarnpkg.com/element-internals-polyfill/-/element-internals-polyfill-1.3.10.tgz#799dfe5104a7dab39cb11f91af1b94740ff73394"
+  resolved "https://registry.npmjs.org/element-internals-polyfill/-/element-internals-polyfill-1.3.10.tgz"
   integrity sha512-hflkht5sNZ2LF2sP9+OHfqGDcr8R9NIiDCuDfXep8uptqqt0OjZDaWJ/7ip+OdoIZBFJL+fFJ3+aLku1cTIEGA==
 
 emittery@^0.10.2:
@@ -6003,7 +5878,7 @@ flat@^5.0.2:
 
 flatted@^3.2.7:
   version "3.2.9"
-  resolved "https://registry.yarnpkg.com/flatted/-/flatted-3.2.9.tgz#7eb4c67ca1ba34232ca9d2d93e9886e611ad7daf"
+  resolved "https://registry.npmjs.org/flatted/-/flatted-3.2.9.tgz"
   integrity sha512-36yxDn5H7OFZQla0/jFJmbIKTdZAQHngCedGxiMmpNfEZM0sdEeT+WczLQrjK6D7o2aiyLYDnkw0R3JK0Qv1RQ==
 
 follow-redirects@^1.0.0:
@@ -6061,7 +5936,7 @@ forwarded@0.2.0:
 
 fraction.js@^4.3.6:
   version "4.3.7"
-  resolved "https://registry.yarnpkg.com/fraction.js/-/fraction.js-4.3.7.tgz#06ca0085157e42fda7f9e726e79fefc4068840f7"
+  resolved "https://registry.npmjs.org/fraction.js/-/fraction.js-4.3.7.tgz"
   integrity sha512-ZsDfxO51wGAXREY55a7la9LScWpwv9RxIrYABrlvOFBlH/ShPnrtsXeuUIfXKKOVicNxQ+o8JTbJvjS4M89yew==
 
 fresh@0.5.2:
@@ -6374,7 +6249,7 @@ has-unicode@^2.0.1:
 
 has@^1.0.3:
   version "1.0.4"
-  resolved "https://registry.yarnpkg.com/has/-/has-1.0.4.tgz#2eb2860e000011dae4f1406a86fe80e530fb2ec6"
+  resolved "https://registry.npmjs.org/has/-/has-1.0.4.tgz"
   integrity sha512-qdSAmqLF6209RFj4VVItywPMbm3vWylknmB3nvNiUIs72xAimcM8nVYxYr7ncvZq5qzk9MKIZR8ijqD/1QuYjQ==
 
 hasown@^2.0.0:
@@ -6587,11 +6462,6 @@ ignore@^5.2.0, ignore@^5.2.4:
   version "5.2.4"
   resolved "https://registry.npmjs.org/ignore/-/ignore-5.2.4.tgz"
   integrity sha512-MAb38BcSbH0eHNBxn7ql2NH/kX33OkB3lZ1BNdh7ENeRChHTYsTvWrMubiIAMNS2llXEEgZ1MUOBtXChP3kaFQ==
-
-immer@^10.0.3:
-  version "10.1.1"
-  resolved "https://registry.yarnpkg.com/immer/-/immer-10.1.1.tgz#206f344ea372d8ea176891545ee53ccc062db7bc"
-  integrity sha512-s2MPrmjovJcoMaHtx6K11Ra7oD05NT97w1IC5zpMkT6Atjr7H8LjaDd81iIxUYpMKSRRNMJE703M1Fhr/TctHw==
 
 immer@^9.0.7:
   version "9.0.21"
@@ -8097,16 +7967,6 @@ levn@~0.3.0:
     prelude-ls "~1.1.2"
     type-check "~0.3.2"
 
-libphonenumber-js@1.10.58:
-  version "1.10.58"
-  resolved "https://registry.yarnpkg.com/libphonenumber-js/-/libphonenumber-js-1.10.58.tgz#2015877bd47fd3d32d9fbfcedd75df35be230c9a"
-  integrity sha512-53A0IpJFL9LdHbpeatwizf8KSwPICrqn9H0g3Y7WQ+Jgeu9cQ4Ew3WrRtrLBu/CX2lXd5+rgT01/tGlkbkzOjw==
-
-libphonenumber-js@1.10.59:
-  version "1.10.59"
-  resolved "https://registry.yarnpkg.com/libphonenumber-js/-/libphonenumber-js-1.10.59.tgz#ece26801dcf11fe3f8265bbc01981d9d808f9e6c"
-  integrity sha512-HeTsOrDF/hWhEiKqZVwg9Cqlep5x2T+IYDENvT2VRj3iX8JQ7Y+omENv+AIn0vC8m6GYhivfCed5Cgfw27r5SA==
-
 "libxmljs2@^0.31 || ^0.32 || ^0.33":
   version "0.33.0"
   resolved "https://registry.npmjs.org/libxmljs2/-/libxmljs2-0.33.0.tgz"
@@ -9301,7 +9161,7 @@ postcss-modules-local-by-default@^4.0.3:
 
 postcss-modules-scope@^3.0.0:
   version "3.1.1"
-  resolved "https://registry.yarnpkg.com/postcss-modules-scope/-/postcss-modules-scope-3.1.1.tgz#32cfab55e84887c079a19bbb215e721d683ef134"
+  resolved "https://registry.npmjs.org/postcss-modules-scope/-/postcss-modules-scope-3.1.1.tgz"
   integrity sha512-uZgqzdTleelWjzJY+Fhti6F3C9iF1JR/dODLs/JDefozYcKTBCdD8BIl6nNPbTbcLnGrk56hzwZC2DaGNvYjzA==
   dependencies:
     postcss-selector-parser "^6.0.4"
@@ -9557,19 +9417,10 @@ postcss@^7.0.35:
     picocolors "^0.2.1"
     source-map "^0.6.1"
 
-postcss@^8.3.5, postcss@^8.4.23, postcss@^8.4.4:
+postcss@^8.3.5, postcss@^8.4.21, postcss@^8.4.23, postcss@^8.4.4:
   version "8.4.32"
   resolved "https://registry.npmjs.org/postcss/-/postcss-8.4.32.tgz"
   integrity sha512-D/kj5JNu6oo2EIy+XL/26JEDTlIbB8hw85G8StOE6L74RQAVVP5rej6wxCNqyMbR4RkPfqvezVbPw81Ngd6Kcw==
-  dependencies:
-    nanoid "^3.3.7"
-    picocolors "^1.0.0"
-    source-map-js "^1.0.2"
-
-postcss@^8.4.21:
-  version "8.4.33"
-  resolved "https://registry.yarnpkg.com/postcss/-/postcss-8.4.33.tgz#1378e859c9f69bf6f638b990a0212f43e2aaa742"
-  integrity sha512-Kkpbhhdjw2qQs2O2DGX+8m5OVqEcbB9HRBvuYM9pgrjEFUg30A9LmXNlTAUj4S9kgtGyrMbTzVjH7E+s5Re2yg==
   dependencies:
     nanoid "^3.3.7"
     picocolors "^1.0.0"
@@ -9594,7 +9445,7 @@ prettier-linter-helpers@^1.0.0:
 
 prettier@3.2.2:
   version "3.2.2"
-  resolved "https://registry.yarnpkg.com/prettier/-/prettier-3.2.2.tgz#96e580f7ca9c96090ad054616c0c4597e2844b65"
+  resolved "https://registry.npmjs.org/prettier/-/prettier-3.2.2.tgz"
   integrity sha512-HTByuKZzw7utPiDO523Tt2pLtEyK7OibUD9suEJQrPUCYQqrHr74GGX6VidMrovbf/I50mPqr8j/II6oBAuc5A==
 
 pretty-bytes@^5.3.0, pretty-bytes@^5.4.1:
@@ -9768,7 +9619,7 @@ react-app-polyfill@^3.0.0:
 
 react-app-rewired@^2.2.1:
   version "2.2.1"
-  resolved "https://registry.yarnpkg.com/react-app-rewired/-/react-app-rewired-2.2.1.tgz#84901ee1e3f26add0377ebec0b41bcdfce9fc211"
+  resolved "https://registry.npmjs.org/react-app-rewired/-/react-app-rewired-2.2.1.tgz"
   integrity sha512-uFQWTErXeLDrMzOJHKp0h8P1z0LV9HzPGsJ6adOtGlA/B9WfT6Shh4j2tLTTGlXOfiVx6w6iWpp7SOC5pvk+gA==
   dependencies:
     semver "^5.6.0"
@@ -9959,16 +9810,6 @@ redent@^3.0.0:
     indent-string "^4.0.0"
     strip-indent "^3.0.0"
 
-redux-thunk@3.1.0, redux-thunk@^3.1.0:
-  version "3.1.0"
-  resolved "https://registry.yarnpkg.com/redux-thunk/-/redux-thunk-3.1.0.tgz#94aa6e04977c30e14e892eae84978c1af6058ff3"
-  integrity sha512-NW2r5T6ksUKXCabzhL9z+h206HQw/NJkcLm1GPImRQ8IzfXwRGqjVhKJGauHirT0DAuyy6hjdnMZaRoAcy0Klw==
-
-redux@5.0.1, redux@^5.0.1:
-  version "5.0.1"
-  resolved "https://registry.yarnpkg.com/redux/-/redux-5.0.1.tgz#97fa26881ce5746500125585d5642c77b6e9447b"
-  integrity sha512-M9/ELqF6fy8FwmkpnF0S3YKOqMyoWJ4+CS5Efg2ct3oY9daQvd/Pc71FpGZsVsbl3Cpb+IIcjBDUnnyBdQbq4w==
-
 reflect.getprototypeof@^1.0.4:
   version "1.0.4"
   resolved "https://registry.npmjs.org/reflect.getprototypeof/-/reflect.getprototypeof-1.0.4.tgz"
@@ -10088,11 +9929,6 @@ requires-port@^1.0.0:
   version "1.0.0"
   resolved "https://registry.npmjs.org/requires-port/-/requires-port-1.0.0.tgz"
   integrity sha512-KigOCHcocU3XODJxsu8i/j8T9tzT4adHiecwORRQ0ZZFcp7ahwXuRU1m+yuO90C5ZUyGeGfocHDI14M3L3yDAQ==
-
-reselect@5.1.0, reselect@^5.0.1:
-  version "5.1.0"
-  resolved "https://registry.yarnpkg.com/reselect/-/reselect-5.1.0.tgz#c479139ab9dd91be4d9c764a7f3868210ef8cd21"
-  integrity sha512-aw7jcGLDpSgNDyWBQLv2cedml85qd95/iszJjN988zX1t7AVRJi19d9kto5+W7oCfQ94gyo40dVbT6g2k4/kXg==
 
 resolve-cwd@^3.0.0:
   version "3.0.0"
@@ -10346,7 +10182,7 @@ selfsigned@^2.1.1:
 
 semver@^5.6.0:
   version "5.7.2"
-  resolved "https://registry.yarnpkg.com/semver/-/semver-5.7.2.tgz#48d55db737c3287cd4835e17fa13feace1c41ef8"
+  resolved "https://registry.npmjs.org/semver/-/semver-5.7.2.tgz"
   integrity sha512-cBznnQ9KjJqU67B52RMC65CMarK2600WFnbkcaiwWq3xy/5haFJlshgnpjovMVJ+Hff49d8GEn0b87C5pDQ10g==
 
 semver@^6.0.0, semver@^6.3.0, semver@^6.3.1:
@@ -11086,7 +10922,7 @@ terser@^5.0.0, terser@^5.10.0:
 
 terser@^5.16.8:
   version "5.27.0"
-  resolved "https://registry.yarnpkg.com/terser/-/terser-5.27.0.tgz#70108689d9ab25fef61c4e93e808e9fd092bf20c"
+  resolved "https://registry.npmjs.org/terser/-/terser-5.27.0.tgz"
   integrity sha512-bi1HRwVRskAjheeYl291n3JC4GgO/Ty4z1nVs5AAsmonJulGxpSektecnNedrwK9C7vpvVtcX3cw00VSLt7U2A==
   dependencies:
     "@jridgewell/source-map" "^0.3.3"
@@ -11338,9 +11174,9 @@ typedarray-to-buffer@^3.1.5:
     is-typedarray "^1.0.0"
 
 typescript@<5.3.4:
-  version "5.3.3"
-  resolved "https://registry.npmjs.org/typescript/-/typescript-5.3.3.tgz"
-  integrity sha512-pXWcraxM0uxAS+tN0AG/BF2TyqmHO014Z070UsJ+pFvYuRSq8KH8DmWpnbXe0pEPDHXZV3FcAbJkijJ5oNEnWw==
+  version "4.9.5"
+  resolved "https://registry.npmjs.org/typescript/-/typescript-4.9.5.tgz"
+  integrity sha512-1FXk9E2Hm+QzZQ7z+McJiHL4NW1F2EzMu9Nq9i3zAaGqibafqYwCVU6WyWAuyQRRzOlxou8xZSyXLEN8oKj24g==
 
 unbox-primitive@^1.0.2:
   version "1.0.2"
@@ -11442,7 +11278,7 @@ url-parse@^1.5.3:
 
 usehooks-ts@2.9.4:
   version "2.9.4"
-  resolved "https://registry.yarnpkg.com/usehooks-ts/-/usehooks-ts-2.9.4.tgz#188c0428b60e37a7fdc599567c10ea44a77e1d11"
+  resolved "https://registry.npmjs.org/usehooks-ts/-/usehooks-ts-2.9.4.tgz"
   integrity sha512-VOSEbA+BGGORLttsICowNb5CG0D2/IEoVvMEl9OuuOoQi99W6XuNipo3SPFhWo3Bhdwi0Swj1D+IMQDQB9KrwQ==
 
 util-deprecate@^1.0.1, util-deprecate@^1.0.2, util-deprecate@~1.0.1:
