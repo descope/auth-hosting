@@ -3,6 +3,7 @@ import React from 'react';
 import { AuthProvider, Descope } from '@descope/react-sdk';
 import clsx from 'clsx';
 import Welcome from './components/Welcome';
+import Done from './components/Done';
 
 const projectRegex = /^P[a-zA-Z0-9]{27}$/;
 
@@ -34,6 +35,8 @@ const App = () => {
 		urlParams.get('debug') === 'true' ||
 		process.env.DESCOPE_FLOW_DEBUG === 'true';
 
+	const done = urlParams.get('done') || false;
+
 	const tenantId = urlParams.get('tenant') || process.env.DESCOPE_TENANT_ID;
 
 	const backgroundColor = urlParams.get('bg') || process.env.DESCOPE_BG_COLOR;
@@ -53,20 +56,31 @@ const App = () => {
 		debug,
 		tenant: tenantId,
 		...((flowId === 'saml-config' || flowId === 'sso-config') && {
-			autoFocus: false
+			autoFocus: false,
+			onSuccess: () => {
+				let search = window?.location.search;
+				if (search) {
+					search = `${search}&done=true`;
+				} else {
+					search = `?done=true`;
+				}
+				window?.location.assign(
+					`${window?.location.origin}/${window?.location.pathname}${search}`
+				);
+			}
 		})
 	};
 
 	return (
 		<AuthProvider projectId={projectId} baseUrl={baseUrl}>
 			<div className="app" style={{ backgroundColor }}>
-				{projectId && flowId ? (
+				{!done && projectId && flowId && (
 					<div className={containerClasses} data-testid="descope-component">
 						<Descope {...flowProps} />
 					</div>
-				) : (
-					<Welcome />
 				)}
+				{!done && (!projectId || !flowId) && <Welcome />}
+				{done && <Done />}
 			</div>
 		</AuthProvider>
 	);
