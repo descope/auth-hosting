@@ -65,7 +65,9 @@ const App = () => {
 	>['theme'];
 
 	const isWideContainer =
-		urlParams.get('wide') === 'true' || flowId === 'saml-config';
+		urlParams.get('wide') === 'true' ||
+		flowId === 'saml-config' ||
+		flowId === 'sso-config';
 
 	const containerClasses = clsx('descope-base-container', {
 		'descope-wide-container': isWideContainer,
@@ -76,7 +78,9 @@ const App = () => {
 		flowId,
 		debug,
 		tenant: tenantId,
-		...(flowId === 'saml-config' && { autoFocus: false }),
+		...((flowId === 'saml-config' || flowId === 'sso-config') && {
+			autoFocus: false
+		}),
 		theme
 	};
 
