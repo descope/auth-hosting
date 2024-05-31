@@ -1375,13 +1375,6 @@
     reselect "5.1.0"
     tslib "2.6.2"
 
-"@descope/core-js-sdk@2.17.1":
-  version "2.17.1"
-  resolved "https://registry.yarnpkg.com/@descope/core-js-sdk/-/core-js-sdk-2.17.1.tgz#60380ccc6ecb58911a6d24066b328a0189200738"
-  integrity sha512-n1cZ2iaeti37nqXEAxcfaQZF1mYDS/0LkMmIRIwPlZMtsNukEV+JXYSX/RtukGyoUE9wmiXenIQgHhtG+2tU1w==
-  dependencies:
-    jwt-decode "3.1.2"
-
 "@descope/core-js-sdk@2.17.4":
   version "2.17.4"
   resolved "https://registry.yarnpkg.com/@descope/core-js-sdk/-/core-js-sdk-2.17.4.tgz#82ace5d39ddd79a59cb476adbb2fc2f7f32457bb"
@@ -1488,7 +1481,7 @@
     "@descope/web-js-sdk" "1.11.10"
     tslib "2.6.2"
 
-"@descope/web-js-sdk@1.11.10":
+"@descope/web-js-sdk@1.11.10", "@descope/web-js-sdk@>=1":
   version "1.11.10"
   resolved "https://registry.yarnpkg.com/@descope/web-js-sdk/-/web-js-sdk-1.11.10.tgz#9a2721c11aeaae78743d76640c260c127a8a5c20"
   integrity sha512-e3wvzg00/epvHuTZ6DsJqKe/5VVReexnLgMW3bpjyYX9bm25VhwM0VoTp11/RRW45sw3ewKRM/sy3HnHONJZPA==
@@ -1497,16 +1490,6 @@
     "@fingerprintjs/fingerprintjs-pro" "3.9.5"
     js-cookie "3.0.5"
     jwt-decode "3.1.2"
-    tslib "2.6.2"
-
-"@descope/web-js-sdk@>=1":
-  version "1.11.5"
-  resolved "https://registry.yarnpkg.com/@descope/web-js-sdk/-/web-js-sdk-1.11.5.tgz#2f6d06639822204a9c6866cb006fb6228bfc5101"
-  integrity sha512-VvPkbuRBsnkr2gN7TjXVAAxgHcgMlQWHKz2fq3iUesOEKHqLDfD7qqTwWMERNIruYNMgWHfXFGNDOYP5b3rnSA==
-  dependencies:
-    "@descope/core-js-sdk" "2.17.1"
-    "@fingerprintjs/fingerprintjs-pro" "3.9.4"
-    js-cookie "3.0.5"
     tslib "2.6.2"
 
 "@emotion/babel-plugin@^11.11.0":
@@ -1647,13 +1630,6 @@
   version "8.57.0"
   resolved "https://registry.yarnpkg.com/@eslint/js/-/js-8.57.0.tgz#a5417ae8427873f1dd08b70b3574b453e67b5f7f"
   integrity sha512-Ys+3g2TaW7gADOJzPt83SJtCDhMjndcDMFVQ/Tj9iA1BfJzFKD9mAUXT3OenpuPHbI6P/myECxRJrofUsDx/5g==
-
-"@fingerprintjs/fingerprintjs-pro@3.9.4":
-  version "3.9.4"
-  resolved "https://registry.yarnpkg.com/@fingerprintjs/fingerprintjs-pro/-/fingerprintjs-pro-3.9.4.tgz#3b6e8ea2deff01f6e3329baae5ed72445bcb73d4"
-  integrity sha512-mPscxSZHTyps9zH/eRD5M/QmVmFfVZUwOq4kaWQVQodEq0PuMh6gnDS8LGQUwTJlOhu0a0MIMq58kILFmPxsDQ==
-  dependencies:
-    tslib "^2.4.1"
 
 "@fingerprintjs/fingerprintjs-pro@3.9.5":
   version "3.9.5"
@@ -5519,10 +5495,10 @@ eslint-plugin-jsx-a11y@6.8.0, eslint-plugin-jsx-a11y@^6.5.1:
     object.entries "^1.1.7"
     object.fromentries "^2.0.7"
 
-eslint-plugin-n@17.5.1:
-  version "17.5.1"
-  resolved "https://registry.yarnpkg.com/eslint-plugin-n/-/eslint-plugin-n-17.5.1.tgz#0f0ef75e3540ffd76ad9a4947b141a545319389e"
-  integrity sha512-+E242KoY16xtwqqBRgSsDCrZ3K40jg3Np9fOgQyakcHaqymK3bnxYB1F1oe8Ksts8TDDViROFgraoLzbWhfHVw==
+eslint-plugin-n@17.6.0:
+  version "17.6.0"
+  resolved "https://registry.yarnpkg.com/eslint-plugin-n/-/eslint-plugin-n-17.6.0.tgz#891b7239ac2e58d80a8ed636addc9de4108e66d1"
+  integrity sha512-Y73o88ROwbCtVCCmZjYlYcPYkOG7mIzxxVK1XFRSa2epbKWtAPsmYpAD0pqxg/ZwlcWxMDceQPKHYQi4VIHz7w==
   dependencies:
     "@eslint-community/eslint-utils" "^4.4.0"
     enhanced-resolve "^5.15.0"
@@ -10716,7 +10692,16 @@ string-natural-compare@^3.0.1:
   resolved "https://registry.yarnpkg.com/string-natural-compare/-/string-natural-compare-3.0.1.tgz#7a42d58474454963759e8e8b7ae63d71c1e7fdf4"
   integrity sha512-n3sPwynL1nwKi3WJ6AIsClwBMa0zTi54fn2oLU6ndfTSIO05xaznjSf15PcBZU6FNWbmN5Q6cxT4V5hGvB4taw==
 
-"string-width-cjs@npm:string-width@^4.2.0", "string-width@^1.0.2 || 2 || 3 || 4", string-width@^4.1.0, string-width@^4.2.0, string-width@^4.2.3:
+"string-width-cjs@npm:string-width@^4.2.0":
+  version "4.2.3"
+  resolved "https://registry.yarnpkg.com/string-width/-/string-width-4.2.3.tgz#269c7117d27b05ad2e536830a8ec895ef9c6d010"
+  integrity sha512-wKyQRQpjJ0sIp62ErSZdGsjMJWsap5oRNihHhu6G7JVO/9jIB6UyevL+tXuOqrng8j/cxKTWyWUwvSTriiZz/g==
+  dependencies:
+    emoji-regex "^8.0.0"
+    is-fullwidth-code-point "^3.0.0"
+    strip-ansi "^6.0.1"
+
+"string-width@^1.0.2 || 2 || 3 || 4", string-width@^4.1.0, string-width@^4.2.0, string-width@^4.2.3:
   version "4.2.3"
   resolved "https://registry.yarnpkg.com/string-width/-/string-width-4.2.3.tgz#269c7117d27b05ad2e536830a8ec895ef9c6d010"
   integrity sha512-wKyQRQpjJ0sIp62ErSZdGsjMJWsap5oRNihHhu6G7JVO/9jIB6UyevL+tXuOqrng8j/cxKTWyWUwvSTriiZz/g==
@@ -10812,7 +10797,14 @@ stringify-object@^3.3.0:
     is-obj "^1.0.1"
     is-regexp "^1.0.0"
 
-"strip-ansi-cjs@npm:strip-ansi@^6.0.1", strip-ansi@^6.0.0, strip-ansi@^6.0.1:
+"strip-ansi-cjs@npm:strip-ansi@^6.0.1":
+  version "6.0.1"
+  resolved "https://registry.yarnpkg.com/strip-ansi/-/strip-ansi-6.0.1.tgz#9e26c63d30f53443e9489495b2105d37b67a85d9"
+  integrity sha512-Y38VPSHcqkFrCpFnQ9vuSXmquuv5oXOKpGeT6aGrr3o3Gc9AlVa6JBfUSOCnbxGGZF+/0ooI7KrPuUSztUdU5A==
+  dependencies:
+    ansi-regex "^5.0.1"
+
+strip-ansi@^6.0.0, strip-ansi@^6.0.1:
   version "6.0.1"
   resolved "https://registry.yarnpkg.com/strip-ansi/-/strip-ansi-6.0.1.tgz#9e26c63d30f53443e9489495b2105d37b67a85d9"
   integrity sha512-Y38VPSHcqkFrCpFnQ9vuSXmquuv5oXOKpGeT6aGrr3o3Gc9AlVa6JBfUSOCnbxGGZF+/0ooI7KrPuUSztUdU5A==
@@ -11974,7 +11966,16 @@ workbox-window@6.6.1:
     "@types/trusted-types" "^2.0.2"
     workbox-core "6.6.1"
 
-"wrap-ansi-cjs@npm:wrap-ansi@^7.0.0", wrap-ansi@^7.0.0:
+"wrap-ansi-cjs@npm:wrap-ansi@^7.0.0":
+  version "7.0.0"
+  resolved "https://registry.yarnpkg.com/wrap-ansi/-/wrap-ansi-7.0.0.tgz#67e145cff510a6a6984bdf1152911d69d2eb9e43"
+  integrity sha512-YVGIj2kamLSTxw6NsZjoBxfSwsn0ycdesmc4p+Q21c5zPuZ1pl+NfxVdxPtdHvmNVOQ6XSYG4AUtyt/Fi7D16Q==
+  dependencies:
+    ansi-styles "^4.0.0"
+    string-width "^4.1.0"
+    strip-ansi "^6.0.0"
+
+wrap-ansi@^7.0.0:
   version "7.0.0"
   resolved "https://registry.yarnpkg.com/wrap-ansi/-/wrap-ansi-7.0.0.tgz#67e145cff510a6a6984bdf1152911d69d2eb9e43"
   integrity sha512-YVGIj2kamLSTxw6NsZjoBxfSwsn0ycdesmc4p+Q21c5zPuZ1pl+NfxVdxPtdHvmNVOQ6XSYG4AUtyt/Fi7D16Q==
