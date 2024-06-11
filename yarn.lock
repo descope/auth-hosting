@@ -1382,15 +1382,15 @@
   dependencies:
     jwt-decode "3.1.2"
 
-"@descope/react-sdk@2.0.34":
-  version "2.0.34"
-  resolved "https://registry.yarnpkg.com/@descope/react-sdk/-/react-sdk-2.0.34.tgz#15c02c5bf86793c219e5dbf80d51e85b1e4520d3"
-  integrity sha512-x3oft8RCIJ0bqeJ60aJ2iPKwjF5EfAgCb8PPf9F0uWYYuBXnJFiTjwjSVBRx8BmUMbFzJk0QignTTZOmrwh93Q==
+"@descope/react-sdk@2.0.35":
+  version "2.0.35"
+  resolved "https://registry.yarnpkg.com/@descope/react-sdk/-/react-sdk-2.0.35.tgz#6b7d4bd1186e2fb719630d33d11c2aca1c3ffe19"
+  integrity sha512-6S68iav1Zyqrled3nCjyAQ4CBhBOAx41xHujUrOJvoD2ZurDCcmkHbC/WuTE9f98TTnvooB07H1KmE1afWZhWA==
   dependencies:
     "@descope/access-key-management-widget" "0.1.81"
     "@descope/audit-management-widget" "0.1.44"
     "@descope/role-management-widget" "0.1.79"
-    "@descope/user-management-widget" "0.4.81"
+    "@descope/user-management-widget" "0.4.82"
     "@descope/user-profile-widget" "0.0.52"
     "@descope/web-component" "3.15.0"
   optionalDependencies:
@@ -1436,10 +1436,10 @@
     "@descope/sdk-helpers" "0.1.41"
     tslib "2.6.2"
 
-"@descope/user-management-widget@0.4.81":
-  version "0.4.81"
-  resolved "https://registry.yarnpkg.com/@descope/user-management-widget/-/user-management-widget-0.4.81.tgz#9c1bd3039152680b1bfb5b12aef938975373c2bc"
-  integrity sha512-Rl1Wh+rL0htDMKRT+PoKlpy6TazwJT39ZxnwyyJbn0Hu1A1saFd0fquMXrM94UVfBJQzH3PsK/2WEVjQvfIEZw==
+"@descope/user-management-widget@0.4.82":
+  version "0.4.82"
+  resolved "https://registry.yarnpkg.com/@descope/user-management-widget/-/user-management-widget-0.4.82.tgz#8348d5ee93398573f53414523745e675f4052b2f"
+  integrity sha512-8qyR9pbwBa/K4MHrO+wKmFYFS5UdyhFhtakXbrg8cvnM7klUu3UwLSTOZOoFIyFinOQZIWQixBh9PaiwV+BbkA==
   dependencies:
     "@descope/sdk-component-drivers" "0.2.22"
     "@descope/sdk-helpers" "0.1.41"
