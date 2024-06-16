@@ -109,17 +109,17 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      - name: Create docker ignore
-        run: |
-          corepack enable
-          cp .gitignore .dockerignore
-          echo NODE_VERSION=$(node -e 'console.log(process.versions.node.split(".")[0])') >> $GITHUB_ENV
       - name: Setup node
         uses: actions/setup-node@v4
         with:
           cache: 'yarn'
           node-version-file: package.json
           cache-dependency-path: '**/yarn.lock'
+      - name: Create docker ignore
+        run: |
+          corepack enable
+          cp .gitignore .dockerignore
+          echo NODE_VERSION=$(node -e 'console.log(process.versions.node.split(".")[0])') >> $GITHUB_ENV
       - name: Login to GHCR
         uses: docker/login-action@v3
         with:
