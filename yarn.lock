@@ -1390,17 +1390,24 @@
   dependencies:
     jwt-decode "3.1.2"
 
-"@descope/react-sdk@2.0.38":
-  version "2.0.38"
-  resolved "https://registry.yarnpkg.com/@descope/react-sdk/-/react-sdk-2.0.38.tgz#106072f5ca7eddfcafa3ad169074fda7961e6ddf"
-  integrity sha512-NHgQgyOM6+1OGgRNZ9UQZ8Azryo8oKEt0IAv9HbPkYqAUxBLPsH5mv8Y41K7mJcW30BI+VSuJsSqnAm/Ns8Qaw==
+"@descope/core-js-sdk@2.20.0":
+  version "2.20.0"
+  resolved "https://registry.yarnpkg.com/@descope/core-js-sdk/-/core-js-sdk-2.20.0.tgz#d1889ed57035bb440555beb10229a3be7d04340e"
+  integrity sha512-LI0hlEkfnGZNIoXSmsoY21QtSdPxmMFDN35eMKrV0AMEX4vTQOnXZtChC/1eU3ZjjaM6gdpmucPutJDXo4aJ4g==
+  dependencies:
+    jwt-decode "3.1.2"
+
+"@descope/react-sdk@2.0.40":
+  version "2.0.40"
+  resolved "https://registry.yarnpkg.com/@descope/react-sdk/-/react-sdk-2.0.40.tgz#dad455143c3682ada832619ea5d1fec60c1a47b2"
+  integrity sha512-0KhGjSRpuc4mQe28/x8DiXsr9/qyKYkeJRrltVre42mEYMKS7G0GzNxMSj4+GYyefhEzBoEDizJjlNOPU8i8+A==
   dependencies:
     "@descope/access-key-management-widget" "0.1.87"
     "@descope/audit-management-widget" "0.1.50"
     "@descope/role-management-widget" "0.1.85"
     "@descope/user-management-widget" "0.4.88"
     "@descope/user-profile-widget" "0.0.59"
-    "@descope/web-component" "3.16.0"
+    "@descope/web-component" "3.16.2"
   optionalDependencies:
     "@descope/web-js-sdk" ">=1"
 
@@ -1489,12 +1496,31 @@
     "@descope/web-js-sdk" "1.12.2"
     tslib "2.6.2"
 
-"@descope/web-js-sdk@1.12.2", "@descope/web-js-sdk@>=1":
+"@descope/web-component@3.16.2":
+  version "3.16.2"
+  resolved "https://registry.yarnpkg.com/@descope/web-component/-/web-component-3.16.2.tgz#8d6f851e4c26f57fade14684fca2ca1b09695b02"
+  integrity sha512-9euEXxqdxZYVjhAmMHzbL5caluRJKNxMXmgHWUdVIJFDiN8ihg1oJVhVse5R2Rm2SNIKxPrbYokhG/ezwB2R+Q==
+  dependencies:
+    "@descope/web-js-sdk" "1.13.1"
+    tslib "2.6.2"
+
+"@descope/web-js-sdk@1.12.2":
   version "1.12.2"
   resolved "https://registry.yarnpkg.com/@descope/web-js-sdk/-/web-js-sdk-1.12.2.tgz#b24b3688576591113880e20befc08686ec7f8afd"
   integrity sha512-paHkqaTdFsaiVdLjkt9NoSiFXxJ2PbJtfHBV8kkHJs0o576qnO+DyReIxrTS1S8wrNikjNaGciK0BJa+IUlh0Q==
   dependencies:
     "@descope/core-js-sdk" "2.19.2"
+    "@fingerprintjs/fingerprintjs-pro" "3.9.6"
+    js-cookie "3.0.5"
+    jwt-decode "3.1.2"
+    tslib "2.6.2"
+
+"@descope/web-js-sdk@1.13.1", "@descope/web-js-sdk@>=1":
+  version "1.13.1"
+  resolved "https://registry.yarnpkg.com/@descope/web-js-sdk/-/web-js-sdk-1.13.1.tgz#876485d4eb0038f72f9a45afa75ceedf22758fdc"
+  integrity sha512-mkPydo0h9FIJB1mcOe6r2ZViVroj6BuAlXaq2oou3ShPUkr1W6mE1NQbciWhjoq/p2iAj6cx/lEt9PwEUk/DkQ==
+  dependencies:
+    "@descope/core-js-sdk" "2.20.0"
     "@fingerprintjs/fingerprintjs-pro" "3.9.6"
     js-cookie "3.0.5"
     jwt-decode "3.1.2"
