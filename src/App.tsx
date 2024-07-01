@@ -58,6 +58,13 @@ const App = () => {
 		...((flowId === 'saml-config' || flowId === 'sso-config') && {
 			autoFocus: false,
 			onSuccess: () => {
+				// redirect after success if there is redirect-after-success query param
+				const redirectAfterSuccess = urlParams.get('redirect-after-success');
+				if (redirectAfterSuccess) {
+					window.location.assign(redirectAfterSuccess);
+					return;
+				}
+
 				let search = window?.location.search;
 				if (search) {
 					search = `${search}&done=true`;
