@@ -1390,10 +1390,10 @@
   dependencies:
     jwt-decode "3.1.2"
 
-"@descope/react-sdk@2.0.45":
-  version "2.0.45"
-  resolved "https://registry.yarnpkg.com/@descope/react-sdk/-/react-sdk-2.0.45.tgz#18c3a757f12b682da6a508ca83cfeabc43a75741"
-  integrity sha512-gGhdz8BkWB9j11j31hRjwDoXdExgOSXUfrqWZdrf/1CtkSWkpg3L6u1slDvoVE+RGkKV7dSNevDU3Fxf5hTplQ==
+"@descope/react-sdk@2.0.49":
+  version "2.0.49"
+  resolved "https://registry.yarnpkg.com/@descope/react-sdk/-/react-sdk-2.0.49.tgz#dd84f0f5c14aa2927ec251b6df59efd28be9d097"
+  integrity sha512-8zPaDIuCkBhUYVdCEGIJYDf8qB21suA3Dg+jKJm+AnRJJCCbuizWo0+eJUE6vKIcw1aSiylZJQTGaFO7HY2ezQ==
   dependencies:
     "@descope/access-key-management-widget" "0.1.109"
     "@descope/audit-management-widget" "0.1.72"
