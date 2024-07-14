@@ -58,6 +58,8 @@ const App = () => {
 
 	const done = urlParams.get('done') || false;
 
+	const locale = urlParams.get('locale') || process.env.DESCOPE_LOCALE;
+
 	const tenantId = urlParams.get('tenant') || process.env.DESCOPE_TENANT_ID;
 
 	const backgroundColor = urlParams.get('bg') || process.env.DESCOPE_BG_COLOR;
@@ -80,6 +82,7 @@ const App = () => {
 	const flowProps = {
 		flowId,
 		debug,
+		locale,
 		tenant: tenantId,
 		...((flowId === 'saml-config' || flowId === 'sso-config') && {
 			autoFocus: false,
