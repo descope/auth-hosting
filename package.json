@@ -59,7 +59,7 @@
 		"lint-staged": "15.2.7",
 		"prettier": "3.3.2",
 		"react-scripts": "5.0.1",
-		"typescript": "<5.5.3",
+		"typescript": "<5.5.4",
 		"webpack": "^5.91.0"
 	},
 	"scripts": {
