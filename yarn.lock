@@ -2159,28 +2159,29 @@
     semver "^7.3.5"
     tar "^6.1.11"
 
-"@mui/core-downloads-tracker@^5.16.2":
+"@mui/core-downloads-tracker@^5.16.3":
   version "5.16.6"
   resolved "https://registry.yarnpkg.com/@mui/core-downloads-tracker/-/core-downloads-tracker-5.16.6.tgz#f029e12ffda8eb79838cc85897f03a628010037c"
   integrity sha512-kytg6LheUG42V8H/o/Ptz3olSO5kUXW9zF0ox18VnblX6bO2yif1FPItgc3ey1t5ansb1+gbe7SatntqusQupg==
 
-"@mui/icons-material@5.16.2":
-  version "5.16.2"
-  resolved "https://registry.yarnpkg.com/@mui/icons-material/-/icons-material-5.16.2.tgz#4b08f199f5766de0e3996c52d3a0df3a16635aeb"
-  integrity sha512-5Pbxpm+o0Is1MwB4Ds/kHDOuo596NSq3vFEaWzmC+0kGCjoHt9ECiiBWMGr48yJUSbW8iTAgt/ugeJH3ZPRtDg==
+"@mui/icons-material@5.16.3":
+  version "5.16.3"
+  resolved "https://registry.yarnpkg.com/@mui/icons-material/-/icons-material-5.16.3.tgz#aeb6467247b1abe33410c8bcd3575ce1495370ac"
+  integrity sha512-xUQqUtNP8AbVlBigKWm+iZ7HqGYpztC4eo0sJxu6nsOLS4X+deGyR+7ZJfS4x0TuXnifeUSQqndE/2HqqYER1Q==
   dependencies:
     "@babel/runtime" "^7.23.9"
 
-"@mui/material@5.16.2":
-  version "5.16.2"
-  resolved "https://registry.yarnpkg.com/@mui/material/-/material-5.16.2.tgz#163a9db5b1b46220735c2cc3dd8d6c4d404cdf1c"
-  integrity sha512-VhPiXg60uITmXnaSr6qlxIOgOviYYBe0Hh7rNaSpaTBAtI6mIcYhdl0jihoL0PN9qa9cEm0GZFdBL0K2/Ub56w==
+"@mui/material@5.16.3":
+  version "5.16.3"
+  resolved "https://registry.yarnpkg.com/@mui/material/-/material-5.16.3.tgz#553736eeef6a1cf901cbf7d2d17fe1265726cdf6"
+  integrity sha512-2a/+cskygQaEgu7sNs9G+lJ0NYV3GBAevJ2an+cX0IRJxYsR/4EGWv8KLgKVOp2xYTQeLk55+gqQIaJuDxE1Cw==
   dependencies:
     "@babel/runtime" "^7.23.9"
-    "@mui/core-downloads-tracker" "^5.16.2"
+    "@mui/core-downloads-tracker" "^5.16.3"
     "@mui/system" "^5.16.2"
     "@mui/types" "^7.2.15"
     "@mui/utils" "^5.16.2"
+    "@popperjs/core" "^2.11.8"
     "@types/react-transition-group" "^4.4.10"
     clsx "^2.1.0"
     csstype "^3.1.3"
@@ -2319,6 +2320,11 @@
     loader-utils "^2.0.4"
     schema-utils "^3.0.0"
     source-map "^0.7.3"
+
+"@popperjs/core@^2.11.8":
+  version "2.11.8"
+  resolved "https://registry.yarnpkg.com/@popperjs/core/-/core-2.11.8.tgz#6b79032e760a0899cd4204710beede972a3a185f"
+  integrity sha512-P1st0aksCrn9sGZhp8GMYwBnQsbvAWsZAX44oXNNvLHGqAOcoVxmjZiohstwQ7SqKnbR47akdNi+uleWD8+g6A==
 
 "@reduxjs/toolkit@^2.0.1":
   version "2.2.3"
