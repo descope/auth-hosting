@@ -26,7 +26,10 @@ const App = () => {
 	)?.[0];
 	projectId = pathnameProjectId ?? envProjectId ?? '';
 
-	const urlParams = new URLSearchParams(window.location.search);
+	const urlParams = React.useMemo(
+		() => new URLSearchParams(window.location.search),
+		[]
+	);
 
 	const flowId =
 		urlParams.get('flow') || process.env.DESCOPE_FLOW_ID || 'sign-up-or-in';
@@ -40,6 +43,10 @@ const App = () => {
 	const tenantId = urlParams.get('tenant') || process.env.DESCOPE_TENANT_ID;
 
 	const backgroundColor = urlParams.get('bg') || process.env.DESCOPE_BG_COLOR;
+
+	const faviconUrl = process.env.REACT_APP_FAVICON_URL || '';
+
+	const ssoAppId = urlParams.get('sso_app_id') || '';
 
 	const isWideContainer =
 		urlParams.get('wide') === 'true' ||
@@ -70,6 +77,43 @@ const App = () => {
 			}
 		})
 	};
+
+	React.useEffect(() => {
+		const updateFavicon = async () => {
+			if (faviconUrl && ssoAppId && projectId) {
+				let favicon = faviconUrl;
+				if (favicon.includes('{projectId}')) {
+					favicon = favicon.replace('{projectId}', projectId);
+				}
+				if (favicon.includes('{ssoAppId}')) {
+					favicon = favicon.replace('{ssoAppId}', ssoAppId);
+				}
+
+				const validateFaviconUrl = (url: string) =>
+					new Promise((resolve) => {
+						const img = new Image();
+						img.onload = () => resolve(true);
+						img.onerror = () => resolve(false);
+						img.src = url;
+					});
+
+				const isValid = await validateFaviconUrl(favicon);
+				if (isValid) {
+					let link = document.querySelector(
+						"link[rel~='icon']"
+					) as HTMLLinkElement;
+					if (!link) {
+						link = document.createElement('link');
+						link.rel = 'icon';
+						document.getElementsByTagName('head')[0].appendChild(link);
+					}
+					link.href = favicon;
+				}
+			}
+		};
+
+		updateFavicon();
+	}, [faviconUrl, projectId, ssoAppId]);
 
 	return (
 		<AuthProvider projectId={projectId} baseUrl={baseUrl}>
