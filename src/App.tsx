@@ -82,12 +82,8 @@ const App = () => {
 		const updateFavicon = async () => {
 			if (faviconUrl && ssoAppId && projectId) {
 				let favicon = faviconUrl;
-				if (favicon.includes('{projectId}')) {
-					favicon = favicon.replace('{projectId}', projectId);
-				}
-				if (favicon.includes('{ssoAppId}')) {
-					favicon = favicon.replace('{ssoAppId}', ssoAppId);
-				}
+				favicon = favicon.replace('{projectId}', projectId);
+				favicon = favicon.replace('{ssoAppId}', ssoAppId);
 
 				const validateFaviconUrl = (url: string) =>
 					new Promise((resolve) => {
