@@ -7,6 +7,19 @@ import Done from './components/Done';
 
 const projectRegex = /^P[a-zA-Z0-9]{27}$/;
 
+const isFaviconUrlSecure = (url: string, originalFaviconUrl: string) => {
+	try {
+		const parsedUrl = new URL(url);
+		const parsedOriginalUrl = new URL(originalFaviconUrl);
+		return (
+			parsedUrl.protocol === 'https:' &&
+			parsedUrl.hostname === parsedOriginalUrl.hostname
+		);
+	} catch (error) {
+		return false;
+	}
+};
+
 const App = () => {
 	let baseUrl = process.env.REACT_APP_DESCOPE_BASE_URL;
 
@@ -93,17 +106,19 @@ const App = () => {
 						img.src = url;
 					});
 
-				const isValid = await validateFaviconUrl(favicon);
-				if (isValid) {
-					let link = document.querySelector(
-						"link[rel~='icon']"
-					) as HTMLLinkElement;
-					if (!link) {
-						link = document.createElement('link');
-						link.rel = 'icon';
-						document.getElementsByTagName('head')[0].appendChild(link);
+				if (isFaviconUrlSecure(favicon, faviconUrl)) {
+					const isValid = await validateFaviconUrl(favicon);
+					if (isValid) {
+						let link = document.querySelector(
+							"link[rel~='icon']"
+						) as HTMLLinkElement;
+						if (!link) {
+							link = document.createElement('link');
+							link.rel = 'icon';
+							document.getElementsByTagName('head')[0].appendChild(link);
+						}
+						link.href = favicon;
 					}
-					link.href = favicon;
 				}
 			}
 		};
