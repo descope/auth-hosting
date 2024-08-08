@@ -6,6 +6,7 @@ import Welcome from './components/Welcome';
 import Done from './components/Done';
 
 const projectRegex = /^P([a-zA-Z0-9]{27}|[a-zA-Z0-9]{31})$/;
+const ssoAppRegex = /^[a-zA-Z0-9\-_]{1,30}$/;
 
 const getV2Config = (projectId: string, cb: (res: any) => void) => {
 	const baseUrl =
@@ -14,6 +15,19 @@ const getV2Config = (projectId: string, cb: (res: any) => void) => {
 	fetch(`${baseUrl}/${projectId}/v2-beta/config.json`).then((res) =>
 		cb(res.ok)
 	);
+};
+
+const isFaviconUrlSecure = (url: string, originalFaviconUrl: string) => {
+	try {
+		const parsedUrl = new URL(url);
+		const parsedOriginalUrl = new URL(originalFaviconUrl);
+		return (
+			parsedUrl.protocol === 'https:' &&
+			parsedUrl.hostname === parsedOriginalUrl.hostname
+		);
+	} catch (error) {
+		return false;
+	}
 };
 
 const App = () => {
@@ -47,7 +61,10 @@ const App = () => {
 		return null;
 	}
 
-	const urlParams = new URLSearchParams(window.location.search);
+	const urlParams = React.useMemo(
+		() => new URLSearchParams(window.location.search),
+		[]
+	);
 
 	const flowId =
 		urlParams.get('flow') || process.env.DESCOPE_FLOW_ID || 'sign-up-or-in';
@@ -68,6 +85,11 @@ const App = () => {
 		process.env.DESCOPE_FLOW_THEME) as React.ComponentProps<
 		typeof Descope
 	>['theme'];
+
+	const faviconUrl = process.env.REACT_APP_FAVICON_URL || '';
+
+	let ssoAppId = urlParams.get('sso_app_id') || '';
+	ssoAppId = ssoAppRegex.exec(ssoAppId)?.[0] || '';
 
 	const isWideContainer =
 		urlParams.get('wide') === 'true' ||
@@ -100,6 +122,42 @@ const App = () => {
 			}
 		})
 	};
+
+	React.useEffect(() => {
+		const updateFavicon = async () => {
+			if (faviconUrl && ssoAppId && projectId) {
+				let favicon = faviconUrl;
+				// projectId and ssoAppId have been sanitized already
+				favicon = favicon.replace('{projectId}', projectId);
+				favicon = favicon.replace('{ssoAppId}', ssoAppId);
+
+				const validateFaviconUrl = (url: string) =>
+					new Promise((resolve) => {
+						const img = new Image();
+						img.onload = () => resolve(true);
+						img.onerror = () => resolve(false);
+						img.src = url;
+					});
+
+				if (isFaviconUrlSecure(favicon, faviconUrl)) {
+					const isValid = await validateFaviconUrl(favicon);
+					if (isValid) {
+						let link = document.querySelector(
+							"link[rel~='icon']"
+						) as HTMLLinkElement;
+						if (!link) {
+							link = document.createElement('link');
+							link.rel = 'icon';
+							document.getElementsByTagName('head')[0].appendChild(link);
+						}
+						link.href = favicon;
+					}
+				}
+			}
+		};
+
+		updateFavicon();
+	}, [faviconUrl, projectId, ssoAppId]);
 
 	return (
 		<AuthProvider
