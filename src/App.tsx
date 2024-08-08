@@ -6,6 +6,7 @@ import Welcome from './components/Welcome';
 import Done from './components/Done';
 
 const projectRegex = /^P[a-zA-Z0-9]{27}$/;
+const ssoAppRegex = /^[a-zA-Z0-9\-_]{1,30}$/;
 
 const isFaviconUrlSecure = (url: string, originalFaviconUrl: string) => {
 	try {
@@ -59,7 +60,8 @@ const App = () => {
 
 	const faviconUrl = process.env.REACT_APP_FAVICON_URL || '';
 
-	const ssoAppId = urlParams.get('sso_app_id') || '';
+	let ssoAppId = urlParams.get('sso_app_id') || '';
+	ssoAppId = ssoAppRegex.exec(ssoAppId)?.[0] || '';
 
 	const isWideContainer =
 		urlParams.get('wide') === 'true' ||
@@ -95,6 +97,7 @@ const App = () => {
 		const updateFavicon = async () => {
 			if (faviconUrl && ssoAppId && projectId) {
 				let favicon = faviconUrl;
+				// projectId and ssoAppId have been sanitized already
 				favicon = favicon.replace('{projectId}', projectId);
 				favicon = favicon.replace('{ssoAppId}', ssoAppId);
 
