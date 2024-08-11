@@ -58,7 +58,9 @@ const App = () => {
 
 	const backgroundColor = urlParams.get('bg') || process.env.DESCOPE_BG_COLOR;
 
-	const faviconUrl = process.env.REACT_APP_FAVICON_URL || '';
+	const faviconUrl =
+		process.env.REACT_APP_FAVICON_URL ||
+		'https://static.descope.com/pages/{projectId}/v2-beta/{ssoAppId}/assets/favicon.ico';
 
 	let ssoAppId = urlParams.get('sso_app_id') || '';
 	ssoAppId = ssoAppRegex.exec(ssoAppId)?.[0] || '';
