@@ -57,34 +57,10 @@ const App = () => {
 		});
 	}, [projectId]);
 
-	if (isV2 === null) {
-		return null;
-	}
-
 	const urlParams = React.useMemo(
 		() => new URLSearchParams(window.location.search),
 		[]
 	);
-
-	const flowId =
-		urlParams.get('flow') || process.env.DESCOPE_FLOW_ID || 'sign-up-or-in';
-
-	const debug =
-		urlParams.get('debug') === 'true' ||
-		process.env.DESCOPE_FLOW_DEBUG === 'true';
-
-	const done = urlParams.get('done') || false;
-
-	const locale = urlParams.get('locale') || process.env.DESCOPE_LOCALE;
-
-	const tenantId = urlParams.get('tenant') || process.env.DESCOPE_TENANT_ID;
-
-	const backgroundColor = urlParams.get('bg') || process.env.DESCOPE_BG_COLOR;
-
-	const theme = (urlParams.get('theme') ||
-		process.env.DESCOPE_FLOW_THEME) as React.ComponentProps<
-		typeof Descope
-	>['theme'];
 
 	const faviconUrl =
 		process.env.REACT_APP_FAVICON_URL ||
@@ -92,38 +68,6 @@ const App = () => {
 
 	let ssoAppId = urlParams.get('sso_app_id') || '';
 	ssoAppId = ssoAppRegex.exec(ssoAppId)?.[0] || '';
-
-	const isWideContainer =
-		urlParams.get('wide') === 'true' ||
-		flowId === 'saml-config' ||
-		flowId === 'sso-config';
-
-	const containerClasses = clsx('descope-base-container', {
-		'descope-wide-container': isWideContainer,
-		'descope-login-container': !isWideContainer
-	});
-
-	const flowProps = {
-		flowId,
-		debug,
-		locale,
-		tenant: tenantId,
-		...((flowId === 'saml-config' || flowId === 'sso-config') && {
-			autoFocus: false,
-			theme,
-			onSuccess: () => {
-				let search = window?.location.search;
-				if (search) {
-					search = `${search}&done=true`;
-				} else {
-					search = `?done=true`;
-				}
-				window?.location.assign(
-					`${window?.location.origin}/${window?.location.pathname}${search}`
-				);
-			}
-		})
-	};
 
 	React.useEffect(() => {
 		const updateFavicon = async () => {
@@ -160,6 +104,62 @@ const App = () => {
 
 		updateFavicon();
 	}, [faviconUrl, projectId, ssoAppId]);
+
+	if (isV2 === null) {
+		return null;
+	}
+
+	const flowId =
+		urlParams.get('flow') || process.env.DESCOPE_FLOW_ID || 'sign-up-or-in';
+
+	const debug =
+		urlParams.get('debug') === 'true' ||
+		process.env.DESCOPE_FLOW_DEBUG === 'true';
+
+	const done = urlParams.get('done') || false;
+
+	const locale = urlParams.get('locale') || process.env.DESCOPE_LOCALE;
+
+	const tenantId = urlParams.get('tenant') || process.env.DESCOPE_TENANT_ID;
+
+	const backgroundColor = urlParams.get('bg') || process.env.DESCOPE_BG_COLOR;
+
+	const theme = (urlParams.get('theme') ||
+		process.env.DESCOPE_FLOW_THEME) as React.ComponentProps<
+		typeof Descope
+	>['theme'];
+
+	const isWideContainer =
+		urlParams.get('wide') === 'true' ||
+		flowId === 'saml-config' ||
+		flowId === 'sso-config';
+
+	const containerClasses = clsx('descope-base-container', {
+		'descope-wide-container': isWideContainer,
+		'descope-login-container': !isWideContainer
+	});
+
+	const flowProps = {
+		flowId,
+		debug,
+		locale,
+		tenant: tenantId,
+		...((flowId === 'saml-config' || flowId === 'sso-config') && {
+			autoFocus: false,
+			theme,
+			onSuccess: () => {
+				let search = window?.location.search;
+				if (search) {
+					search = `${search}&done=true`;
+				} else {
+					search = `?done=true`;
+				}
+				window?.location.assign(
+					`${window?.location.origin}/${window?.location.pathname}${search}`
+				);
+			}
+		})
+	};
 
 	return (
 		<AuthProvider
