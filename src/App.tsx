@@ -62,9 +62,7 @@ const App = () => {
 		[]
 	);
 
-	const faviconUrl =
-		process.env.REACT_APP_FAVICON_URL ||
-		'https://static.descope.com/pages/{projectId}/v2-beta/{ssoAppId}/assets/favicon.ico';
+	const faviconUrl = process.env.REACT_APP_FAVICON_URL || '';
 
 	let ssoAppId = urlParams.get('sso_app_id') || '';
 	ssoAppId = ssoAppRegex.exec(ssoAppId)?.[0] || '';
