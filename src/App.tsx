@@ -31,8 +31,12 @@ const isFaviconUrlSecure = (url: string, originalFaviconUrl: string) => {
 };
 
 const App = () => {
-	const baseUrl =
-		process.env.REACT_APP_DESCOPE_BASE_URL || window.location.origin;
+	let baseUrl = process.env.REACT_APP_DESCOPE_BASE_URL;
+
+	// Force origin base URL
+	if (process.env.REACT_APP_USE_ORIGIN_BASE_URL)
+		baseUrl = window.location.origin;
+
 	let projectId = '';
 
 	// first, take project id from env
