@@ -73,8 +73,7 @@ const App = () => {
 
 	const backgroundColor = urlParams.get('bg') || process.env.DESCOPE_BG_COLOR;
 
-	const baseFaviconValidatorUrl =
-		process.env.REACT_APP_BASE_FAVICON_VALIDATOR_URL || '';
+	const baseFunctionsUrl = process.env.REACT_APP_BASE_FUNCTIONS_URL || '';
 
 	const faviconUrl =
 		process.env.REACT_APP_FAVICON_URL ||
@@ -123,7 +122,7 @@ const App = () => {
 
 				if (isFaviconUrlSecure(favicon, faviconUrl)) {
 					const existingFaviconUrl = await getExistingFaviconUrl(
-						baseFaviconValidatorUrl,
+						baseFunctionsUrl,
 						favicon
 					);
 					if (existingFaviconUrl) {
@@ -142,7 +141,7 @@ const App = () => {
 		};
 
 		updateFavicon();
-	}, [baseFaviconValidatorUrl, faviconUrl, projectId, ssoAppId]);
+	}, [baseFunctionsUrl, faviconUrl, projectId, ssoAppId]);
 
 	return (
 		<AuthProvider projectId={projectId} baseUrl={baseUrl}>
