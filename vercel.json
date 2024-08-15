@@ -1,15 +1,8 @@
 {
-	"version": 2,
-	"builds": [
+	"rewrites": [
 		{
-			"src": "api/get-favicon.js",
-			"use": "@vercel/node"
-		}
-	],
-	"routes": [
-		{
-			"src": "/api/get-favicon",
-			"dest": "/api/get-favicon.js"
+			"source": "/login/:path*",
+			"destination": "/:path*"
 		}
 	]
 }
