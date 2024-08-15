@@ -24,6 +24,7 @@ body,
 	flex-grow: 1;
 	flex-direction: column;
 	align-items: center;
+	margin-top: 150px;
 }
 
 .descope-base-container {
