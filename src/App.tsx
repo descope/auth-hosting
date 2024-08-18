@@ -24,7 +24,7 @@ const isFaviconUrlSecure = (url: string, originalFaviconUrl: string) => {
 const getExistingFaviconUrl = async (baseUrl: string, url: string) => {
 	try {
 		const response = await fetch(
-			`${baseUrl}/api/get-favicon?url=${encodeURIComponent(url)}`
+			`${baseUrl}/api/favicon?url=${encodeURIComponent(url)}`
 		);
 		if (response.ok) {
 			const data = await response.json();
