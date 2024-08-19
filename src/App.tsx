@@ -5,6 +5,8 @@ import clsx from 'clsx';
 import Welcome from './components/Welcome';
 import Done from './components/Done';
 
+type ThemeOptions = 'light' | 'dark' | 'os';
+
 const projectRegex = /^P[a-zA-Z0-9]{27}$/;
 const ssoAppRegex = /^[a-zA-Z0-9\-_]{1,30}$/;
 
@@ -18,6 +20,21 @@ const isFaviconUrlSecure = (url: string, originalFaviconUrl: string) => {
 		);
 	} catch (error) {
 		return false;
+	}
+};
+
+const getExistingFaviconUrl = async (baseUrl: string, url: string) => {
+	try {
+		const response = await fetch(
+			`${baseUrl}/api/favicon?url=${encodeURIComponent(url)}`
+		);
+		if (response.ok) {
+			const data = await response.json();
+			return data?.faviconUrl || '';
+		}
+		return '';
+	} catch (error) {
+		return '';
 	}
 };
 
@@ -58,6 +75,15 @@ const App = () => {
 
 	const backgroundColor = urlParams.get('bg') || process.env.DESCOPE_BG_COLOR;
 
+	const flowTheme =
+		(urlParams.get('theme') as ThemeOptions) ||
+		(process.env.DESCOPE_THEME as ThemeOptions) ||
+		('light' as ThemeOptions);
+
+	const styleName = urlParams.get('style') || process.env.DESCOPE_STYLE_NAME;
+
+	const baseFunctionsUrl = process.env.REACT_APP_BASE_FUNCTIONS_URL || '';
+
 	const faviconUrl =
 		process.env.REACT_APP_FAVICON_URL ||
 		'https://static.descope.com/pages/{projectId}/v2-beta/{ssoAppId}/assets/favicon.ico';
@@ -79,6 +105,8 @@ const App = () => {
 		flowId,
 		debug,
 		tenant: tenantId,
+		theme: flowTheme,
+		'style-name': styleName,
 		...((flowId === 'saml-config' || flowId === 'sso-config') && {
 			autoFocus: false,
 			onSuccess: () => {
@@ -103,17 +131,12 @@ const App = () => {
 				favicon = favicon.replace('{projectId}', projectId);
 				favicon = favicon.replace('{ssoAppId}', ssoAppId);
 
-				const validateFaviconUrl = (url: string) =>
-					new Promise((resolve) => {
-						const img = new Image();
-						img.onload = () => resolve(true);
-						img.onerror = () => resolve(false);
-						img.src = url;
-					});
-
 				if (isFaviconUrlSecure(favicon, faviconUrl)) {
-					const isValid = await validateFaviconUrl(favicon);
-					if (isValid) {
+					const existingFaviconUrl = await getExistingFaviconUrl(
+						baseFunctionsUrl,
+						favicon
+					);
+					if (existingFaviconUrl) {
 						let link = document.querySelector(
 							"link[rel~='icon']"
 						) as HTMLLinkElement;
@@ -122,14 +145,14 @@ const App = () => {
 							link.rel = 'icon';
 							document.getElementsByTagName('head')[0].appendChild(link);
 						}
-						link.href = favicon;
+						link.href = existingFaviconUrl;
 					}
 				}
 			}
 		};
 
 		updateFavicon();
-	}, [faviconUrl, projectId, ssoAppId]);
+	}, [baseFunctionsUrl, faviconUrl, projectId, ssoAppId]);
 
 	return (
 		<AuthProvider projectId={projectId} baseUrl={baseUrl}>
