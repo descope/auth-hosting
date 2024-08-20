@@ -5,6 +5,8 @@ import clsx from 'clsx';
 import Welcome from './components/Welcome';
 import Done from './components/Done';
 
+type ThemeOptions = 'light' | 'dark' | 'os';
+
 const projectRegex = /^P[a-zA-Z0-9]{27}$/;
 const ssoAppRegex = /^[a-zA-Z0-9\-_]{1,30}$/;
 
@@ -18,6 +20,21 @@ const isFaviconUrlSecure = (url: string, originalFaviconUrl: string) => {
 		);
 	} catch (error) {
 		return false;
+	}
+};
+
+const getExistingFaviconUrl = async (baseUrl: string, url: string) => {
+	try {
+		const response = await fetch(
+			`${baseUrl}/api/favicon?url=${encodeURIComponent(url)}`
+		);
+		if (response.ok) {
+			const data = await response.json();
+			return data?.faviconUrl || '';
+		}
+		return '';
+	} catch (error) {
+		return '';
 	}
 };
 
@@ -135,6 +152,11 @@ const App = () => {
 						favicon
 					);
 					if (existingFaviconUrl) {
+					const existingFaviconUrl = await getExistingFaviconUrl(
+						baseFunctionsUrl,
+						favicon
+					);
+					if (existingFaviconUrl) {
 						let link = document.querySelector(
 							"link[rel~='icon']"
 						) as HTMLLinkElement;
@@ -144,12 +166,14 @@ const App = () => {
 							document.getElementsByTagName('head')[0].appendChild(link);
 						}
 						link.href = existingFaviconUrl;
+						link.href = existingFaviconUrl;
 					}
 				}
 			}
 		};
 
 		updateFavicon();
+	}, [baseFunctionsUrl, faviconUrl, projectId, ssoAppId]);
 	}, [baseFunctionsUrl, faviconUrl, projectId, ssoAppId]);
 
 	return (
