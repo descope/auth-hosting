@@ -1,14 +1,14 @@
-import "./App.css";
-import { AppContent } from "./components";
+import './App.css';
+import { AppContent } from './components';
 
 const App = () => {
-  return (
+	return (
 		<div className="app">
 			<body className="app-body">
-				<AppContent  />
+				<AppContent />
 			</body>
 		</div>
-  );
+	);
 };
 
 export default App;
