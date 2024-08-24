@@ -5,7 +5,7 @@ const AppContent = () => {
 
 	try {
 		const queryParam = new URLSearchParams(window.location.search);
-		const error = queryParam.get('error') || 'An error occurred';
+		error = queryParam.get('error') || 'An error occurred';
 	} catch (e) {
 		console.error(e);
 	}
