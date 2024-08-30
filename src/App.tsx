@@ -103,7 +103,7 @@ const App = () => {
 		flowId,
 		debug,
 		tenant: tenantId,
-		styleId: styleId,
+		styleId,
 		...((flowId === 'saml-config' || flowId === 'sso-config') && {
 			autoFocus: false,
 			theme,
