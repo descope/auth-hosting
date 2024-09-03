@@ -78,7 +78,7 @@ const App = () => {
 		typeof Descope
 	>['theme'];
 
-	const styleId = urlParams.get('style') || process.env.DESCOPE_STYLE_NAME;
+	const styleId = urlParams.get('style') || process.env.DESCOPE_STYLE_ID;
 
 	const baseFunctionsUrl = process.env.REACT_APP_BASE_FUNCTIONS_URL || '';
 
@@ -103,7 +103,7 @@ const App = () => {
 		flowId,
 		debug,
 		tenant: tenantId,
-		styleId: styleId,
+		styleId,
 		...((flowId === 'saml-config' || flowId === 'sso-config') && {
 			autoFocus: false,
 			theme,
