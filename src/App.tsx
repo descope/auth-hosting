@@ -73,6 +73,13 @@ const App = () => {
 
 	const backgroundColor = urlParams.get('bg') || process.env.DESCOPE_BG_COLOR;
 
+	const theme = (urlParams.get('theme') ||
+		process.env.DESCOPE_FLOW_THEME) as React.ComponentProps<
+		typeof Descope
+	>['theme'];
+
+	const styleId = urlParams.get('style') || process.env.DESCOPE_STYLE_ID;
+
 	const baseFunctionsUrl = process.env.REACT_APP_BASE_FUNCTIONS_URL || '';
 
 	const faviconUrl =
@@ -96,8 +103,10 @@ const App = () => {
 		flowId,
 		debug,
 		tenant: tenantId,
+		styleId,
 		...((flowId === 'saml-config' || flowId === 'sso-config') && {
 			autoFocus: false,
+			theme,
 			onSuccess: () => {
 				let search = window?.location.search;
 				if (search) {
