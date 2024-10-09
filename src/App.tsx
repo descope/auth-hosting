@@ -108,6 +108,13 @@ const App = () => {
 			autoFocus: false,
 			theme,
 			onSuccess: () => {
+				// redirect after success if there is redirect-after-success query param
+				const redirectAfterSuccess = urlParams.get('redirect-after-success');
+				if (redirectAfterSuccess) {
+					window.location.assign(redirectAfterSuccess);
+					return;
+				}
+
 				let search = window?.location.search;
 				if (search) {
 					search = `${search}&done=true`;
