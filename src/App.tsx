@@ -4,6 +4,7 @@ import { AuthProvider, Descope } from '@descope/react-sdk';
 import clsx from 'clsx';
 import Welcome from './components/Welcome';
 import Done from './components/Done';
+import { parseStyleStr } from './utils';
 
 const projectRegex = /^P[a-zA-Z0-9]{27}$/;
 const ssoAppRegex = /^[a-zA-Z0-9\-_]{1,30}$/;
@@ -72,6 +73,9 @@ const App = () => {
 	const tenantId = urlParams.get('tenant') || process.env.DESCOPE_TENANT_ID;
 
 	const backgroundColor = urlParams.get('bg') || process.env.DESCOPE_BG_COLOR;
+
+	const containerStyle =
+		urlParams.get('container-style') || process.env.DESCOPE_CONTAINER_STYLE;
 
 	const theme = (urlParams.get('theme') ||
 		process.env.DESCOPE_FLOW_THEME) as React.ComponentProps<
@@ -156,7 +160,11 @@ const App = () => {
 		<AuthProvider projectId={projectId} baseUrl={baseUrl}>
 			<div className="app" style={{ backgroundColor }}>
 				{!done && projectId && flowId && (
-					<div className={containerClasses} data-testid="descope-component">
+					<div
+						className={containerClasses}
+						data-testid="descope-component"
+						style={parseStyleStr(containerStyle)}
+					>
 						<Descope {...flowProps} />
 					</div>
 				)}
