@@ -3,7 +3,7 @@
 	"version": "0.1.0",
 	"private": true,
 	"dependencies": {
-		"@descope-int/react-dynamic-sdk": "1.0.146",
+		"@descope-int/react-dynamic-sdk": "1.0.175",
 		"@emotion/react": "11.11.3",
 		"@emotion/styled": "11.11.0",
 		"@mui/icons-material": "5.15.4",
