@@ -3076,7 +3076,7 @@
     semver "^7.6.0"
     ts-api-utils "^1.3.0"
 
-"@typescript-eslint/utils@5.62.0", "@typescript-eslint/utils@^5.58.0":
+"@typescript-eslint/utils@5.62.0", "@typescript-eslint/utils@^5.58.0", "@typescript-eslint/utils@^5.62.0":
   version "5.62.0"
   resolved "https://registry.yarnpkg.com/@typescript-eslint/utils/-/utils-5.62.0.tgz#141e809c71636e4a75daa39faed2fb5f4b10df86"
   integrity sha512-n8oxjeb5aIbPFEtmQxQYOLI0i9n5ySBEY/ZEHHZqKQSFnxio1rv6dthascc9dLuwrL0RC5mPCxB7vnAVGAYWAQ==
@@ -5528,12 +5528,12 @@ eslint-plugin-security@1.7.1:
   dependencies:
     safe-regex "^2.1.1"
 
-eslint-plugin-testing-library@6.2.2:
-  version "6.2.2"
-  resolved "https://registry.npmjs.org/eslint-plugin-testing-library/-/eslint-plugin-testing-library-6.2.2.tgz"
-  integrity sha512-1E94YOTUDnOjSLyvOwmbVDzQi/WkKm3WVrMXu6SmBr6DN95xTGZmI6HJ/eOkSXh/DlheRsxaPsJvZByDBhWLVQ==
+eslint-plugin-testing-library@6.3.4:
+  version "6.3.4"
+  resolved "https://registry.yarnpkg.com/eslint-plugin-testing-library/-/eslint-plugin-testing-library-6.3.4.tgz#3ab8cf3c2b08784cd64aedc104d18e766ed13b1f"
+  integrity sha512-nFwedetKOC8675r9UWePojlL/EgrBVywJPB1UygMpGsA0QocCCv+z8HmXOnI/wbXyJmwSOYRjnp8n4tqTjIL+A==
   dependencies:
-    "@typescript-eslint/utils" "^5.58.0"
+    "@typescript-eslint/utils" "^5.62.0"
 
 eslint-plugin-testing-library@^5.0.1:
   version "5.11.1"
