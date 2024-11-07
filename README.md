@@ -52,6 +52,14 @@ These are the different query parameters you can use:
 
 4. `debug`query parameter is optional. If debug mode is needed use`debug=true`
 
+5. `bg` query parameter is optional. If you wish to use a different background color, you can use this parameter. (ex. `bg=black` or `bg=gray`)
+
+6. `wide` query parameter is optional. If wide mode is nedded use `wide=true`. This will widen the flow component that is rendered, which is used for large forms made with Flow screens.
+
+7. `theme` query parameter is optional. The default value is `light`, but otherwise it will override the theme for your flows rendered with the SDK.
+
+8. `style` query parameter is optional. The default style in your project will be used if not defined, but this allows you to override the `style` for the flows rendered with the SDK.
+
 **Using .env**
 
 In case you don't want to provide the project ID as part of the URL, you can specify it as an environment variable `DESCOPE_PROJECT_ID`.  
