@@ -140,6 +140,8 @@ const App = () => {
 		typeof Descope
 	>['theme'];
 
+	const styleId = urlParams.get('style') || process.env.DESCOPE_STYLE_ID;
+
 	const isWideContainer =
 		urlParams.get('wide') === 'true' ||
 		flowId === 'saml-config' ||
@@ -156,6 +158,7 @@ const App = () => {
 		locale,
 		tenant: tenantId,
 		theme,
+		styleId,
 		...((flowId === 'saml-config' || flowId === 'sso-config') && {
 			autoFocus: false,
 			onSuccess: () => {
