@@ -104,9 +104,9 @@ const App = () => {
 		debug,
 		tenant: tenantId,
 		styleId,
+		theme,
 		...((flowId === 'saml-config' || flowId === 'sso-config') && {
 			autoFocus: false,
-			theme,
 			onSuccess: () => {
 				let search = window?.location.search;
 				if (search) {
