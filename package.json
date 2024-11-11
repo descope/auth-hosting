@@ -46,7 +46,7 @@
 		"eslint-plugin-jest-formatting": "3.1.0",
 		"eslint-plugin-jsx-a11y": "6.10.1",
 		"eslint-plugin-n": "17.11.1",
-		"eslint-plugin-no-only-tests": "3.1.0",
+		"eslint-plugin-no-only-tests": "3.3.0",
 		"eslint-plugin-prefer-arrow": "1.2.3",
 		"eslint-plugin-prettier": "5.2.1",
 		"eslint-plugin-promise": "6.5.1",
