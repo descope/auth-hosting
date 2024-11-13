@@ -85,6 +85,8 @@ const App = () => {
 	let ssoAppId = urlParams.get('sso_app_id') || '';
 	ssoAppId = ssoAppRegex.exec(ssoAppId)?.[0] || '';
 
+	const ref = React.useRef<HTMLElement>();
+
 	React.useEffect(() => {
 		const updateFavicon = async () => {
 			if (faviconUrl && ssoAppId && projectId) {
@@ -151,6 +153,16 @@ const App = () => {
 		'descope-wide-container': isWideContainer,
 		'descope-login-container': !isWideContainer
 	});
+
+	// this is a workaround only for the dynamic sdk, should not be used in other places
+	const internalId = setInterval(() => {
+		if (!ref.current) {
+			ref.current = document.querySelector('descope-wc') as any;
+		} else {
+			clearInterval(internalId);
+			ref.current.setAttribute('style-id', styleId!);
+		}
+	}, 50);
 
 	const flowProps = {
 		flowId,
