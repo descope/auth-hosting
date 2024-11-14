@@ -85,7 +85,7 @@ const App = () => {
 	let ssoAppId = urlParams.get('sso_app_id') || '';
 	ssoAppId = ssoAppRegex.exec(ssoAppId)?.[0] || '';
 
-	const ref = React.useRef<HTMLElement>();
+	const [ref, setRef] = useState<Element | null>(null);
 
 	React.useEffect(() => {
 		const updateFavicon = async () => {
@@ -118,6 +118,25 @@ const App = () => {
 		updateFavicon();
 	}, [baseFunctionsUrl, faviconUrl, projectId, ssoAppId]);
 
+	// this is a workaround only for the dynamic sdk, should not be used in other places
+	useEffect(() => {
+		const internalId = setInterval(() => {
+			const descopeWcEle = document.querySelector('descope-wc');
+			if (descopeWcEle) {
+				clearInterval(internalId);
+				setRef(descopeWcEle);
+			}
+		}, 50);
+	}, [setRef]);
+
+	const styleId = urlParams.get('style') || process.env.DESCOPE_STYLE_ID;
+
+	useEffect(() => {
+		if (!ref) return;
+		if (styleId) ref.setAttribute('style-id', styleId);
+		else ref.removeAttribute('style-id');
+	}, [ref, styleId]);
+
 	if (isV2 === null) {
 		return null;
 	}
@@ -142,8 +161,6 @@ const App = () => {
 		typeof Descope
 	>['theme'];
 
-	const styleId = urlParams.get('style') || process.env.DESCOPE_STYLE_ID;
-
 	const isWideContainer =
 		urlParams.get('wide') === 'true' ||
 		flowId === 'saml-config' ||
@@ -153,16 +170,6 @@ const App = () => {
 		'descope-wide-container': isWideContainer,
 		'descope-login-container': !isWideContainer
 	});
-
-	// this is a workaround only for the dynamic sdk, should not be used in other places
-	const internalId = setInterval(() => {
-		if (!ref.current) {
-			ref.current = document.querySelector('descope-wc') as any;
-		} else {
-			clearInterval(internalId);
-			ref.current.setAttribute('style-id', styleId!);
-		}
-	}, 50);
 
 	const flowProps = {
 		flowId,
