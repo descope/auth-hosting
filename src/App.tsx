@@ -51,10 +51,13 @@ const App = () => {
 		'descope-login-container': !isWideContainer
 	});
 
+	const styleId = urlParams.get('style') || process.env.DESCOPE_STYLE_ID;
+
 	const flowProps = {
 		flowId,
 		debug,
 		tenant: tenantId,
+		styleId,
 		...((flowId === 'saml-config' || flowId === 'sso-config') && {
 			autoFocus: false,
 			onSuccess: () => {
