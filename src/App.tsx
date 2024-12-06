@@ -96,7 +96,8 @@ const App = () => {
 
 	const shadow = urlParams.get('shadow') !== 'false';
 
-	const containerClasses = clsx(shadow && 'descope-base-container', {
+	const containerClasses = clsx({
+		'descope-base-container': shadow,
 		'descope-wide-container': isWideContainer,
 		'descope-login-container': !isWideContainer
 	});
