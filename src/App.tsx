@@ -93,7 +93,7 @@ const App = () => {
 		urlParams.get('wide') === 'true' ||
 		flowId === 'saml-config' ||
 		flowId === 'sso-config';
-	
+
 	const shadow = urlParams.get('shadow') !== 'false';
 
 	const containerClasses = clsx({
