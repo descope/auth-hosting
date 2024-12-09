@@ -1,4 +1,3 @@
 {
-	"babel-plugin-transform-export-extensions": "MIT",
-	"@descope-int/react-dynamic-sdk": "UNLICENSED"
+	"babel-plugin-transform-export-extensions": "MIT"
 }

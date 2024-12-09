@@ -1,21 +1,12 @@
-import './App.css';
-import React, { useEffect, useState } from 'react';
-import { AuthProvider, Descope } from '@descope-int/react-dynamic-sdk';
+import { AuthProvider, Descope } from '@descope/react-sdk';
 import clsx from 'clsx';
-import Welcome from './components/Welcome';
+import React, { useEffect, useMemo } from 'react';
+import './App.css';
 import Done from './components/Done';
+import Welcome from './components/Welcome';
 
 const projectRegex = /^P([a-zA-Z0-9]{27}|[a-zA-Z0-9]{31})$/;
 const ssoAppRegex = /^[a-zA-Z0-9\-_]{1,30}$/;
-
-const getV2Config = (projectId: string, cb: (res: any) => void) => {
-	const baseUrl =
-		window.localStorage.getItem('base.content.url') ||
-		'https://static.descope.com/pages';
-	fetch(`${baseUrl}/${projectId}/v2-beta/config.json`).then((res) =>
-		cb(res.ok)
-	);
-};
 
 const isFaviconUrlSecure = (url: string, originalFaviconUrl: string) => {
 	try {
@@ -65,15 +56,7 @@ const App = () => {
 	)?.[0];
 	projectId = pathnameProjectId ?? envProjectId ?? '';
 
-	const [isV2, setIsV2] = useState(null);
-
-	useEffect(() => {
-		getV2Config(projectId, (success) => {
-			setIsV2(success);
-		});
-	}, [projectId]);
-
-	const urlParams = React.useMemo(
+	const urlParams = useMemo(
 		() => new URLSearchParams(window.location.search),
 		[]
 	);
@@ -85,9 +68,7 @@ const App = () => {
 	let ssoAppId = urlParams.get('sso_app_id') || '';
 	ssoAppId = ssoAppRegex.exec(ssoAppId)?.[0] || '';
 
-	const [ref, setRef] = useState<Element | null>(null);
-
-	React.useEffect(() => {
+	useEffect(() => {
 		const updateFavicon = async () => {
 			if (faviconUrl && ssoAppId && projectId) {
 				let favicon = faviconUrl;
@@ -118,28 +99,7 @@ const App = () => {
 		updateFavicon();
 	}, [baseFunctionsUrl, faviconUrl, projectId, ssoAppId]);
 
-	// this is a workaround only for the dynamic sdk, should not be used in other places
-	useEffect(() => {
-		const internalId = setInterval(() => {
-			const descopeWcEle = document.querySelector('descope-wc');
-			if (descopeWcEle) {
-				clearInterval(internalId);
-				setRef(descopeWcEle);
-			}
-		}, 50);
-	}, [setRef]);
-
 	const styleId = urlParams.get('style') || process.env.DESCOPE_STYLE_ID;
-
-	useEffect(() => {
-		if (!ref) return;
-		if (styleId) ref.setAttribute('style-id', styleId);
-		else ref.removeAttribute('style-id');
-	}, [ref, styleId]);
-
-	if (isV2 === null) {
-		return null;
-	}
 
 	const flowId =
 		urlParams.get('flow') || process.env.DESCOPE_FLOW_ID || 'sign-up-or-in';
@@ -166,7 +126,10 @@ const App = () => {
 		flowId === 'saml-config' ||
 		flowId === 'sso-config';
 
-	const containerClasses = clsx('descope-base-container', {
+	const shadow = urlParams.get('shadow') !== 'false';
+
+	const containerClasses = clsx({
+		'descope-base-container': shadow,
 		'descope-wide-container': isWideContainer,
 		'descope-login-container': !isWideContainer
 	});
@@ -195,11 +158,7 @@ const App = () => {
 	};
 
 	return (
-		<AuthProvider
-			projectId={projectId}
-			baseUrl={baseUrl}
-			sdkVersion={isV2 ? 'v2' : 'v1'}
-		>
+		<AuthProvider projectId={projectId} baseUrl={baseUrl}>
 			<div className="app" style={{ backgroundColor }}>
 				{!done && projectId && flowId && (
 					<div className={containerClasses} data-testid="descope-component">

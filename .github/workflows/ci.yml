@@ -4,7 +4,7 @@ on:
   pull_request:
   push:
     branches:
-      - dynamicSdk
+      - main
 
 env:
   NODE_VERSION: 18
