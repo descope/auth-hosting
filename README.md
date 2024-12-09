@@ -60,6 +60,9 @@ These are the different query parameters you can use:
 
 8. `style` query parameter is optional. The default style in your project will be used if not defined, but this allows you to override the `style` for the flows rendered with the SDK.
 
+9. The `container-style` query parameter is optional. Use this to override the container style for the flow.
+   The format is `<key1:val1;key2:val2...>`. Example: `container-style=width:500px;margin-top:-100px;max-width:500px`.
+
 **Using .env**
 
 In case you don't want to provide the project ID as part of the URL, you can specify it as an environment variable `DESCOPE_PROJECT_ID`.  
