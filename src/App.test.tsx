@@ -337,7 +337,7 @@ describe('App component', () => {
 				value: {
 					...window.location,
 					search:
-						'?oidc_mfa_state=testState&oidc_mfa_id_token=testIdToken&oidc_mfa_redirect_url=https://login.microsoftonline.com',
+						'?oidc_mfa_state=testState&oidc_mfa_id_token=testIdToken&oidc_mfa_redirect_url=https://login.microsoftonline.com/common/federation/externalauthprovider',
 					pathname: '/test'
 				},
 				writable: true
@@ -362,7 +362,7 @@ describe('App component', () => {
 			expect(form).toBeInTheDocument();
 			expect(form).toHaveAttribute(
 				'action',
-				'https://login.microsoftonline.com'
+				'https://login.microsoftonline.com/common/federation/externalauthprovider'
 			);
 			expect(form).toHaveAttribute('method', 'POST');
 

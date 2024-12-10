@@ -35,14 +35,6 @@ const useOidcMfa = () => {
 			return;
 		}
 
-		const isApprovedUrl = APPROVED_OIDC_MFA_URLS.some((approvedUrl) =>
-			redirectUrl?.startsWith(approvedUrl)
-		);
-
-		if (!isApprovedUrl) {
-			return;
-		}
-
 		// Remove the parameters from the URL
 		urlParams.delete(OIDC_MFA_URL_STATE_PARAM_NAME);
 		urlParams.delete(OIDC_MFA_URL_ID_TOKEN_PARAM_NAME);
@@ -53,6 +45,19 @@ const useOidcMfa = () => {
 		// Create and submit the form
 		const form = document.createElement('form');
 		form.action = redirectUrl;
+		try {
+			const parsedUrl = new URL(redirectUrl);
+			if (
+				!APPROVED_OIDC_MFA_URLS.some(
+					(approvedUrl) => parsedUrl.origin === approvedUrl
+				)
+			) {
+				throw new Error('Unapproved redirect URL');
+			}
+			form.action = parsedUrl.href;
+		} catch (error) {
+			return;
+		}
 		form.method = 'POST';
 		form.style.display = 'none';
 		form.setAttribute('data-testid', 'oidc-mfa-form');
