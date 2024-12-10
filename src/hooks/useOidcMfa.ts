@@ -4,6 +4,12 @@ const OIDC_MFA_URL_STATE_PARAM_NAME = 'oidc_mfa_state';
 const OIDC_MFA_URL_ID_TOKEN_PARAM_NAME = 'oidc_mfa_id_token';
 const OIDC_MFA_URL_REDIRECT_URL_PARAM_NAME = 'oidc_mfa_redirect_url';
 
+const APPROVED_OIDC_MFA_URLS = [
+	'https://login.microsoftonline.com',
+	'https://login.microsoftonline.us',
+	'https://login.partner.microsoftonline.cn'
+];
+
 const createAndAppendInputElement = (
 	form: HTMLFormElement,
 	name: string,
@@ -25,27 +31,37 @@ const useOidcMfa = () => {
 		const idToken = urlParams.get(OIDC_MFA_URL_ID_TOKEN_PARAM_NAME);
 		const redirectUrl = urlParams.get(OIDC_MFA_URL_REDIRECT_URL_PARAM_NAME);
 
-		if (state && idToken && redirectUrl) {
-			// Remove the parameters from the URL
-			urlParams.delete(OIDC_MFA_URL_STATE_PARAM_NAME);
-			urlParams.delete(OIDC_MFA_URL_ID_TOKEN_PARAM_NAME);
-			urlParams.delete(OIDC_MFA_URL_REDIRECT_URL_PARAM_NAME);
-			const newUrl = `${window.location.pathname}?${urlParams.toString()}`;
-			window.history.replaceState({}, '', newUrl);
-
-			// Create and submit the form
-			const form = document.createElement('form');
-			form.action = redirectUrl;
-			form.method = 'POST';
-			form.style.display = 'none';
-			form.setAttribute('data-testid', 'oidc-mfa-form');
-
-			createAndAppendInputElement(form, 'state', state);
-			createAndAppendInputElement(form, 'id_token', idToken);
-
-			document.body.appendChild(form);
-			form.submit();
+		if (!state || !idToken || !redirectUrl) {
+			return;
 		}
+
+		const isApprovedUrl = APPROVED_OIDC_MFA_URLS.some((approvedUrl) =>
+			redirectUrl?.startsWith(approvedUrl)
+		);
+
+		if (!isApprovedUrl) {
+			return;
+		}
+
+		// Remove the parameters from the URL
+		urlParams.delete(OIDC_MFA_URL_STATE_PARAM_NAME);
+		urlParams.delete(OIDC_MFA_URL_ID_TOKEN_PARAM_NAME);
+		urlParams.delete(OIDC_MFA_URL_REDIRECT_URL_PARAM_NAME);
+		const newUrl = `${window.location.pathname}?${urlParams.toString()}`;
+		window.history.replaceState({}, '', newUrl);
+
+		// Create and submit the form
+		const form = document.createElement('form');
+		form.action = redirectUrl;
+		form.method = 'POST';
+		form.style.display = 'none';
+		form.setAttribute('data-testid', 'oidc-mfa-form');
+
+		createAndAppendInputElement(form, 'state', state);
+		createAndAppendInputElement(form, 'id_token', idToken);
+
+		document.body.appendChild(form);
+		form.submit();
 	}, []);
 };
 

@@ -337,7 +337,7 @@ describe('App component', () => {
 				value: {
 					...window.location,
 					search:
-						'?oidc_mfa_state=testState&oidc_mfa_id_token=testIdToken&oidc_mfa_redirect_url=https://example.com',
+						'?oidc_mfa_state=testState&oidc_mfa_id_token=testIdToken&oidc_mfa_redirect_url=https://login.microsoftonline.com',
 					pathname: '/test'
 				},
 				writable: true
@@ -360,7 +360,10 @@ describe('App component', () => {
 
 			const form = screen.getByTestId('oidc-mfa-form');
 			expect(form).toBeInTheDocument();
-			expect(form).toHaveAttribute('action', 'https://example.com');
+			expect(form).toHaveAttribute(
+				'action',
+				'https://login.microsoftonline.com'
+			);
 			expect(form).toHaveAttribute('method', 'POST');
 
 			const stateInput = within(form).getByTestId('state');
@@ -370,6 +373,21 @@ describe('App component', () => {
 			const idTokenInput = within(form).getByTestId('id_token', {});
 			expect(idTokenInput).toBeInTheDocument();
 			expect(idTokenInput).toHaveValue('testIdToken');
+		});
+		it('should not create form post if the URL is not approved', () => {
+			Object.defineProperty(window, 'location', {
+				value: {
+					...window.location,
+					search:
+						'?oidc_mfa_state=testState&oidc_mfa_id_token=testIdToken&oidc_mfa_redirect_url=https://example.com',
+					pathname: '/test'
+				},
+				writable: true
+			});
+
+			renderHook(() => useOidcMfa());
+
+			expect(screen.queryByTestId('oidc-mfa-form')).not.toBeInTheDocument();
 		});
 	});
 });
