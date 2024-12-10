@@ -4,6 +4,7 @@ import React, { useEffect, useMemo } from 'react';
 import './App.css';
 import Done from './components/Done';
 import Welcome from './components/Welcome';
+import useOidcMfa from './hooks/useOidcMfa';
 
 const projectRegex = /^P([a-zA-Z0-9]{27}|[a-zA-Z0-9]{31})$/;
 const ssoAppRegex = /^[a-zA-Z0-9\-_]{1,30}$/;
@@ -55,6 +56,8 @@ const App = () => {
 		window.location.pathname?.split('/').at(-1) || ''
 	)?.[0];
 	projectId = pathnameProjectId ?? envProjectId ?? '';
+
+	useOidcMfa();
 
 	const urlParams = useMemo(
 		() => new URLSearchParams(window.location.search),
@@ -150,9 +153,11 @@ const App = () => {
 				} else {
 					search = `?done=true`;
 				}
-				window?.location.assign(
-					`${window?.location.origin}/${window?.location.pathname}${search}`
-				);
+				// build the new URL
+				const newUrl = new URL(window?.location.origin);
+				newUrl.pathname = window?.location.pathname;
+				newUrl.search = search;
+				window?.location.assign(newUrl.toString());
 			}
 		})
 	};
