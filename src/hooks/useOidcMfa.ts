@@ -29,7 +29,7 @@ const useOidcMfa = () => {
 		const urlParams = new URLSearchParams(window.location.search);
 		const state = urlParams.get(OIDC_MFA_URL_STATE_PARAM_NAME);
 		const idToken = urlParams.get(OIDC_MFA_URL_ID_TOKEN_PARAM_NAME);
-		const redirectUrl = urlParams.get(OIDC_MFA_URL_REDIRECT_URL_PARAM_NAME);
+		let redirectUrl = urlParams.get(OIDC_MFA_URL_REDIRECT_URL_PARAM_NAME);
 
 		if (!state || !idToken || !redirectUrl) {
 			return;
@@ -42,9 +42,6 @@ const useOidcMfa = () => {
 		const newUrl = `${window.location.pathname}?${urlParams.toString()}`;
 		window.history.replaceState({}, '', newUrl);
 
-		// Create and submit the form
-		const form = document.createElement('form');
-		form.action = redirectUrl;
 		try {
 			const parsedUrl = new URL(redirectUrl);
 			if (
@@ -54,10 +51,14 @@ const useOidcMfa = () => {
 			) {
 				throw new Error('Unapproved redirect URL');
 			}
-			form.action = parsedUrl.href;
+			redirectUrl = parsedUrl.href;
 		} catch (error) {
 			return;
 		}
+
+		// Create and submit the form
+		const form = document.createElement('form');
+		form.action = redirectUrl;
 		form.method = 'POST';
 		form.style.display = 'none';
 		form.setAttribute('data-testid', 'oidc-mfa-form');
