@@ -4,6 +4,20 @@ const OIDC_MFA_URL_STATE_PARAM_NAME = 'oidc_mfa_state';
 const OIDC_MFA_URL_ID_TOKEN_PARAM_NAME = 'oidc_mfa_id_token';
 const OIDC_MFA_URL_REDIRECT_URL_PARAM_NAME = 'oidc_mfa_redirect_url';
 
+const createAndAppendInputElement = (
+	form: HTMLFormElement,
+	name: string,
+	value: string
+): void => {
+	const input = document.createElement('input');
+	input.type = 'text';
+	input.name = name;
+	input.value = value;
+	input.required = true;
+	input.setAttribute('data-testid', name);
+	form.appendChild(input);
+};
+
 const useOidcMfa = () => {
 	useEffect(() => {
 		const urlParams = new URLSearchParams(window.location.search);
@@ -25,21 +39,9 @@ const useOidcMfa = () => {
 			form.method = 'POST';
 			form.style.display = 'none';
 			form.setAttribute('data-testid', 'oidc-mfa-form');
-			const stateInput = document.createElement('input');
-			stateInput.type = 'text';
-			stateInput.name = 'state';
-			stateInput.value = state;
-			stateInput.required = true;
-			stateInput.setAttribute('data-testid', 'state');
-			form.appendChild(stateInput);
 
-			const idTokenInput = document.createElement('input');
-			idTokenInput.type = 'text';
-			idTokenInput.name = 'id_token';
-			idTokenInput.value = idToken;
-			idTokenInput.required = true;
-			idTokenInput.setAttribute('data-testid', 'id_token');
-			form.appendChild(idTokenInput);
+			createAndAppendInputElement(form, 'state', state);
+			createAndAppendInputElement(form, 'id_token', idToken);
 
 			document.body.appendChild(form);
 			form.submit();
