@@ -1292,15 +1292,15 @@
     normalize-package-data "^3||^4||^5||^6"
     xmlbuilder2 "^3.0.2"
 
-"@descope/access-key-management-widget@0.3.2":
-  version "0.3.2"
-  resolved "https://registry.yarnpkg.com/@descope/access-key-management-widget/-/access-key-management-widget-0.3.2.tgz#5c787befd99fdc5f5bc1908c3c3c2f0d9db91c3b"
-  integrity sha512-y3+HD6WmjJmXdG/Vgthb/BnlIhf3u9dimqa3YMP46bNCWWLp9hucZpRIZgyxDhbV6JqttH75HOIHm7N8EODX0w==
+"@descope/access-key-management-widget@0.3.3":
+  version "0.3.3"
+  resolved "https://registry.yarnpkg.com/@descope/access-key-management-widget/-/access-key-management-widget-0.3.3.tgz#cf9d3adb95548b5eae74cba81d63a472265fedb7"
+  integrity sha512-/gWcNmRdNzJYJqkaJ7+KVE98vt0WeIuUJ+bgkA3ImQQNaTlNRmVgTXvdwFAYzglslJxRhKUGLG0TCb+ASi7YsA==
   dependencies:
     "@descope/sdk-component-drivers" "0.2.42"
     "@descope/sdk-helpers" "0.1.60"
     "@descope/sdk-mixins" "0.5.1"
-    "@descope/web-js-sdk" "1.22.0"
+    "@descope/web-js-sdk" "1.23.0"
     "@reduxjs/toolkit" "^2.0.1"
     immer "^10.0.3"
     redux "5.0.1"
@@ -1308,15 +1308,15 @@
     reselect "5.1.1"
     tslib "2.6.3"
 
-"@descope/applications-portal-widget@0.2.6":
-  version "0.2.6"
-  resolved "https://registry.yarnpkg.com/@descope/applications-portal-widget/-/applications-portal-widget-0.2.6.tgz#cd683f653825d2d6d44a3c28f8cf0a0e2eccec18"
-  integrity sha512-qHY05vfDizPzp1NsTbVTjRmv9awsPpcXBl2lRI9gy+/JVu6lXhKZDXs2DqydP5Q++dQjY7n2NtQ3HFbvzDtC/g==
+"@descope/applications-portal-widget@0.2.7":
+  version "0.2.7"
+  resolved "https://registry.yarnpkg.com/@descope/applications-portal-widget/-/applications-portal-widget-0.2.7.tgz#bb70fee3270cfec29d381bcb52423833ddce4675"
+  integrity sha512-0kdYesEzUkhK15C/TJSeu8+ZYRuW/7/TxgXaByGYI7Gl1E26ALF8lFglBo2u5gFiD1JTQbT1eu6VsMpidWWfnw==
   dependencies:
     "@descope/sdk-component-drivers" "0.2.42"
     "@descope/sdk-helpers" "0.1.60"
     "@descope/sdk-mixins" "0.5.1"
-    "@descope/web-js-sdk" "1.22.0"
+    "@descope/web-js-sdk" "1.23.0"
     "@reduxjs/toolkit" "^2.0.1"
     immer "^10.0.3"
     redux "5.0.1"
@@ -1324,15 +1324,15 @@
     reselect "5.1.1"
     tslib "2.6.3"
 
-"@descope/audit-management-widget@0.2.6":
-  version "0.2.6"
-  resolved "https://registry.yarnpkg.com/@descope/audit-management-widget/-/audit-management-widget-0.2.6.tgz#152e31518516977427fc9f4d3586e4b398314c4a"
-  integrity sha512-cmfFVBwD1wYEYPNWNmz+gPPqzPxzJY3EGOUgXjoCWiXiVU3xQBM31nioNiZlM8vOTiS4PCPMsf27H77eLIMKmQ==
+"@descope/audit-management-widget@0.2.7":
+  version "0.2.7"
+  resolved "https://registry.yarnpkg.com/@descope/audit-management-widget/-/audit-management-widget-0.2.7.tgz#6321894a0179d1a44af8d27d5b8ed14637a0e7fd"
+  integrity sha512-BVlXdRnwqKtfYP3o5ihfc0NXEVnTO88+YQ/QvWu4ZYAnMn8KeEYh6Pg9XksTOhMWNtcXsld8GIqStew2XKOT9w==
   dependencies:
     "@descope/sdk-component-drivers" "0.2.42"
     "@descope/sdk-helpers" "0.1.60"
     "@descope/sdk-mixins" "0.5.1"
-    "@descope/web-js-sdk" "1.22.0"
+    "@descope/web-js-sdk" "1.23.0"
     "@reduxjs/toolkit" "^2.0.1"
     immer "^10.0.3"
     redux "5.0.1"
@@ -1352,30 +1352,30 @@
   resolved "https://registry.yarnpkg.com/@descope/escape-markdown/-/escape-markdown-0.1.1.tgz#df29063676a4440d15ec403413ecfccffdd3fb29"
   integrity sha512-KWwz2p1k7EeMkEnHniwK6af5psi3R9cQcC9+YWyxUdE+2Kvs91XrdC5TRhxXcdEEO4ksxksMPfVNG1sWyAnRgw==
 
-"@descope/react-sdk@2.3.5":
-  version "2.3.5"
-  resolved "https://registry.yarnpkg.com/@descope/react-sdk/-/react-sdk-2.3.5.tgz#f5f2097ac55fde9102ffdbdfb9d7227d10e6bfcf"
-  integrity sha512-cKWz3uVrZrcJLs47R+OaxRCv4yFkJsNlytlY8BTGjC+tBXLaibCyaY4qK7XgPRxD3jclwGB+034tyTR9AHtyVw==
+"@descope/react-sdk@2.3.6":
+  version "2.3.6"
+  resolved "https://registry.yarnpkg.com/@descope/react-sdk/-/react-sdk-2.3.6.tgz#33763f2c0a22506bc55114bb82be0379e591690e"
+  integrity sha512-V8rMeWrnGUbK9R1l9BENRUzeA68BlTzRXgIRhMvbMi7n54JT3DimdeBAELIGi7yDUYI7bZj6KR+/sw8Sudj81w==
   dependencies:
-    "@descope/access-key-management-widget" "0.3.2"
-    "@descope/applications-portal-widget" "0.2.6"
-    "@descope/audit-management-widget" "0.2.6"
+    "@descope/access-key-management-widget" "0.3.3"
+    "@descope/applications-portal-widget" "0.2.7"
+    "@descope/audit-management-widget" "0.2.7"
     "@descope/core-js-sdk" "2.33.0"
-    "@descope/role-management-widget" "0.2.6"
-    "@descope/user-management-widget" "0.6.0"
-    "@descope/user-profile-widget" "0.2.2"
-    "@descope/web-component" "3.31.1"
-    "@descope/web-js-sdk" "1.22.0"
+    "@descope/role-management-widget" "0.2.7"
+    "@descope/user-management-widget" "0.6.1"
+    "@descope/user-profile-widget" "0.2.3"
+    "@descope/web-component" "3.31.2"
+    "@descope/web-js-sdk" "1.23.0"
 
-"@descope/role-management-widget@0.2.6":
-  version "0.2.6"
-  resolved "https://registry.yarnpkg.com/@descope/role-management-widget/-/role-management-widget-0.2.6.tgz#f9acf0d066b380b88ffdcb65b3d5130755270cde"
-  integrity sha512-898s54sgIql+H9zBOsywrCCkZHrhw44Ki4pqnHrHFaNy0ReSb2B5rZ5UKTtovtTFJy8EEBPRQXmeOwu7AxreLg==
+"@descope/role-management-widget@0.2.7":
+  version "0.2.7"
+  resolved "https://registry.yarnpkg.com/@descope/role-management-widget/-/role-management-widget-0.2.7.tgz#dcf772b2ba84ff3745250c615d17a81323758eae"
+  integrity sha512-ergGGr94EYhhruRHPV6DCdmjXlL4bb00+n1VnNeujCUJsvZLzDtTSPjtGZEgeb0gBxR/grzIWqpkehN63JSTyg==
   dependencies:
     "@descope/sdk-component-drivers" "0.2.42"
     "@descope/sdk-helpers" "0.1.60"
     "@descope/sdk-mixins" "0.5.1"
-    "@descope/web-js-sdk" "1.22.0"
+    "@descope/web-js-sdk" "1.23.0"
     "@reduxjs/toolkit" "^2.0.1"
     immer "^10.0.3"
     redux "5.0.1"
@@ -1407,15 +1407,15 @@
     "@descope/sdk-helpers" "0.1.60"
     tslib "2.6.3"
 
-"@descope/user-management-widget@0.6.0":
-  version "0.6.0"
-  resolved "https://registry.yarnpkg.com/@descope/user-management-widget/-/user-management-widget-0.6.0.tgz#a43dc64d1b04335c7ef34e96f9f788b023690400"
-  integrity sha512-advjSRTEGXnWL4prFG6Ck2LW3wSQHrFsVIAzEF+86Xdtt1D+0EchcY/XYhC7cOEU46x9Yfjo+Usv8D02XMFmlg==
+"@descope/user-management-widget@0.6.1":
+  version "0.6.1"
+  resolved "https://registry.yarnpkg.com/@descope/user-management-widget/-/user-management-widget-0.6.1.tgz#7a174ae22761ef0b42237b5221085c44b6871ce8"
+  integrity sha512-cxvdMWndklUMvWgzINAv7LjvR7F+51q1PSisUNyYqFV90O0YZtBxwKFqN+HDPQVw9r+OjAr0VaBtqVrB1lzuUw==
   dependencies:
     "@descope/sdk-component-drivers" "0.2.42"
     "@descope/sdk-helpers" "0.1.60"
     "@descope/sdk-mixins" "0.5.1"
-    "@descope/web-js-sdk" "1.22.0"
+    "@descope/web-js-sdk" "1.23.0"
     "@reduxjs/toolkit" "^2.0.1"
     immer "^10.0.3"
     libphonenumber-js "1.11.4"
@@ -1424,16 +1424,16 @@
     reselect "5.1.1"
     tslib "2.6.3"
 
-"@descope/user-profile-widget@0.2.2":
-  version "0.2.2"
-  resolved "https://registry.yarnpkg.com/@descope/user-profile-widget/-/user-profile-widget-0.2.2.tgz#0bac51bf46ddeeb0a1b43768e3cc5313be2451b7"
-  integrity sha512-9USqn2MpHis2yP8JeSBouWvw7QBzz1KwObDCumHI2uZQS2u69C+9sN2JEb7gNpC2B8V/tvPT6Jgo4SCWc9iRqw==
+"@descope/user-profile-widget@0.2.3":
+  version "0.2.3"
+  resolved "https://registry.yarnpkg.com/@descope/user-profile-widget/-/user-profile-widget-0.2.3.tgz#bce3e20d51331209e23fe3a03133ae4eefb78890"
+  integrity sha512-i9A+fGHQ54/HIYhCTjzrOtOvzgCJL2eDTfRSw2yZzXWf4wp9BY7gshLDJ34GiVu6sc6UpX1vUyRqM7PLQ4JglA==
   dependencies:
     "@descope/sdk-component-drivers" "0.2.42"
     "@descope/sdk-helpers" "0.1.60"
     "@descope/sdk-mixins" "0.5.1"
-    "@descope/web-component" "3.31.1"
-    "@descope/web-js-sdk" "1.22.0"
+    "@descope/web-component" "3.31.2"
+    "@descope/web-js-sdk" "1.23.0"
     "@reduxjs/toolkit" "^2.0.1"
     immer "^10.0.3"
     redux "5.0.1"
@@ -1443,22 +1443,22 @@
   optionalDependencies:
     "@descope/core-js-sdk" "2.33.0"
 
-"@descope/web-component@3.31.1":
-  version "3.31.1"
-  resolved "https://registry.yarnpkg.com/@descope/web-component/-/web-component-3.31.1.tgz#4f6591239323c43d3dab59406a520d462e90c76d"
-  integrity sha512-sbTn2q0vHOxGzlZyuWGtI+QNCDo7i31OJU9DAa2zNE433kcMi42wOJbS4Ist8eFGa9A0/s1IEkUIw0EekT2UaA==
+"@descope/web-component@3.31.2":
+  version "3.31.2"
+  resolved "https://registry.yarnpkg.com/@descope/web-component/-/web-component-3.31.2.tgz#acb367d92f973b225f2dd93dbf321d246ffc5122"
+  integrity sha512-uKtfiac1U1AhoR0Hzm9r57pYLnSi1nViuJHhk+0f+abLv6aLqPYCzruhbg4gZvFz55syTCW5QrQoxVmoCwFrQw==
   dependencies:
     "@descope/escape-markdown" "0.1.1"
     "@descope/sdk-helpers" "0.1.60"
     "@descope/sdk-mixins" "0.5.1"
-    "@descope/web-js-sdk" "1.22.0"
+    "@descope/web-js-sdk" "1.23.0"
     "@fingerprintjs/fingerprintjs-pro" "3.9.9"
     tslib "2.6.3"
 
-"@descope/web-js-sdk@1.22.0":
-  version "1.22.0"
-  resolved "https://registry.yarnpkg.com/@descope/web-js-sdk/-/web-js-sdk-1.22.0.tgz#bbe384dc5ca2ee34a863a58b7d3e1be9a06d6205"
-  integrity sha512-pB4sqCMNBAM4XxmrUXnwJ8BvWATmyfvuA/O9o1ktxMAxUh+IHVuRABcBSB55SX30k82JCQ5g/J11x6CUOMulyw==
+"@descope/web-js-sdk@1.23.0":
+  version "1.23.0"
+  resolved "https://registry.yarnpkg.com/@descope/web-js-sdk/-/web-js-sdk-1.23.0.tgz#1d57765236510535fa830ef51a9b251af648aaca"
+  integrity sha512-ABfXKFq+e8eRNB/uO5jeUEuK0Iga7FdP+oY7C7K/9S6imySPUXRn/TH/br6Wr57xE9XpVfZtK6KnQvPIH+/3Pg==
   dependencies:
     "@descope/core-js-sdk" "2.33.0"
     "@fingerprintjs/fingerprintjs-pro" "3.9.9"
