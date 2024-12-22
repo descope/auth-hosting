@@ -31,3 +31,4 @@ yarn-error.log*
 .vercel
 .env
 .bom
+public/version
