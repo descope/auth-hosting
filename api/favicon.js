@@ -1,5 +1,3 @@
-import fetch from 'node-fetch';
-
 export default async function handler(req, res) {
 	const { url } = req.query;
 	const defaultFaviconUrl = process.env.DEFAULT_FAVICON_URL;
