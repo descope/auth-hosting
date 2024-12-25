@@ -2052,25 +2052,25 @@
   resolved "https://registry.npmjs.org/@leichtgewicht/ip-codec/-/ip-codec-2.0.4.tgz"
   integrity sha512-Hcv+nVC0kZnQ3tD9GVu5xSMR4VVYOteQIr/hwFPVEvPdlXqgGEuRjiheChHgdM+JyqdgNcmzZOX/tnl0JOiI7A==
 
-"@mui/core-downloads-tracker@^5.16.8":
+"@mui/core-downloads-tracker@^5.16.9":
   version "5.16.12"
   resolved "https://registry.yarnpkg.com/@mui/core-downloads-tracker/-/core-downloads-tracker-5.16.12.tgz#fecab4d99059a6af5e6c4bfdbc29e2ed2a33f8a2"
   integrity sha512-rkN+bPpe2Xn8h4ZLqKy5JsZt3nzMyTJ2ySdyLHHf0IL+PrxS46dxOIC1i66R8qi14kJBHfy7Byqv1yUvpwf0iw==
 
-"@mui/icons-material@5.16.8":
-  version "5.16.8"
-  resolved "https://registry.yarnpkg.com/@mui/icons-material/-/icons-material-5.16.8.tgz#8c32c6fe8f80f6859a73cd2c153fe97c160791ca"
-  integrity sha512-2HKzTsCPbNgJq2z4tI6sLDwxKXqiiPh6L3IhuB8w+ypShE/qAI4FZQfI2o93vysQnkPB4Rw3FKSwAJWTThhHQA==
+"@mui/icons-material@5.16.9":
+  version "5.16.9"
+  resolved "https://registry.yarnpkg.com/@mui/icons-material/-/icons-material-5.16.9.tgz#0f754ef0b943e3bea78343cd2861e8d95a114617"
+  integrity sha512-nnOJIqan6FS6zEsLX3vf8LZ4vXpZjP5xfCFezeXmqfQConypCOZG4nangoVwKwROlas7b6/bqOdacFUb/HuM/g==
   dependencies:
     "@babel/runtime" "^7.23.9"
 
-"@mui/material@5.16.8":
-  version "5.16.8"
-  resolved "https://registry.yarnpkg.com/@mui/material/-/material-5.16.8.tgz#cf6a3784910fae05cbcd0a871eaca2821639d867"
-  integrity sha512-amnDx385shdQasC7wAk/oQjfti8N4wm0fLEcD7n5KXDZxn9Y+0VKEC+ieVseOUGuY5B2FqzdNfeVwUPTmUBszQ==
+"@mui/material@5.16.9":
+  version "5.16.9"
+  resolved "https://registry.yarnpkg.com/@mui/material/-/material-5.16.9.tgz#d0d3e2e9882d11d94171298e2d7ab38db736ce1f"
+  integrity sha512-XC0oHFm7mrWV0tvhed9uv/o6kLNClnLj1eo/ufuKbj+rgk47ek8Y6HjHe3cGvMn4Bcq8KyoQPgzdwqvS2ZzYrA==
   dependencies:
     "@babel/runtime" "^7.23.9"
-    "@mui/core-downloads-tracker" "^5.16.8"
+    "@mui/core-downloads-tracker" "^5.16.9"
     "@mui/system" "^5.16.8"
     "@mui/types" "^7.2.15"
     "@mui/utils" "^5.16.8"
