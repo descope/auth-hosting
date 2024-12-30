@@ -4,8 +4,8 @@
 	"private": true,
 	"dependencies": {
 		"@descope/react-sdk": "2.3.9",
-		"@emotion/react": "11.13.5",
-		"@emotion/styled": "11.13.5",
+		"@emotion/react": "11.14.0",
+		"@emotion/styled": "11.14.0",
 		"@mui/icons-material": "5.16.9",
 		"@mui/material": "5.16.9",
 		"clsx": "2.1.0",
