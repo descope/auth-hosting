@@ -2052,25 +2052,25 @@
   resolved "https://registry.npmjs.org/@leichtgewicht/ip-codec/-/ip-codec-2.0.4.tgz"
   integrity sha512-Hcv+nVC0kZnQ3tD9GVu5xSMR4VVYOteQIr/hwFPVEvPdlXqgGEuRjiheChHgdM+JyqdgNcmzZOX/tnl0JOiI7A==
 
-"@mui/core-downloads-tracker@^5.16.9":
-  version "5.16.12"
-  resolved "https://registry.yarnpkg.com/@mui/core-downloads-tracker/-/core-downloads-tracker-5.16.12.tgz#fecab4d99059a6af5e6c4bfdbc29e2ed2a33f8a2"
-  integrity sha512-rkN+bPpe2Xn8h4ZLqKy5JsZt3nzMyTJ2ySdyLHHf0IL+PrxS46dxOIC1i66R8qi14kJBHfy7Byqv1yUvpwf0iw==
+"@mui/core-downloads-tracker@^5.16.11":
+  version "5.16.13"
+  resolved "https://registry.yarnpkg.com/@mui/core-downloads-tracker/-/core-downloads-tracker-5.16.13.tgz#ac17c0d9ca9cdce6002168373b53e76af2606b35"
+  integrity sha512-xe5RwI0Q2O709Bd2Y7l1W1NIwNmln0y+xaGk5VgX3vDJbkQEqzdfTFZ73e0CkEZgJwyiWgk5HY0l8R4nysOxjw==
 
-"@mui/icons-material@5.16.10":
-  version "5.16.10"
-  resolved "https://registry.yarnpkg.com/@mui/icons-material/-/icons-material-5.16.10.tgz#8fc2ee1cc9620c224ff9e33d9dfddbf2ac926ae0"
-  integrity sha512-XtH9CF/QWffwT6uKbJSoPqk6Rlk0+vZb11rRQmXLS1Ok95+OmcEB2QqnwgWA7qzDn4hWv5TH4gItA+Q+Faqk/g==
+"@mui/icons-material@5.16.11":
+  version "5.16.11"
+  resolved "https://registry.yarnpkg.com/@mui/icons-material/-/icons-material-5.16.11.tgz#5f3640ad59b4af0da0f385e42c2b381c87baad7f"
+  integrity sha512-LjIiDVGGPzessDd5uSGFYZNqrXqECLiJ9hESE6Xkk8CtGTN2m2h6iImKJpkoryNXYxulv87WLeqfTMWAfA4Igg==
   dependencies:
     "@babel/runtime" "^7.23.9"
 
-"@mui/material@5.16.9":
-  version "5.16.9"
-  resolved "https://registry.yarnpkg.com/@mui/material/-/material-5.16.9.tgz#d0d3e2e9882d11d94171298e2d7ab38db736ce1f"
-  integrity sha512-XC0oHFm7mrWV0tvhed9uv/o6kLNClnLj1eo/ufuKbj+rgk47ek8Y6HjHe3cGvMn4Bcq8KyoQPgzdwqvS2ZzYrA==
+"@mui/material@5.16.11":
+  version "5.16.11"
+  resolved "https://registry.yarnpkg.com/@mui/material/-/material-5.16.11.tgz#e7e6db021f027103e32cadea78d8bde3c13f2be5"
+  integrity sha512-uoc67oecKdnVKaMHBVE433YrMuxQs22xY5nIjRb5sAPB+GaeZQWp8brQ3/adeH6k2IDa8+9i2IVd4fNLuvHSvA==
   dependencies:
     "@babel/runtime" "^7.23.9"
-    "@mui/core-downloads-tracker" "^5.16.9"
+    "@mui/core-downloads-tracker" "^5.16.11"
     "@mui/system" "^5.16.8"
     "@mui/types" "^7.2.15"
     "@mui/utils" "^5.16.8"
