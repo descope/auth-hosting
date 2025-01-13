@@ -22,19 +22,19 @@ const isFaviconUrlSecure = (url: string, originalFaviconUrl: string) => {
 	}
 };
 
-const getExistingFaviconUrl = async (baseUrl: string, url: string) => {
+const getExistingFaviconUrl = async (url: string) => {
+	const defaultFaviconUrl = process.env.DEFAULT_FAVICON_URL as string;
 	try {
-		const response = await fetch(
-			`${baseUrl}/api/favicon?url=${encodeURIComponent(url)}`
-		);
+		const response = await fetch(url);
+
 		if (response.ok) {
-			const data = await response.json();
-			return data?.faviconUrl || '';
+			return { faviconUrl: url };
 		}
-		return '';
 	} catch (error) {
-		return '';
+		// eslint-disable-next-line no-console
+		console.log('your message here');
 	}
+	return { faviconUrl: defaultFaviconUrl };
 };
 
 const App = () => {
@@ -80,10 +80,7 @@ const App = () => {
 				favicon = favicon.replace('{ssoAppId}', ssoAppId);
 
 				if (isFaviconUrlSecure(favicon, faviconUrl)) {
-					const existingFaviconUrl = await getExistingFaviconUrl(
-						baseFunctionsUrl,
-						favicon
-					);
+					const existingFaviconUrl = await getExistingFaviconUrl(favicon);
 					if (existingFaviconUrl) {
 						let link = document.querySelector(
 							"link[rel~='icon']"
@@ -93,7 +90,7 @@ const App = () => {
 							link.rel = 'icon';
 							document.getElementsByTagName('head')[0].appendChild(link);
 						}
-						link.href = existingFaviconUrl;
+						link.href = existingFaviconUrl.faviconUrl;
 					}
 				}
 			}
