@@ -5,9 +5,11 @@ import './App.css';
 import Done from './components/Done';
 import Welcome from './components/Welcome';
 import useOidcMfa from './hooks/useOidcMfa';
+import { env } from './env';
 
 const projectRegex = /^P([a-zA-Z0-9]{27}|[a-zA-Z0-9]{31})$/;
 const ssoAppRegex = /^[a-zA-Z0-9\-_]{1,30}$/;
+const defaultFaviconUrl = env.REACT_APP_FAVICON_URL || '';
 
 const isFaviconUrlSecure = (url: string, originalFaviconUrl: string) => {
 	try {
@@ -23,33 +25,29 @@ const isFaviconUrlSecure = (url: string, originalFaviconUrl: string) => {
 };
 
 const getExistingFaviconUrl = async (url: string) => {
-	const defaultFaviconUrl = process.env.DEFAULT_FAVICON_URL as string;
 	try {
 		const response = await fetch(url);
-
 		if (response.ok) {
-			return { faviconUrl: url };
+			return url;
 		}
 	} catch (error) {
 		// eslint-disable-next-line no-console
-		console.log('your message here');
+		console.error(error);
 	}
-	return { faviconUrl: defaultFaviconUrl };
+	return defaultFaviconUrl;
 };
 
 const App = () => {
-	let baseUrl = process.env.REACT_APP_DESCOPE_BASE_URL;
+	let baseUrl = env.REACT_APP_DESCOPE_BASE_URL;
 
 	// Force origin base URL
-	if (process.env.REACT_APP_USE_ORIGIN_BASE_URL)
+	if (env.REACT_APP_USE_ORIGIN_BASE_URL === 'true')
 		baseUrl = window.location.origin;
 
 	let projectId = '';
 
 	// first, take project id from env
-	const envProjectId = projectRegex.exec(
-		process.env.DESCOPE_PROJECT_ID ?? ''
-	)?.[0];
+	const envProjectId = projectRegex.exec(env.DESCOPE_PROJECT_ID ?? '')?.[0];
 
 	// If exists in URI use it, otherwise use env
 	const pathnameProjectId = projectRegex.exec(
@@ -64,22 +62,20 @@ const App = () => {
 		[]
 	);
 
-	const baseFunctionsUrl = process.env.REACT_APP_BASE_FUNCTIONS_URL || '';
-
-	const faviconUrl = process.env.REACT_APP_FAVICON_URL || '';
+	const baseFunctionsUrl = env.REACT_APP_BASE_FUNCTIONS_URL || '';
 
 	let ssoAppId = urlParams.get('sso_app_id') || '';
 	ssoAppId = ssoAppRegex.exec(ssoAppId)?.[0] || '';
 
 	useEffect(() => {
 		const updateFavicon = async () => {
-			if (faviconUrl && ssoAppId && projectId) {
-				let favicon = faviconUrl;
+			if (defaultFaviconUrl && ssoAppId && projectId) {
+				let favicon = defaultFaviconUrl;
 				// projectId and ssoAppId have been sanitized already
 				favicon = favicon.replace('{projectId}', projectId);
 				favicon = favicon.replace('{ssoAppId}', ssoAppId);
 
-				if (isFaviconUrlSecure(favicon, faviconUrl)) {
+				if (isFaviconUrlSecure(favicon, defaultFaviconUrl)) {
 					const existingFaviconUrl = await getExistingFaviconUrl(favicon);
 					if (existingFaviconUrl) {
 						let link = document.querySelector(
@@ -90,36 +86,33 @@ const App = () => {
 							link.rel = 'icon';
 							document.getElementsByTagName('head')[0].appendChild(link);
 						}
-						link.href = existingFaviconUrl.faviconUrl;
+						link.href = existingFaviconUrl;
 					}
 				}
 			}
 		};
 
 		updateFavicon();
-	}, [baseFunctionsUrl, faviconUrl, projectId, ssoAppId]);
+	}, [baseFunctionsUrl, projectId, ssoAppId]);
 
-	const styleId = urlParams.get('style') || process.env.DESCOPE_STYLE_ID;
+	const styleId = urlParams.get('style') || env.DESCOPE_STYLE_ID;
 
 	const flowId =
-		urlParams.get('flow') || process.env.DESCOPE_FLOW_ID || 'sign-up-or-in';
+		urlParams.get('flow') || env.DESCOPE_FLOW_ID || 'sign-up-or-in';
 
 	const debug =
-		urlParams.get('debug') === 'true' ||
-		process.env.DESCOPE_FLOW_DEBUG === 'true';
+		urlParams.get('debug') === 'true' || env.DESCOPE_FLOW_DEBUG === 'true';
 
 	const done = urlParams.get('done') || false;
 
-	const locale = urlParams.get('locale') || process.env.DESCOPE_LOCALE;
+	const locale = urlParams.get('locale') || env.DESCOPE_LOCALE;
 
-	const tenantId = urlParams.get('tenant') || process.env.DESCOPE_TENANT_ID;
+	const tenantId = urlParams.get('tenant') || env.DESCOPE_TENANT_ID;
 
-	const backgroundColor = urlParams.get('bg') || process.env.DESCOPE_BG_COLOR;
+	const backgroundColor = urlParams.get('bg') || env.DESCOPE_BG_COLOR;
 
 	const theme = (urlParams.get('theme') ||
-		process.env.DESCOPE_FLOW_THEME) as React.ComponentProps<
-		typeof Descope
-	>['theme'];
+		env.DESCOPE_FLOW_THEME) as React.ComponentProps<typeof Descope>['theme'];
 
 	const isWideContainer =
 		urlParams.get('wide') === 'true' ||
