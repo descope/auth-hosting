@@ -11,6 +11,7 @@ import {
 import App from './App';
 import packageJson from '../package.json';
 import useOidcMfa from './hooks/useOidcMfa';
+import { env } from './env';
 
 const mockDescope = jest.fn();
 const mockAuthProvider = jest.fn();
@@ -63,7 +64,7 @@ describe('App component', () => {
 
 	beforeEach(() => {
 		jest.resetModules();
-		process.env.DESCOPE_PROJECT_ID = '';
+		env.DESCOPE_PROJECT_ID = '';
 		window.location.pathname = '';
 		window.localStorage.clear();
 	});
@@ -101,26 +102,26 @@ describe('App component', () => {
 	});
 
 	test('displays Descope component when projectId is valid and as an env var', async () => {
-		process.env.DESCOPE_PROJECT_ID = validProjectId;
+		env.DESCOPE_PROJECT_ID = validProjectId;
 		render(<App />);
 		expect(await screen.findByTestId('descope-component')).toBeInTheDocument();
 	});
 
 	test('displays welcome component when projectId is invalid and as an env var', async () => {
-		process.env.DESCOPE_PROJECT_ID = invalidProjectId;
+		env.DESCOPE_PROJECT_ID = invalidProjectId;
 		render(<App />);
 		expect(await screen.findByTestId('welcome-component')).toBeInTheDocument();
 	});
 
 	test('displays Descope component when projectId is valid and part of the location and env', async () => {
-		process.env.DESCOPE_PROJECT_ID = validProjectId;
+		env.DESCOPE_PROJECT_ID = validProjectId;
 		window.location.pathname = `/${packageJson.homepage}/${validProjectId}`;
 		render(<App />);
 		expect(await screen.findByTestId('descope-component')).toBeInTheDocument();
 	});
 
 	test('that the baseUrl is the same as the origin', async () => {
-		process.env.REACT_APP_USE_ORIGIN_BASE_URL = 'true';
+		env.REACT_APP_USE_ORIGIN_BASE_URL = 'true';
 		Object.defineProperty(window.location, 'origin', {
 			value: baseUrl
 		});
@@ -134,9 +135,9 @@ describe('App component', () => {
 	});
 
 	test('that the flow can be customized with env', async () => {
-		process.env.REACT_APP_DESCOPE_BASE_URL = baseUrl;
-		process.env.DESCOPE_FLOW_ID = flowId;
-		process.env.DESCOPE_FLOW_DEBUG = debug.toString();
+		env.REACT_APP_DESCOPE_BASE_URL = baseUrl;
+		env.DESCOPE_FLOW_ID = flowId;
+		env.DESCOPE_FLOW_DEBUG = debug.toString();
 
 		window.location.pathname = `/${packageJson.homepage}/${validProjectId}`;
 		render(<App />);
@@ -166,9 +167,9 @@ describe('App component', () => {
 	describe('onSuccess callback', () => {
 		beforeEach(() => {
 			jest.clearAllMocks();
-			process.env.DESCOPE_PROJECT_ID = 'P123456789012345678901234567';
-			process.env.DESCOPE_FLOW_ID = 'saml-config';
-			process.env.REACT_APP_DESCOPE_BASE_URL = baseUrl;
+			env.DESCOPE_PROJECT_ID = 'P123456789012345678901234567';
+			env.DESCOPE_FLOW_ID = 'saml-config';
+			env.REACT_APP_DESCOPE_BASE_URL = baseUrl;
 
 			// Set the ssoAppId URL parameter
 			Object.defineProperty(window, 'location', {
@@ -222,9 +223,9 @@ describe('App component', () => {
 	describe('favicon', () => {
 		beforeEach(() => {
 			jest.clearAllMocks();
-			process.env.REACT_APP_BASE_FUNCTIONS_URL = 'https://example.com';
-			process.env.REACT_APP_FAVICON_URL = 'https://example.com/favicon.ico';
-			process.env.DESCOPE_PROJECT_ID = 'P1234567890123456789012345678901';
+			env.REACT_APP_BASE_FUNCTIONS_URL = 'https://example.com';
+			env.REACT_APP_FAVICON_URL = 'https://example.com/favicon.ico';
+			env.DESCOPE_PROJECT_ID = 'P1234567890123456789012345678901';
 
 			Object.defineProperty(window, 'location', {
 				value: {
@@ -283,7 +284,7 @@ describe('App component', () => {
 		});
 
 		it('should not update the favicon if the URL is not secure', async () => {
-			process.env.REACT_APP_FAVICON_URL = 'http://example.com/favicon.ico';
+			env.REACT_APP_FAVICON_URL = 'http://example.com/favicon.ico';
 
 			render(<App />);
 
@@ -295,7 +296,7 @@ describe('App component', () => {
 		});
 
 		it('should not update the favicon if the URL is not valid', async () => {
-			process.env.REACT_APP_FAVICON_URL = 'invalid-url';
+			env.REACT_APP_FAVICON_URL = 'invalid-url';
 
 			render(<App />);
 
@@ -319,7 +320,7 @@ describe('App component', () => {
 		});
 
 		it('should not update the favicon if faviconUrl is missing', async () => {
-			process.env.REACT_APP_FAVICON_URL = '';
+			env.REACT_APP_FAVICON_URL = '';
 
 			render(<App />);
 
