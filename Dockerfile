@@ -15,7 +15,7 @@ ARG REACT_APP_USE_ORIGIN_BASE_URL="false"
 
 ARG REACT_APP_FAVICON_URL="https://imgs.descope.com/auth-hosting/favicon.svg"
 
-RUN yarn build && yarn inject-env
+RUN yarn build
 
 FROM nginx:alpine
 

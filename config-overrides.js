@@ -58,9 +58,16 @@ module.exports = {
 		return function (proxy, allowedHost) {
 			const config = configFunction(proxy, allowedHost);
 
-			// To allow the env.js file to be written to disk
+			// Configure dev server to serve env.js
 			config.devMiddleware = {
 				writeToDisk: true
+			};
+
+			// Add static serving configuration
+			config.static = {
+				directory: path.join(__dirname, 'build'),
+				publicPath: process.env.PUBLIC_URL ?? '/login',
+				watch: true
 			};
 
 			return config;
