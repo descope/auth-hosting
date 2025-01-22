@@ -9,8 +9,8 @@ import { env } from './env';
 
 const projectRegex = /^P([a-zA-Z0-9]{27}|[a-zA-Z0-9]{31})$/;
 const ssoAppRegex = /^[a-zA-Z0-9\-_]{1,30}$/;
-const defaultFaviconUrl = env.REACT_APP_FAVICON_URL || '';
-
+const defaultFaviconUrl = env.REACT_APP_DEFAULT_FAVICON_URL || '';
+const faviconUrlTemplate = env.REACT_APP_FAVICON_URL_TEMPLATE || '';
 const isFaviconUrlSecure = (url: string, originalFaviconUrl: string) => {
 	try {
 		const parsedUrl = new URL(url);
@@ -26,13 +26,16 @@ const isFaviconUrlSecure = (url: string, originalFaviconUrl: string) => {
 
 const getExistingFaviconUrl = async (url: string) => {
 	try {
-		const response = await fetch(url);
+		const response = await fetch(url, {
+			method: 'HEAD' // Only fetch headers to check existence
+		});
 		if (response.ok) {
 			return url;
 		}
 	} catch (error) {
 		// eslint-disable-next-line no-console
 		console.error(error);
+		return defaultFaviconUrl;
 	}
 	return defaultFaviconUrl;
 };
@@ -62,21 +65,19 @@ const App = () => {
 		[]
 	);
 
-	const baseFunctionsUrl = env.REACT_APP_BASE_FUNCTIONS_URL || '';
-
 	let ssoAppId = urlParams.get('sso_app_id') || '';
 	ssoAppId = ssoAppRegex.exec(ssoAppId)?.[0] || '';
 
 	useEffect(() => {
 		const updateFavicon = async () => {
 			if (defaultFaviconUrl && ssoAppId && projectId) {
-				let favicon = defaultFaviconUrl;
-				// projectId and ssoAppId have been sanitized already
-				favicon = favicon.replace('{projectId}', projectId);
-				favicon = favicon.replace('{ssoAppId}', ssoAppId);
-
-				if (isFaviconUrlSecure(favicon, defaultFaviconUrl)) {
-					const existingFaviconUrl = await getExistingFaviconUrl(favicon);
+				const faviconUrl = faviconUrlTemplate
+					.replace('{projectId}', projectId)
+					.replace('{ssoAppId}', ssoAppId);
+				// eslint-disable-next-line no-console
+				console.log('faviconUrl', faviconUrl);
+				if (isFaviconUrlSecure(faviconUrl, defaultFaviconUrl)) {
+					const existingFaviconUrl = await getExistingFaviconUrl(faviconUrl);
 					if (existingFaviconUrl) {
 						let link = document.querySelector(
 							"link[rel~='icon']"
@@ -91,9 +92,8 @@ const App = () => {
 				}
 			}
 		};
-
 		updateFavicon();
-	}, [baseFunctionsUrl, projectId, ssoAppId]);
+	}, [baseUrl, projectId, ssoAppId]);
 
 	const styleId = urlParams.get('style') || env.DESCOPE_STYLE_ID;
 
