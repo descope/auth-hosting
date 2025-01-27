@@ -1,42 +1,48 @@
 import { AuthProvider, Descope } from '@descope/react-sdk';
 import clsx from 'clsx';
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useCallback } from 'react';
 import './App.css';
 import Done from './components/Done';
 import Welcome from './components/Welcome';
 import useOidcMfa from './hooks/useOidcMfa';
 import { env } from './env';
+import { logger } from './utils/logger';
 
 const projectRegex = /^P([a-zA-Z0-9]{27}|[a-zA-Z0-9]{31})$/;
 const ssoAppRegex = /^[a-zA-Z0-9\-_]{1,30}$/;
 const defaultFaviconUrl = env.REACT_APP_DEFAULT_FAVICON_URL || '';
 const faviconUrlTemplate = env.REACT_APP_FAVICON_URL_TEMPLATE || '';
-const isFaviconUrlSecure = (url: string, originalFaviconUrl: string) => {
+
+const isFaviconUrlSecure = (url: string) => {
 	try {
 		const parsedUrl = new URL(url);
-		const parsedOriginalUrl = new URL(originalFaviconUrl);
-		return (
-			parsedUrl.protocol === 'https:' &&
-			parsedUrl.hostname === parsedOriginalUrl.hostname
-		);
+		const isSecure = parsedUrl.protocol === 'https:';
+		logger.log('Favicon URL security check:', {
+			url,
+			protocol: parsedUrl.protocol,
+			hostname: parsedUrl.hostname,
+			isSecure
+		});
+		return isSecure;
 	} catch (error) {
+		logger.error('Error checking favicon URL security:', error);
 		return false;
 	}
 };
 
-const getExistingFaviconUrl = async (url: string) => {
+const getFaviconUrl = async (url: string) => {
+	logger.log('Attempting to fetch favicon from:', url);
 	try {
-		const response = await fetch(url, {
-			method: 'HEAD' // Only fetch headers to check existence
-		});
+		const response = await fetch(url);
+		logger.log('Favicon fetch response:', response.status, response.ok);
 		if (response.ok) {
 			return url;
 		}
 	} catch (error) {
-		// eslint-disable-next-line no-console
-		console.error(error);
+		logger.error('Error fetching favicon:', error);
 		return defaultFaviconUrl;
 	}
+	logger.log('Falling back to default favicon:', defaultFaviconUrl);
 	return defaultFaviconUrl;
 };
 
@@ -68,32 +74,63 @@ const App = () => {
 	let ssoAppId = urlParams.get('sso_app_id') || '';
 	ssoAppId = ssoAppRegex.exec(ssoAppId)?.[0] || '';
 
+	// Memoize updateFavicon with useCallback
+	const updateFavicon = useCallback(async () => {
+		logger.log('Starting favicon update with:', {
+			defaultFaviconUrl,
+			ssoAppId,
+			projectId,
+			faviconUrlTemplate
+		});
+
+		if (!defaultFaviconUrl) {
+			logger.log('Missing defaultFaviconUrl');
+			return;
+		}
+		if (!ssoAppId) {
+			logger.log('Missing ssoAppId');
+			return;
+		}
+		if (!projectId) {
+			logger.log('Missing projectId');
+			return;
+		}
+		if (!faviconUrlTemplate) {
+			logger.log('Missing faviconUrlTemplate');
+			return;
+		}
+
+		const faviconUrl = faviconUrlTemplate
+			.replace('{projectId}', projectId)
+			.replace('{ssoAppId}', ssoAppId);
+
+		logger.log('Generated faviconUrl:', faviconUrl);
+
+		if (!isFaviconUrlSecure(faviconUrl)) {
+			logger.log('URL is not secure, using default favicon');
+			return;
+		}
+
+		logger.log('URL is secure, fetching favicon...');
+		const existingFaviconUrl = await getFaviconUrl(faviconUrl);
+
+		let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
+		if (!link) {
+			logger.log('Creating new favicon link element');
+			link = document.createElement('link');
+			link.rel = 'icon';
+			document.getElementsByTagName('head')[0].appendChild(link);
+		} else {
+			logger.log('Updating existing favicon link element');
+		}
+		link.href = existingFaviconUrl;
+		logger.log('Favicon updated to:', existingFaviconUrl);
+	}, [projectId, ssoAppId]);
+
+	// Run immediately and also when dependencies change
 	useEffect(() => {
-		const updateFavicon = async () => {
-			if (defaultFaviconUrl && ssoAppId && projectId) {
-				const faviconUrl = faviconUrlTemplate
-					.replace('{projectId}', projectId)
-					.replace('{ssoAppId}', ssoAppId);
-				// eslint-disable-next-line no-console
-				console.log('faviconUrl', faviconUrl);
-				if (isFaviconUrlSecure(faviconUrl, defaultFaviconUrl)) {
-					const existingFaviconUrl = await getExistingFaviconUrl(faviconUrl);
-					if (existingFaviconUrl) {
-						let link = document.querySelector(
-							"link[rel~='icon']"
-						) as HTMLLinkElement;
-						if (!link) {
-							link = document.createElement('link');
-							link.rel = 'icon';
-							document.getElementsByTagName('head')[0].appendChild(link);
-						}
-						link.href = existingFaviconUrl;
-					}
-				}
-			}
-		};
 		updateFavicon();
-	}, [baseUrl, projectId, ssoAppId]);
+	}, [updateFavicon]);
 
 	const styleId = urlParams.get('style') || env.DESCOPE_STYLE_ID;
 
