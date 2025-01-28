@@ -4,14 +4,12 @@
 		"es2021": true
 	},
 	"extends": [
+		"react-app",
+		"react-app/jest",
 		"plugin:security/recommended",
-		"airbnb",
-		"airbnb-typescript",
 		"plugin:import/typescript",
 		"prettier",
-		"plugin:testing-library/react",
-		"plugin:jest-dom/recommended",
-		"plugin:react-hooks/recommended"
+		"plugin:jest-dom/recommended"
 	],
 	"parser": "@typescript-eslint/parser",
 	"ignorePatterns": [".eslintrc.json", "build/*", "bundle/*"],
@@ -24,14 +22,9 @@
 		"project": true
 	},
 	"plugins": [
-		"react",
-		"@typescript-eslint",
 		"prettier",
-		"testing-library",
 		"import",
 		"prefer-arrow",
-		"jest-dom",
-		"jest",
 		"jest-formatting",
 		"no-only-tests"
 	],
@@ -92,13 +85,6 @@
 			}
 		],
 		"no-console": 2,
-		"no-only-tests/no-only-tests": 2,
-		"no-param-reassign": [
-			"error",
-			{
-				"props": false
-			}
-		],
 		"no-warning-comments": 2,
 		"no-restricted-syntax": [
 			"error",
@@ -106,7 +92,6 @@
 			"LabeledStatement",
 			"WithStatement"
 		],
-		"testing-library/render-result-naming-convention": 0,
 		"import/no-unresolved": 2,
 		"import/named": 2,
 		"import/prefer-default-export": 0,
@@ -126,7 +111,6 @@
 			{
 				"devDependencies": ["**/*.test.*", "**/*.spec.*"]
 			}
-		],
-		"@typescript-eslint/return-await": 0
+		]
 	}
 }
