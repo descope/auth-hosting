@@ -126,7 +126,14 @@ const App = () => {
 		} else {
 			logger.log('Updating existing favicon link element');
 		}
-		link.href = existingFaviconUrl;
+		// Sanitize URL before setting href to prevent XSS
+		try {
+			const sanitizedUrl = new URL(existingFaviconUrl).href;
+			link.href = sanitizedUrl;
+		} catch {
+			logger.log('Invalid favicon URL');
+			link.href = defaultFaviconUrl;
+		}
 		logger.log('Favicon updated to:', existingFaviconUrl);
 	}, [projectId, ssoAppId, faviconUrlTemplate, defaultFaviconUrl]);
 
