@@ -1,4 +1,4 @@
-const isDevelopment = process.env.NODE_ENV === 'development';
+const isDevelopment = ['development', 'test'].includes(process.env.NODE_ENV);
 
 export const logger = {
 	log: (...args: any[]) => {
