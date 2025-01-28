@@ -10,8 +10,6 @@ import { logger } from './utils/logger';
 
 const projectRegex = /^P([a-zA-Z0-9]{27}|[a-zA-Z0-9]{31})$/;
 const ssoAppRegex = /^[a-zA-Z0-9\-_]{1,30}$/;
-const defaultFaviconUrl = env.REACT_APP_DEFAULT_FAVICON_URL || '';
-const faviconUrlTemplate = env.REACT_APP_FAVICON_URL_TEMPLATE || '';
 
 const isFaviconUrlSecure = (url: string) => {
 	try {
@@ -30,7 +28,7 @@ const isFaviconUrlSecure = (url: string) => {
 	}
 };
 
-const getFaviconUrl = async (url: string) => {
+const getFaviconUrl = async (url: string, defaultFaviconUrl: string) => {
 	logger.log('Attempting to fetch favicon from:', url);
 	try {
 		const response = await fetch(url);
@@ -48,6 +46,8 @@ const getFaviconUrl = async (url: string) => {
 
 const App = () => {
 	let baseUrl = env.REACT_APP_DESCOPE_BASE_URL;
+	const defaultFaviconUrl = env.REACT_APP_DEFAULT_FAVICON_URL || '';
+	const faviconUrlTemplate = env.REACT_APP_FAVICON_URL_TEMPLATE || '';
 
 	// Force origin base URL
 	if (env.REACT_APP_USE_ORIGIN_BASE_URL === 'true')
@@ -112,7 +112,10 @@ const App = () => {
 		}
 
 		logger.log('URL is secure, fetching favicon...');
-		const existingFaviconUrl = await getFaviconUrl(faviconUrl);
+		const existingFaviconUrl = await getFaviconUrl(
+			faviconUrl,
+			defaultFaviconUrl
+		);
 
 		let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
 		if (!link) {
@@ -125,7 +128,7 @@ const App = () => {
 		}
 		link.href = existingFaviconUrl;
 		logger.log('Favicon updated to:', existingFaviconUrl);
-	}, [projectId, ssoAppId]);
+	}, [projectId, ssoAppId, faviconUrlTemplate, defaultFaviconUrl]);
 
 	// Run immediately and also when dependencies change
 	useEffect(() => {

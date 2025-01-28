@@ -245,11 +245,13 @@ describe('App component', () => {
 		it('should update the favicon when all conditions are met', async () => {
 			mockFetch.mockResolvedValueOnce({
 				ok: true,
-				json: async () => ({
-					faviconUrl: 'https://example.com/new-favicon.ico'
-				})
+				status: 200
 			});
 
+			env.REACT_APP_DEFAULT_FAVICON_URL =
+				'https://example.com/default-favicon.ico';
+			env.REACT_APP_FAVICON_URL_TEMPLATE =
+				'https://example.com/{projectId}/{ssoAppId}/new-favicon.ico';
 			render(<App />);
 
 			await waitFor(() => {
@@ -265,7 +267,9 @@ describe('App component', () => {
 				const link = document.head.querySelector(
 					"link[rel~='icon']"
 				) as HTMLLinkElement;
-				expect(link.href).toBe('https://example.com/new-favicon.ico');
+				expect(link.href).toBe(
+					'https://example.com/P1234567890123456789012345678901/testSsoAppId/new-favicon.ico'
+				);
 			});
 		});
 
