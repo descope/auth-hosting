@@ -38,7 +38,6 @@ const getFaviconUrl = async (url: string, defaultFaviconUrl: string) => {
 		}
 	} catch (error) {
 		logger.error('Error fetching favicon:', error);
-		return defaultFaviconUrl;
 	}
 	logger.log('Falling back to default favicon:', defaultFaviconUrl);
 	return defaultFaviconUrl;
@@ -87,18 +86,6 @@ const App = () => {
 			logger.log('Missing defaultFaviconUrl');
 			return;
 		}
-		if (!ssoAppId) {
-			logger.log('Missing ssoAppId');
-			return;
-		}
-		if (!projectId) {
-			logger.log('Missing projectId');
-			return;
-		}
-		if (!faviconUrlTemplate) {
-			logger.log('Missing faviconUrlTemplate');
-			return;
-		}
 
 		const faviconUrl = faviconUrlTemplate
 			.replace('{projectId}', projectId)
@@ -123,17 +110,9 @@ const App = () => {
 			link = document.createElement('link');
 			link.rel = 'icon';
 			document.getElementsByTagName('head')[0].appendChild(link);
-		} else {
-			logger.log('Updating existing favicon link element');
 		}
-		// Sanitize URL before setting href to prevent XSS
-		try {
-			const sanitizedUrl = new URL(existingFaviconUrl).href;
-			link.href = sanitizedUrl;
-		} catch {
-			logger.log('Invalid favicon URL');
-			link.href = defaultFaviconUrl;
-		}
+		link.href = existingFaviconUrl;
+
 		logger.log('Favicon updated to:', existingFaviconUrl);
 	}, [projectId, ssoAppId, faviconUrlTemplate, defaultFaviconUrl]);
 

@@ -274,22 +274,32 @@ describe('App component', () => {
 		});
 
 		it('should not update the favicon if the response is not ok', async () => {
+			env.REACT_APP_DEFAULT_FAVICON_URL =
+				'https://example.com/default-favicon.ico-default';
+			env.REACT_APP_FAVICON_URL_TEMPLATE =
+				'https://example.com/{projectId}/{ssoAppId}/new-favicon.ico';
+
 			mockFetch.mockResolvedValueOnce({
-				ok: false
+				ok: false,
+				status: 404
 			});
 
 			render(<App />);
 
 			await waitFor(() => {
 				// eslint-disable-next-line testing-library/no-node-access -- can't query head with screen
-				const link = document.head.querySelector("link[rel~='icon']");
-				expect(link).not.toBeInTheDocument();
+				const link = document.head.querySelector(
+					"link[rel~='icon']"
+				) as HTMLLinkElement;
+				expect(link.href).toBe(
+					'https://example.com/default-favicon.ico-default'
+				);
 			});
 		});
 
 		it('should not update the favicon if the URL is not secure', async () => {
-			env.REACT_APP_FAVICON_URL = 'http://example.com/favicon.ico';
-
+			env.REACT_APP_FAVICON_URL_TEMPLATE =
+				'http://example.com/{projectId}/{ssoAppId}/new-favicon.ico';
 			render(<App />);
 
 			await waitFor(() => {
@@ -300,8 +310,7 @@ describe('App component', () => {
 		});
 
 		it('should not update the favicon if the URL is not valid', async () => {
-			env.REACT_APP_FAVICON_URL = 'invalid-url';
-
+			env.REACT_APP_FAVICON_URL_TEMPLATE = 'invalid-url';
 			render(<App />);
 
 			await waitFor(() => {
@@ -312,6 +321,10 @@ describe('App component', () => {
 		});
 
 		it('should not update the favicon if fetch throws an error', async () => {
+			env.REACT_APP_DEFAULT_FAVICON_URL =
+				'https://example.com/default-favicon.ico';
+			env.REACT_APP_FAVICON_URL_TEMPLATE =
+				'https://example.com/{projectId}/{ssoAppId}/new-favicon.ico';
 			mockFetch.mockRejectedValueOnce(new Error('test error'));
 
 			render(<App />);
@@ -324,10 +337,23 @@ describe('App component', () => {
 		});
 
 		it('should not update the favicon if faviconUrl is missing', async () => {
-			env.REACT_APP_FAVICON_URL = '';
+			env.REACT_APP_FAVICON_URL_TEMPLATE = '';
 
 			render(<App />);
 
+			await waitFor(() => {
+				// eslint-disable-next-line testing-library/no-node-access -- can't query head with screen
+				const link = document.querySelector("link[rel~='icon']");
+				expect(link).not.toBeInTheDocument();
+			});
+		});
+
+		// If the default favicon is not sanitized, it should not be updated
+		it('should not update the favicon if the default favicon is not sanitized', async () => {
+			env.REACT_APP_DEFAULT_FAVICON_URL = 'invalid-url';
+			env.REACT_APP_FAVICON_URL_TEMPLATE = 'invalid-url';
+
+			render(<App />);
 			await waitFor(() => {
 				// eslint-disable-next-line testing-library/no-node-access -- can't query head with screen
 				const link = document.querySelector("link[rel~='icon']");
