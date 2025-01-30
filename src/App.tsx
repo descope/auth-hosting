@@ -34,13 +34,13 @@ const getFaviconUrl = async (url: string, defaultFaviconUrl: string) => {
 		const response = await fetch(url);
 		logger.log('Favicon fetch response:', response.status, response.ok);
 		if (response.ok) {
-			return url;
+			return new URL(url).href;
 		}
 	} catch (error) {
 		logger.error('Error fetching favicon:', error);
 	}
 	logger.log('Falling back to default favicon:', defaultFaviconUrl);
-	return defaultFaviconUrl;
+	return new URL(defaultFaviconUrl).href;
 };
 
 const App = () => {
