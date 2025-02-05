@@ -5285,13 +5285,13 @@ eslint-plugin-prefer-arrow@1.2.3:
   resolved "https://registry.npmjs.org/eslint-plugin-prefer-arrow/-/eslint-plugin-prefer-arrow-1.2.3.tgz"
   integrity sha512-J9I5PKCOJretVuiZRGvPQxCbllxGAV/viI20JO3LYblAodofBxyMnZAJ+WGeClHgANnSJberTNoFWWjrWKBuXQ==
 
-eslint-plugin-prettier@5.1.3:
-  version "5.1.3"
-  resolved "https://registry.yarnpkg.com/eslint-plugin-prettier/-/eslint-plugin-prettier-5.1.3.tgz#17cfade9e732cef32b5f5be53bd4e07afd8e67e1"
-  integrity sha512-C9GCVAs4Eq7ZC/XFQHITLiHJxQngdtraXaM+LoUFoFp/lHNl2Zn8f3WQbe9HvTBBQ9YnKFB0/2Ajdqwo5D1EAw==
+eslint-plugin-prettier@5.2.2:
+  version "5.2.2"
+  resolved "https://registry.yarnpkg.com/eslint-plugin-prettier/-/eslint-plugin-prettier-5.2.2.tgz#d1f068f65dc8490f102eda21d1f4cd150c205211"
+  integrity sha512-1yI3/hf35wmlq66C8yOyrujQnel+v5l1Vop5Cl2I6ylyNTT1JbuUUnV3/41PzwTzcyDp/oF0jWE3HXvcH5AQOQ==
   dependencies:
     prettier-linter-helpers "^1.0.0"
-    synckit "^0.8.6"
+    synckit "^0.9.1"
 
 eslint-plugin-promise@6.1.1:
   version "6.1.1"
@@ -10618,10 +10618,10 @@ symbol-tree@^3.2.4:
   resolved "https://registry.npmjs.org/symbol-tree/-/symbol-tree-3.2.4.tgz"
   integrity sha512-9QNk5KwDF+Bvz+PyObkmSYjI5ksVUYtjW7AU22r2NKcfLJcXp96hkDWU3+XndOsUb+AQ9QhfzfCT2O+CNWT5Tw==
 
-synckit@^0.8.6:
-  version "0.8.8"
-  resolved "https://registry.yarnpkg.com/synckit/-/synckit-0.8.8.tgz#fe7fe446518e3d3d49f5e429f443cf08b6edfcd7"
-  integrity sha512-HwOKAP7Wc5aRGYdKH+dw0PRRpbO841v2DENBtjnR5HFWoiNByAl7vrx3p0G/rCyYXQsrxqtX48TImFtPcIHSpQ==
+synckit@^0.9.1:
+  version "0.9.2"
+  resolved "https://registry.yarnpkg.com/synckit/-/synckit-0.9.2.tgz#a3a935eca7922d48b9e7d6c61822ee6c3ae4ec62"
+  integrity sha512-vrozgXDQwYO72vHjUb/HnFbQx1exDjoKzqx23aXEg2a9VIg2TSFZ8FmeZpTjUCFMYw7mpX4BE2SFu8wI7asYsw==
   dependencies:
     "@pkgr/core" "^0.1.0"
     tslib "^2.6.2"
