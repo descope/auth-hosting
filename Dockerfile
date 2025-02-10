@@ -9,9 +9,7 @@ COPY ["package.json", "yarn.lock*", "./"]
 
 RUN yarn install --production=false
 COPY . .
-ARG REACT_APP_DESCOPE_BASE_URL=""
-ARG REACT_APP_CONTENT_BASE_URL=""
-ARG REACT_APP_USE_ORIGIN_BASE_URL="true"
+
 RUN yarn build
 
 FROM nginx:alpine@sha256:814a8e88df978ade80e584cc5b333144b9372a8e3c98872d07137dbf3b44d0e4
@@ -41,5 +39,15 @@ EXPOSE 80 443
 WORKDIR /usr/share/nginx/html
 RUN rm -rf ./*
 COPY --from=builder /app/build ./
+COPY docker-entrypoint.sh /docker-entrypoint.sh
+COPY nginx/nginx.conf /etc/nginx/nginx.conf
+RUN chmod +x /docker-entrypoint.sh
 
-ENTRYPOINT ["nginx", "-g", "daemon off;"]
+ENV HTML_DIR=/usr/share/nginx/html
+ENV REACT_APP_DESCOPE_BASE_URL="https://api.descope.com"
+ENV REACT_APP_CONTENT_BASE_URL="https://static.descope.com/pages"
+ENV REACT_APP_USE_ORIGIN_BASE_URL="false"
+ENV REACT_APP_FAVICON_URL="https://imgs.descope.com/auth-hosting/favicon.svg"
+ENV INCLUDE_ENV_VARS="REACT"
+
+ENTRYPOINT ["/docker-entrypoint.sh"]
