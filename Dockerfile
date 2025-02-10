@@ -48,6 +48,7 @@ ENV REACT_APP_DESCOPE_BASE_URL="https://api.descope.com"
 ENV REACT_APP_CONTENT_BASE_URL="https://static.descope.com/pages"
 ENV REACT_APP_USE_ORIGIN_BASE_URL="false"
 ENV REACT_APP_FAVICON_URL="https://imgs.descope.com/auth-hosting/favicon.svg"
-ENV INCLUDE_ENV_VARS="REACT"
+
+ENV INCLUDE_ENV_VARS="REACT\|DESCOPE"
 
 ENTRYPOINT ["/docker-entrypoint.sh"]
