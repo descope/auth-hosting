@@ -1297,10 +1297,10 @@
   resolved "https://registry.yarnpkg.com/@descope/escape-markdown/-/escape-markdown-0.1.1.tgz#df29063676a4440d15ec403413ecfccffdd3fb29"
   integrity sha512-KWwz2p1k7EeMkEnHniwK6af5psi3R9cQcC9+YWyxUdE+2Kvs91XrdC5TRhxXcdEEO4ksxksMPfVNG1sWyAnRgw==
 
-"@descope/react-sdk@2.3.12":
-  version "2.3.12"
-  resolved "https://registry.yarnpkg.com/@descope/react-sdk/-/react-sdk-2.3.12.tgz#52a2f1f85dcd25f4831b3c290872f6138178e489"
-  integrity sha512-goBDEwQQY65ZwBUuk6tdubJkuw2yd/euFTGVA6OUTdTWkKAXc4FD42A6gPyfzbsE19n7c1VnYCjcwXdrvxrN7A==
+"@descope/react-sdk@2.3.13":
+  version "2.3.13"
+  resolved "https://registry.yarnpkg.com/@descope/react-sdk/-/react-sdk-2.3.13.tgz#c85b27cc519d83d68c40dd81737ba1762322987a"
+  integrity sha512-V1HyNimnAAAgVLSTM6YRoVdSccSEAq8m1AFRr3XA1o3L7jrbUSnlPBokkrx5WrNXpOkMCnMSh6p41ALkN5Pkfg==
   dependencies:
     "@descope/access-key-management-widget" "0.3.7"
     "@descope/applications-portal-widget" "0.2.10"
@@ -1308,7 +1308,7 @@
     "@descope/core-js-sdk" "2.33.0"
     "@descope/role-management-widget" "0.2.11"
     "@descope/sdk-helpers" "0.1.60"
-    "@descope/user-management-widget" "0.6.5"
+    "@descope/user-management-widget" "0.6.6"
     "@descope/user-profile-widget" "0.2.7"
     "@descope/web-component" "3.32.2"
     "@descope/web-js-sdk" "1.23.1"
@@ -1353,10 +1353,10 @@
     "@descope/sdk-helpers" "0.1.60"
     tslib "2.6.3"
 
-"@descope/user-management-widget@0.6.5":
-  version "0.6.5"
-  resolved "https://registry.yarnpkg.com/@descope/user-management-widget/-/user-management-widget-0.6.5.tgz#1cb5d0a2517914f5d54bc421bb03a43f99e50d6b"
-  integrity sha512-6hxGaNL3d1MDvmUesLbbNmB6LAU9iPHFM19k8fV4qJjxWSBa3EVD6XW7dcfeFcejOOjKpbd9f+hcP0bg/wNYhg==
+"@descope/user-management-widget@0.6.6":
+  version "0.6.6"
+  resolved "https://registry.yarnpkg.com/@descope/user-management-widget/-/user-management-widget-0.6.6.tgz#8785d6b2a05245d9b07824e456f0c12a7fc890c4"
+  integrity sha512-HoymU0yIjTGtvtvXGTdFZxq5EIKqdVM71JzYDlVBbIXxditZQ1wm+z8omzTGwmJ/h8m/8RlEPcSnoRLDUWCM4g==
   dependencies:
     "@descope/sdk-component-drivers" "0.2.43"
     "@descope/sdk-helpers" "0.1.60"
@@ -1364,7 +1364,7 @@
     "@descope/web-js-sdk" "1.23.1"
     "@reduxjs/toolkit" "^2.0.1"
     immer "^10.0.3"
-    libphonenumber-js "1.11.4"
+    libphonenumber-js "1.11.17"
     redux "5.0.1"
     redux-thunk "3.1.0"
     reselect "5.1.1"
@@ -7825,10 +7825,10 @@ levn@~0.3.0:
     prelude-ls "~1.1.2"
     type-check "~0.3.2"
 
-libphonenumber-js@1.11.4:
-  version "1.11.4"
-  resolved "https://registry.yarnpkg.com/libphonenumber-js/-/libphonenumber-js-1.11.4.tgz#e63fe553f45661b30bb10bb8c82c9cf2b22ec32a"
-  integrity sha512-F/R50HQuWWYcmU/esP5jrH5LiWYaN7DpN0a/99U8+mnGGtnx8kmRE+649dQh3v+CowXXZc8vpkf5AmYkO0AQ7Q==
+libphonenumber-js@1.11.17:
+  version "1.11.17"
+  resolved "https://registry.yarnpkg.com/libphonenumber-js/-/libphonenumber-js-1.11.17.tgz#37ddbf16dc4dd45c723a150996c253c58dad034b"
+  integrity sha512-Jr6v8thd5qRlOlc6CslSTzGzzQW03uiscab7KHQZX1Dfo4R6n6FDhZ0Hri6/X7edLIDv9gl4VMZXhxTjLnl0VQ==
 
 lilconfig@^2.0.3, lilconfig@^2.1.0:
   version "2.1.0"
