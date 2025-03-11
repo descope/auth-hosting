@@ -1,0 +1,41 @@
+{
+	debug
+	log {
+		format console
+		output stdout
+		level debug
+	}
+}
+
+http://*:{$HTTP_PORT:8080} {
+	log
+	encode gzip
+
+	handle /login* {
+		uri strip_prefix /login
+		root * {$WWW_ROOT:/www}
+		try_files {path} /index.html
+		file_server browse
+	}
+
+	handle /login/env.js {
+		uri strip_prefix /login
+		respond `window.env = {
+			REACT_APP_DESCOPE_BASE_URL: '{$REACT_APP_DESCOPE_BASE_URL:https://api.descope.com}',
+			REACT_APP_CONTENT_BASE_URL: '{$REACT_APP_CONTENT_BASE_URL:https://static.descope.com/pages}',
+			REACT_APP_USE_ORIGIN_BASE_URL: '{$REACT_APP_USE_ORIGIN_BASE_URL:false}',
+			REACT_APP_FAVICON_URL: '{$REACT_APP_FAVICON_URL:https://imgs.descope.com/auth-hosting/favicon.svg}',
+			DESCOPE_PROJECT_ID: '{$DESCOPE_PROJECT_ID}',
+			DESCOPE_FLOW_ID: '{$DESCOPE_FLOW_ID}'};`
+		}
+
+		# Optional: Redirect root to /login
+		handle {
+			redir / /login permanent
+		}
+	}
+
+	*:{$METRICS_PORT:2000} {
+		log
+		metrics {$METRICS_PATH:/metrics}
+	}

@@ -1,5 +1,12 @@
 # syntax=docker/dockerfile:1@sha256:93bfd3b68c109427185cd78b4779fc82b484b0b7618e36d0f104d4d801e66d25
 ARG NODE_VERSION=18
+ARG HTML_DIR=/usr/share/nginx/html
+ARG REACT_APP_DESCOPE_BASE_URL="https://api.descope.com"
+ARG REACT_APP_CONTENT_BASE_URL="https://static.descope.com/pages"
+ARG REACT_APP_USE_ORIGIN_BASE_URL="false"
+ARG REACT_APP_FAVICON_URL="https://imgs.descope.com/auth-hosting/favicon.svg"
+ARG DESCOPE_PROJECT_ID=""
+ARG DESCOPE_FLOW_ID=""
 
 ARG BUILDPLATFORM
 FROM --platform=${BUILDPLATFORM} node:${NODE_VERSION}-alpine as builder
@@ -13,43 +20,18 @@ COPY . .
 
 RUN yarn build
 
-FROM nginx:alpine@sha256:814a8e88df978ade80e584cc5b333144b9372a8e3c98872d07137dbf3b44d0e4
+FROM ghcr.io/descope/caddy:main
 
-RUN apk add openssl && \
-    openssl req -x509 -nodes -days 365 -subj "/C=CA/ST=QC/O=Company, Inc./CN=mydomain.com" -addext "subjectAltName=DNS:mydomain.com" -newkey rsa:2048 -keyout /etc/ssl/private/nginx-selfsigned.key -out /etc/ssl/certs/nginx-selfsigned.crt;
+WORKDIR /www
+COPY --from=builder --chown=1000:1000 /app/build /www
+COPY --from=builder --chown=1000:1000 /app/package.json /www
 
-RUN cat > /etc/nginx/conf.d/default.conf <<EOF
-server {
-    listen       80;
-    listen       443 ssl http2 default_server;
-    ssl_certificate /etc/ssl/certs/nginx-selfsigned.crt;
-    ssl_certificate_key /etc/ssl/private/nginx-selfsigned.key;
-    server_name  localhost;
+USER 1000:1000
 
-		rewrite ^/login/(.*)$ /$1 last;
+ADD --chown=1000:1000 Caddyfile /etc/caddy/Caddyfile
 
-    location / {
-        root   /usr/share/nginx/html;
-        index  index.html;
-        try_files \$uri \$uri/ /index.html;  # this ensures react routing works
-    }
-}
-EOF
+ENV HTTP_PORT=8080 HTTPS_PORT=8443
+ENV WWW_ROOT=/www
 
-EXPOSE 80 443
-WORKDIR /usr/share/nginx/html
-RUN rm -rf ./*
-COPY --from=builder /app/build ./
-COPY docker-entrypoint.sh /docker-entrypoint.sh
-COPY nginx/nginx.conf /etc/nginx/nginx.conf
-RUN chmod +x /docker-entrypoint.sh
-
-ENV HTML_DIR=/usr/share/nginx/html
-ENV REACT_APP_DESCOPE_BASE_URL="https://api.descope.com"
-ENV REACT_APP_CONTENT_BASE_URL="https://static.descope.com/pages"
-ENV REACT_APP_USE_ORIGIN_BASE_URL="false"
-ENV REACT_APP_FAVICON_URL="https://imgs.descope.com/auth-hosting/favicon.svg"
-
-ENV INCLUDE_ENV_VARS="REACT\|DESCOPE"
-
-ENTRYPOINT ["/docker-entrypoint.sh"]
+ENTRYPOINT ["/usr/bin/caddy"]
+CMD ["run", "--config", "/etc/caddy/Caddyfile"]
