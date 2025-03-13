@@ -20,7 +20,7 @@ COPY . .
 
 RUN yarn build
 
-FROM ghcr.io/descope/caddy:main
+FROM ghcr.io/descope/caddy:v0.0.4
 
 WORKDIR /www
 COPY --from=builder --chown=1000:1000 /app/build /www
