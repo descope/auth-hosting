@@ -5,7 +5,6 @@ on:
   push:
     branches:
       - main
-      - feat/env-var-support
 
 env:
   NODE_VERSION: 18
