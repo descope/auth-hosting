@@ -1,5 +1,6 @@
-const isDevelopment = true;
-// const isDevelopment = process.env.NODE_ENV === 'development';
+import { env } from '../env';
+
+const isDevelopment = env.NODE_ENV === 'development' || env.LOGGER === 'true';
 
 export const logger = {
 	log: (...args: any[]) => {
