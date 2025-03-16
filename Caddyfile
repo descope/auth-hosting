@@ -1,4 +1,5 @@
 {
+	skip_install_trust
 	persist_config off
 	storage file_system {
 		root {$XDG_DATA_HOME:/tmp}
@@ -12,13 +13,7 @@
 	}
 }
 
-http://*:{$HTTP_PORT:80} {
-	log
-	encode gzip
-	redir https://{host}{uri} permanent
-}
-
-https://*:{$HTTPS_PORT:443} {
+https://*:{$HTTPS_PORT:8443} {
 	log
 	encode gzip
 
@@ -46,9 +41,13 @@ https://*:{$HTTPS_PORT:443} {
 		handle {
 			redir / /login permanent
 		}
-	}
+}
 
-	*:{$METRICS_PORT:2000} {
-		log
-		metrics {$METRICS_PATH:/metrics}
-	}
+http://*:{$HTTP_PORT:8080} {
+	redir https://{host}:{$HTTPS_PORT:8443}{uri}
+}
+
+*:{$METRICS_PORT:2000} {
+	log
+	metrics {$METRICS_PATH:/metrics}
+}
