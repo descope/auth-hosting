@@ -24,30 +24,43 @@ https://*:{$HTTPS_PORT:8443} {
 		file_server browse
 	}
 
+	vars {
+		REACT_APP_DESCOPE_BASE_URL '{$REACT_APP_DESCOPE_BASE_URL:https://api.descope.com}'
+		REACT_APP_CONTENT_BASE_URL '{$REACT_APP_CONTENT_BASE_URL:https://api.descope.com/pages}'
+		REACT_APP_USE_ORIGIN_BASE_URL '{$REACT_APP_USE_ORIGIN_BASE_URL:false}'
+		REACT_APP_FAVICON_URL_TEMPLATE '{$REACT_APP_FAVICON_URL_TEMPLATE:https://api.descope.com/pages/\{projectId}}/v2-beta/\{ssoAppId}/assets/favicon.ico'
+		REACT_APP_DEFAULT_FAVICON_URL '{$REACT_APP_DEFAULT_FAVICON_URL:https://imgs.descope.com/auth-hosting/favicon.svg}'
+		DESCOPE_PROJECT_ID '{$DESCOPE_PROJECT_ID}'
+		DESCOPE_FLOW_ID '{$DESCOPE_FLOW_ID}'
+		LOGGER '{$LOGGER:false}'
+	}
+
 	handle /login/env.js {
 		uri strip_prefix /login
-		respond `window.env = {
-			REACT_APP_DESCOPE_BASE_URL: '{$REACT_APP_DESCOPE_BASE_URL:https://api.descope.com}',
-			REACT_APP_CONTENT_BASE_URL: '{$REACT_APP_CONTENT_BASE_URL:https://static.descope.com/pages}',
-			REACT_APP_USE_ORIGIN_BASE_URL: '{$REACT_APP_USE_ORIGIN_BASE_URL:false}',
-			REACT_APP_FAVICON_URL: '{$REACT_APP_FAVICON_URL:https://imgs.descope.com/auth-hosting/favicon.svg}',
-			REACT_APP_FAVICON_URL_TEMPLATE: '{$REACT_APP_FAVICON_URL_TEMPLATE:$REACT_APP_CONTENT_BASE_URL/{projectId}/v2-beta/{ssoAppId}/assets/favicon.ico}',
-			REACT_APP_DEFAULT_FAVICON_URL: '{$REACT_APP_DEFAULT_FAVICON_URL:https://imgs.descope.com/auth-hosting/favicon.svg}',
-			DESCOPE_PROJECT_ID: '{$DESCOPE_PROJECT_ID}',
-			DESCOPE_FLOW_ID: '{$DESCOPE_FLOW_ID}'};`
+		templates
+		respond `
+window.env = {
+	REACT_APP_CONTENT_BASE_URL: {{ placeholder "http.vars.REACT_APP_CONTENT_BASE_URL" }},
+	REACT_APP_USE_ORIGIN_BASE_URL: {{ placeholder "http.vars.REACT_APP_USE_ORIGIN_BASE_URL" }},
+	REACT_APP_FAVICON_URL_TEMPLATE: {{ placeholder "http.vars.REACT_APP_FAVICON_URL_TEMPLATE" }},
+	REACT_APP_DEFAULT_FAVICON_URL: {{ placeholder "http.vars.REACT_APP_DEFAULT_FAVICON_URL" }},
+	DESCOPE_PROJECT_ID: {{ placeholder "http.vars.DESCOPE_PROJECT_ID" }},
+	DESCOPE_FLOW_ID: {{ placeholder "http.vars.DESCOPE_FLOW_ID" }},
+	LOGGER: {{ placeholder "http.vars.LOGGER" }}
+};`
 		}
 
 		# Optional: Redirect root to /login
 		handle {
 			redir / /login permanent
 		}
-}
+	}
 
-http://*:{$HTTP_PORT:8080} {
-	redir https://{host}:{$HTTPS_PORT:8443}{uri}
-}
+	http://*:{$HTTP_PORT:8080} {
+		redir https://{host}:{$HTTPS_PORT:8443}{uri}
+	}
 
-*:{$METRICS_PORT:2000} {
-	log
-	metrics {$METRICS_PATH:/metrics}
-}
+	*:{$METRICS_PORT:2000} {
+		log
+		metrics {$METRICS_PATH:/metrics}
+	}

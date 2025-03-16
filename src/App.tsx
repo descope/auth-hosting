@@ -82,8 +82,13 @@ const App = () => {
 			faviconUrlTemplate
 		});
 
+		if (!ssoAppId) {
+			logger.log('Missing ssoAppId skipping favicon update');
+			return;
+		}
+
 		if (!defaultFaviconUrl) {
-			logger.log('Missing defaultFaviconUrl');
+			logger.log('Missing defaultFaviconUrl skipping favicon update');
 			return;
 		}
 
