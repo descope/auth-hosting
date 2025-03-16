@@ -22,16 +22,20 @@ RUN yarn build
 
 FROM ghcr.io/descope/caddy:v0.0.4
 
-WORKDIR /www
-COPY --from=builder --chown=1000:1000 /app/build /www
-COPY --from=builder --chown=1000:1000 /app/package.json /www
-
-USER 1000:1000
-
-ADD --chown=1000:1000 Caddyfile /etc/caddy/Caddyfile
-
 ENV HTTP_PORT=8080 HTTPS_PORT=8443
 ENV WWW_ROOT=/www
+ENV XDG_DATA_HOME=/tmp
+ENV XDG_CONFIG_HOME=/tmp
+ENV XDG_CACHE_HOME=/tmp
 
-ENTRYPOINT ["/usr/bin/caddy"]
+WORKDIR ${WWW_ROOT}
+
+COPY --from=builder --chown=1000:1000 /app/build ${WWW_ROOT}
+COPY --from=builder --chown=1000:1000 /app/package.json ${WWW_ROOT}
+
+ADD --chown=nonroot:nonroot Caddyfile /etc/caddy/Caddyfile
+
+RUN caddy validate --config /etc/caddy/Caddyfile && \
+    caddy fmt --overwrite /etc/caddy/Caddyfile
+
 CMD ["run", "--config", "/etc/caddy/Caddyfile"]

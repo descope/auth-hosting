@@ -1,9 +1,14 @@
 {
+	persist_config off
+	storage file_system {
+		root {$XDG_DATA_HOME:/tmp}
+	}
+
 	debug
 	log {
 		format console
 		output stdout
-		level debug
+		level info
 	}
 }
 
@@ -13,7 +18,7 @@ http://*:{$HTTP_PORT:80} {
 	redir https://{host}{uri} permanent
 }
 
-https://*:{$HTTP_PORT:443} {
+https://*:{$HTTPS_PORT:443} {
 	log
 	encode gzip
 
@@ -31,6 +36,8 @@ https://*:{$HTTP_PORT:443} {
 			REACT_APP_CONTENT_BASE_URL: '{$REACT_APP_CONTENT_BASE_URL:https://static.descope.com/pages}',
 			REACT_APP_USE_ORIGIN_BASE_URL: '{$REACT_APP_USE_ORIGIN_BASE_URL:false}',
 			REACT_APP_FAVICON_URL: '{$REACT_APP_FAVICON_URL:https://imgs.descope.com/auth-hosting/favicon.svg}',
+			REACT_APP_FAVICON_URL_TEMPLATE: '{$REACT_APP_FAVICON_URL_TEMPLATE:$REACT_APP_CONTENT_BASE_URL/{projectId}/v2-beta/{ssoAppId}/assets/favicon.ico}',
+			REACT_APP_DEFAULT_FAVICON_URL: '{$REACT_APP_DEFAULT_FAVICON_URL:https://imgs.descope.com/auth-hosting/favicon.svg}',
 			DESCOPE_PROJECT_ID: '{$DESCOPE_PROJECT_ID}',
 			DESCOPE_FLOW_ID: '{$DESCOPE_FLOW_ID}'};`
 		}
