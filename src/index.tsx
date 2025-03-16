@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
-import SamlError from './SamlError';
+import Error from './Error';
 
 const contentBaseUrl = process.env.REACT_APP_CONTENT_BASE_URL;
 if (contentBaseUrl) {
@@ -15,7 +15,8 @@ const root = ReactDOM.createRoot(
 const routerSwitch = (page: string) => {
 	switch (page) {
 		case '/login/saml-error':
-			return <SamlError />;
+		case '/login/error':
+			return <Error />;
 		default:
 			return <App />;
 	}
