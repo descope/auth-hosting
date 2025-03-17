@@ -45,8 +45,10 @@ const getFaviconUrl = async (url: string, defaultFaviconUrl: string) => {
 
 const App = () => {
 	let baseUrl = env.REACT_APP_DESCOPE_BASE_URL;
-	const defaultFaviconUrl = env.REACT_APP_DEFAULT_FAVICON_URL || '';
-	const faviconUrlTemplate = env.REACT_APP_FAVICON_URL_TEMPLATE || '';
+	const defaultFaviconUrl =
+		env.REACT_APP_DEFAULT_FAVICON_URL || env.DEFAULT_FAVICON_URL || '';
+	const faviconUrlTemplate =
+		env.REACT_APP_FAVICON_URL_TEMPLATE || env.REACT_APP_FAVICON_URL || '';
 
 	// Force origin base URL
 	if (env.REACT_APP_USE_ORIGIN_BASE_URL === 'true')
