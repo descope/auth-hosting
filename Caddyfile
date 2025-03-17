@@ -1,10 +1,4 @@
 {
-	skip_install_trust
-	persist_config off
-	storage file_system {
-		root {$XDG_DATA_HOME:/tmp}
-	}
-
 	debug
 	log {
 		format console
@@ -13,7 +7,7 @@
 	}
 }
 
-https://*:{$HTTPS_PORT:8443} {
+http://*:{$PORT:8080} {
 	log
 	encode gzip
 
@@ -40,6 +34,7 @@ https://*:{$HTTPS_PORT:8443} {
 		templates
 		respond `
 window.env = {
+	REACT_APP_DESCOPE_BASE_URL: {{ placeholder "http.vars.REACT_APP_DESCOPE_BASE_URL" }},
 	REACT_APP_CONTENT_BASE_URL: {{ placeholder "http.vars.REACT_APP_CONTENT_BASE_URL" }},
 	REACT_APP_USE_ORIGIN_BASE_URL: {{ placeholder "http.vars.REACT_APP_USE_ORIGIN_BASE_URL" }},
 	REACT_APP_FAVICON_URL_TEMPLATE: {{ placeholder "http.vars.REACT_APP_FAVICON_URL_TEMPLATE" }},
@@ -54,10 +49,6 @@ window.env = {
 		handle {
 			redir / /login permanent
 		}
-	}
-
-	http://*:{$HTTP_PORT:8080} {
-		redir https://{host}:{$HTTPS_PORT:8443}{uri}
 	}
 
 	*:{$METRICS_PORT:2000} {
