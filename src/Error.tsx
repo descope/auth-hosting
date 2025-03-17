@@ -1,11 +1,12 @@
 import React from 'react';
 import logo from './assets/logo.svg';
 
-const SamlError: React.FC = () => {
+const Error: React.FC = () => {
 	let error = 'An error occurred';
 
 	const queryParam = new URLSearchParams(window.location.search);
-	error = queryParam.get('error') || 'An error occurred';
+	error =
+		queryParam.get('error') || queryParam.get('err') || 'An error occurred';
 
 	return (
 		<div className="app-content">
@@ -35,4 +36,4 @@ const SamlError: React.FC = () => {
 	);
 };
 
-export default SamlError;
+export default Error;
