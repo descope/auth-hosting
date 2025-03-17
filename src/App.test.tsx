@@ -11,6 +11,7 @@ import {
 import App from './App';
 import packageJson from '../package.json';
 import useOidcMfa from './hooks/useOidcMfa';
+import { env } from './env';
 
 const mockDescope = jest.fn();
 const mockAuthProvider = jest.fn();
@@ -63,7 +64,7 @@ describe('App component', () => {
 
 	beforeEach(() => {
 		jest.resetModules();
-		process.env.DESCOPE_PROJECT_ID = '';
+		env.DESCOPE_PROJECT_ID = '';
 		window.location.pathname = '';
 		window.localStorage.clear();
 	});
@@ -101,26 +102,26 @@ describe('App component', () => {
 	});
 
 	test('displays Descope component when projectId is valid and as an env var', async () => {
-		process.env.DESCOPE_PROJECT_ID = validProjectId;
+		env.DESCOPE_PROJECT_ID = validProjectId;
 		render(<App />);
 		expect(await screen.findByTestId('descope-component')).toBeInTheDocument();
 	});
 
 	test('displays welcome component when projectId is invalid and as an env var', async () => {
-		process.env.DESCOPE_PROJECT_ID = invalidProjectId;
+		env.DESCOPE_PROJECT_ID = invalidProjectId;
 		render(<App />);
 		expect(await screen.findByTestId('welcome-component')).toBeInTheDocument();
 	});
 
 	test('displays Descope component when projectId is valid and part of the location and env', async () => {
-		process.env.DESCOPE_PROJECT_ID = validProjectId;
+		env.DESCOPE_PROJECT_ID = validProjectId;
 		window.location.pathname = `/${packageJson.homepage}/${validProjectId}`;
 		render(<App />);
 		expect(await screen.findByTestId('descope-component')).toBeInTheDocument();
 	});
 
 	test('that the baseUrl is the same as the origin', async () => {
-		process.env.REACT_APP_USE_ORIGIN_BASE_URL = 'true';
+		env.REACT_APP_USE_ORIGIN_BASE_URL = 'true';
 		Object.defineProperty(window.location, 'origin', {
 			value: baseUrl
 		});
@@ -134,9 +135,9 @@ describe('App component', () => {
 	});
 
 	test('that the flow can be customized with env', async () => {
-		process.env.REACT_APP_DESCOPE_BASE_URL = baseUrl;
-		process.env.DESCOPE_FLOW_ID = flowId;
-		process.env.DESCOPE_FLOW_DEBUG = debug.toString();
+		env.REACT_APP_DESCOPE_BASE_URL = baseUrl;
+		env.DESCOPE_FLOW_ID = flowId;
+		env.DESCOPE_FLOW_DEBUG = debug.toString();
 
 		window.location.pathname = `/${packageJson.homepage}/${validProjectId}`;
 		render(<App />);
@@ -166,9 +167,9 @@ describe('App component', () => {
 	describe('onSuccess callback', () => {
 		beforeEach(() => {
 			jest.clearAllMocks();
-			process.env.DESCOPE_PROJECT_ID = 'P123456789012345678901234567';
-			process.env.DESCOPE_FLOW_ID = 'saml-config';
-			process.env.REACT_APP_DESCOPE_BASE_URL = baseUrl;
+			env.DESCOPE_PROJECT_ID = 'P123456789012345678901234567';
+			env.DESCOPE_FLOW_ID = 'saml-config';
+			env.REACT_APP_DESCOPE_BASE_URL = baseUrl;
 
 			// Set the ssoAppId URL parameter
 			Object.defineProperty(window, 'location', {
@@ -222,9 +223,9 @@ describe('App component', () => {
 	describe('favicon', () => {
 		beforeEach(() => {
 			jest.clearAllMocks();
-			process.env.REACT_APP_BASE_FUNCTIONS_URL = 'https://example.com';
-			process.env.REACT_APP_FAVICON_URL = 'https://example.com/favicon.ico';
-			process.env.DESCOPE_PROJECT_ID = 'P1234567890123456789012345678901';
+			env.REACT_APP_BASE_FUNCTIONS_URL = 'https://example.com';
+			env.REACT_APP_FAVICON_URL = 'https://example.com/favicon.ico';
+			env.DESCOPE_PROJECT_ID = 'P1234567890123456789012345678901';
 
 			Object.defineProperty(window, 'location', {
 				value: {
@@ -244,11 +245,13 @@ describe('App component', () => {
 		it('should update the favicon when all conditions are met', async () => {
 			mockFetch.mockResolvedValueOnce({
 				ok: true,
-				json: async () => ({
-					faviconUrl: 'https://example.com/new-favicon.ico'
-				})
+				status: 200
 			});
 
+			env.REACT_APP_DEFAULT_FAVICON_URL =
+				'https://example.com/default-favicon.ico';
+			env.REACT_APP_FAVICON_URL_TEMPLATE =
+				'https://example.com/{projectId}/{ssoAppId}/new-favicon.ico';
 			render(<App />);
 
 			await waitFor(() => {
@@ -264,27 +267,39 @@ describe('App component', () => {
 				const link = document.head.querySelector(
 					"link[rel~='icon']"
 				) as HTMLLinkElement;
-				expect(link.href).toBe('https://example.com/new-favicon.ico');
+				expect(link.href).toBe(
+					'https://example.com/P1234567890123456789012345678901/testSsoAppId/new-favicon.ico'
+				);
 			});
 		});
 
 		it('should not update the favicon if the response is not ok', async () => {
+			env.REACT_APP_DEFAULT_FAVICON_URL =
+				'https://example.com/default-favicon.ico-default';
+			env.REACT_APP_FAVICON_URL_TEMPLATE =
+				'https://example.com/{projectId}/{ssoAppId}/new-favicon.ico';
+
 			mockFetch.mockResolvedValueOnce({
-				ok: false
+				ok: false,
+				status: 404
 			});
 
 			render(<App />);
 
 			await waitFor(() => {
 				// eslint-disable-next-line testing-library/no-node-access -- can't query head with screen
-				const link = document.head.querySelector("link[rel~='icon']");
-				expect(link).not.toBeInTheDocument();
+				const link = document.head.querySelector(
+					"link[rel~='icon']"
+				) as HTMLLinkElement;
+				expect(link.href).toBe(
+					'https://example.com/default-favicon.ico-default'
+				);
 			});
 		});
 
 		it('should not update the favicon if the URL is not secure', async () => {
-			process.env.REACT_APP_FAVICON_URL = 'http://example.com/favicon.ico';
-
+			env.REACT_APP_FAVICON_URL_TEMPLATE =
+				'http://example.com/{projectId}/{ssoAppId}/new-favicon.ico';
 			render(<App />);
 
 			await waitFor(() => {
@@ -295,8 +310,7 @@ describe('App component', () => {
 		});
 
 		it('should not update the favicon if the URL is not valid', async () => {
-			process.env.REACT_APP_FAVICON_URL = 'invalid-url';
-
+			env.REACT_APP_FAVICON_URL_TEMPLATE = 'invalid-url';
 			render(<App />);
 
 			await waitFor(() => {
@@ -307,6 +321,10 @@ describe('App component', () => {
 		});
 
 		it('should not update the favicon if fetch throws an error', async () => {
+			env.REACT_APP_DEFAULT_FAVICON_URL =
+				'https://example.com/default-favicon.ico';
+			env.REACT_APP_FAVICON_URL_TEMPLATE =
+				'https://example.com/{projectId}/{ssoAppId}/new-favicon.ico';
 			mockFetch.mockRejectedValueOnce(new Error('test error'));
 
 			render(<App />);
@@ -319,10 +337,23 @@ describe('App component', () => {
 		});
 
 		it('should not update the favicon if faviconUrl is missing', async () => {
-			process.env.REACT_APP_FAVICON_URL = '';
+			env.REACT_APP_FAVICON_URL_TEMPLATE = '';
 
 			render(<App />);
 
+			await waitFor(() => {
+				// eslint-disable-next-line testing-library/no-node-access -- can't query head with screen
+				const link = document.querySelector("link[rel~='icon']");
+				expect(link).not.toBeInTheDocument();
+			});
+		});
+
+		// If the default favicon is not sanitized, it should not be updated
+		it('should not update the favicon if the default favicon is not sanitized', async () => {
+			env.REACT_APP_DEFAULT_FAVICON_URL = 'invalid-url';
+			env.REACT_APP_FAVICON_URL_TEMPLATE = 'invalid-url';
+
+			render(<App />);
 			await waitFor(() => {
 				// eslint-disable-next-line testing-library/no-node-access -- can't query head with screen
 				const link = document.querySelector("link[rel~='icon']");

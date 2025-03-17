@@ -1,5 +1,12 @@
 # syntax=docker/dockerfile:1@sha256:93bfd3b68c109427185cd78b4779fc82b484b0b7618e36d0f104d4d801e66d25
 ARG NODE_VERSION=18
+ARG HTML_DIR=/usr/share/nginx/html
+ARG REACT_APP_DESCOPE_BASE_URL="https://api.descope.com"
+ARG REACT_APP_CONTENT_BASE_URL="https://static.descope.com/pages"
+ARG REACT_APP_USE_ORIGIN_BASE_URL="false"
+ARG REACT_APP_FAVICON_URL="https://imgs.descope.com/auth-hosting/favicon.svg"
+ARG DESCOPE_PROJECT_ID=""
+ARG DESCOPE_FLOW_ID=""
 
 ARG BUILDPLATFORM
 FROM --platform=${BUILDPLATFORM} node:${NODE_VERSION}-alpine as builder
@@ -10,37 +17,24 @@ COPY ["package.json", "yarn.lock*", "./"]
 
 RUN yarn install --production=false
 COPY . .
-ARG REACT_APP_DESCOPE_BASE_URL=""
-ARG REACT_APP_CONTENT_BASE_URL=""
-ARG REACT_APP_USE_ORIGIN_BASE_URL="true"
+
 RUN yarn build
 
-FROM nginx:alpine@sha256:814a8e88df978ade80e584cc5b333144b9372a8e3c98872d07137dbf3b44d0e4
+FROM ghcr.io/descope/caddy:v0.0.4
 
-RUN apk add openssl && \
-    openssl req -x509 -nodes -days 365 -subj "/C=CA/ST=QC/O=Company, Inc./CN=mydomain.com" -addext "subjectAltName=DNS:mydomain.com" -newkey rsa:2048 -keyout /etc/ssl/private/nginx-selfsigned.key -out /etc/ssl/certs/nginx-selfsigned.crt;
+ENV PORT=8080
+ENV WWW_ROOT=/www
+ENV XDG_DATA_HOME=/tmp
+ENV XDG_CONFIG_HOME=/tmp
+ENV XDG_CACHE_HOME=/tmp
 
-RUN cat > /etc/nginx/conf.d/default.conf <<EOF
-server {
-    listen       80;
-    listen       443 ssl http2 default_server;
-    ssl_certificate /etc/ssl/certs/nginx-selfsigned.crt;
-    ssl_certificate_key /etc/ssl/private/nginx-selfsigned.key;
-    server_name  localhost;
+WORKDIR ${WWW_ROOT}
 
-		rewrite ^/login/(.*)$ /$1 last;
+COPY --from=builder --chown=1000:1000 /app/build ${WWW_ROOT}
+COPY --from=builder --chown=1000:1000 /app/package.json ${WWW_ROOT}
 
-    location / {
-        root   /usr/share/nginx/html;
-        index  index.html;
-        try_files \$uri \$uri/ /index.html;  # this ensures react routing works
-    }
-}
-EOF
+ADD --chown=nonroot:nonroot Caddyfile /etc/caddy/Caddyfile
 
-EXPOSE 80 443
-WORKDIR /usr/share/nginx/html
-RUN rm -rf ./*
-COPY --from=builder /app/build ./
+RUN caddy validate --config /etc/caddy/Caddyfile
 
-ENTRYPOINT ["nginx", "-g", "daemon off;"]
+CMD ["run", "--config", "/etc/caddy/Caddyfile"]

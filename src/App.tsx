@@ -1,55 +1,63 @@
 import { AuthProvider, Descope } from '@descope/react-sdk';
 import clsx from 'clsx';
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useCallback } from 'react';
 import './App.css';
 import Done from './components/Done';
 import Welcome from './components/Welcome';
 import useOidcMfa from './hooks/useOidcMfa';
+import { env } from './env';
+import { logger } from './utils/logger';
 
 const projectRegex = /^P([a-zA-Z0-9]{27}|[a-zA-Z0-9]{31})$/;
 const ssoAppRegex = /^[a-zA-Z0-9\-_]{1,30}$/;
 
-const isFaviconUrlSecure = (url: string, originalFaviconUrl: string) => {
+const isFaviconUrlSecure = (url: string) => {
 	try {
 		const parsedUrl = new URL(url);
-		const parsedOriginalUrl = new URL(originalFaviconUrl);
-		return (
-			parsedUrl.protocol === 'https:' &&
-			parsedUrl.hostname === parsedOriginalUrl.hostname
-		);
+		const isSecure = parsedUrl.protocol === 'https:';
+		logger.log('Favicon URL security check:', {
+			url,
+			protocol: parsedUrl.protocol,
+			hostname: parsedUrl.hostname,
+			isSecure
+		});
+		return isSecure;
 	} catch (error) {
+		logger.error('Error checking favicon URL security:', error);
 		return false;
 	}
 };
 
-const getExistingFaviconUrl = async (baseUrl: string, url: string) => {
+const getFaviconUrl = async (url: string, defaultFaviconUrl: string) => {
+	logger.log('Attempting to fetch favicon from:', url);
 	try {
-		const response = await fetch(
-			`${baseUrl}/api/favicon?url=${encodeURIComponent(url)}`
-		);
+		const response = await fetch(url);
+		logger.log('Favicon fetch response:', response.status, response.ok);
 		if (response.ok) {
-			const data = await response.json();
-			return data?.faviconUrl || '';
+			return new URL(url).href;
 		}
-		return '';
 	} catch (error) {
-		return '';
+		logger.error('Error fetching favicon:', error);
 	}
+	logger.log('Falling back to default favicon:', defaultFaviconUrl);
+	return new URL(defaultFaviconUrl).href;
 };
 
 const App = () => {
-	let baseUrl = process.env.REACT_APP_DESCOPE_BASE_URL;
+	let baseUrl = env.REACT_APP_DESCOPE_BASE_URL;
+	const defaultFaviconUrl =
+		env.REACT_APP_DEFAULT_FAVICON_URL || env.DEFAULT_FAVICON_URL || '';
+	const faviconUrlTemplate =
+		env.REACT_APP_FAVICON_URL_TEMPLATE || env.REACT_APP_FAVICON_URL || '';
 
 	// Force origin base URL
-	if (process.env.REACT_APP_USE_ORIGIN_BASE_URL)
+	if (env.REACT_APP_USE_ORIGIN_BASE_URL === 'true')
 		baseUrl = window.location.origin;
 
 	let projectId = '';
 
 	// first, take project id from env
-	const envProjectId = projectRegex.exec(
-		process.env.DESCOPE_PROJECT_ID ?? ''
-	)?.[0];
+	const envProjectId = projectRegex.exec(env.DESCOPE_PROJECT_ID ?? '')?.[0];
 
 	// If exists in URI use it, otherwise use env
 	const pathnameProjectId = projectRegex.exec(
@@ -64,65 +72,80 @@ const App = () => {
 		[]
 	);
 
-	const baseFunctionsUrl = process.env.REACT_APP_BASE_FUNCTIONS_URL || '';
-
-	const faviconUrl = process.env.REACT_APP_FAVICON_URL || '';
-
 	let ssoAppId = urlParams.get('sso_app_id') || '';
 	ssoAppId = ssoAppRegex.exec(ssoAppId)?.[0] || '';
 
+	// Memoize updateFavicon with useCallback
+	const updateFavicon = useCallback(async () => {
+		logger.log('Starting favicon update with:', {
+			defaultFaviconUrl,
+			ssoAppId,
+			projectId,
+			faviconUrlTemplate
+		});
+
+		if (!ssoAppId) {
+			logger.log('Missing ssoAppId skipping favicon update');
+			return;
+		}
+
+		if (!defaultFaviconUrl) {
+			logger.log('Missing defaultFaviconUrl skipping favicon update');
+			return;
+		}
+
+		const faviconUrl = faviconUrlTemplate
+			.replace('{projectId}', projectId)
+			.replace('{ssoAppId}', ssoAppId);
+
+		logger.log('Generated faviconUrl:', faviconUrl);
+
+		if (!isFaviconUrlSecure(faviconUrl)) {
+			logger.log('URL is not secure, using default favicon');
+			return;
+		}
+
+		logger.log('URL is secure, fetching favicon...');
+		const existingFaviconUrl = await getFaviconUrl(
+			faviconUrl,
+			defaultFaviconUrl
+		);
+
+		let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
+		if (!link) {
+			logger.log('Creating new favicon link element');
+			link = document.createElement('link');
+			link.rel = 'icon';
+			document.getElementsByTagName('head')[0].appendChild(link);
+		}
+		link.href = existingFaviconUrl;
+
+		logger.log('Favicon updated to:', existingFaviconUrl);
+	}, [projectId, ssoAppId, faviconUrlTemplate, defaultFaviconUrl]);
+
+	// Run immediately and also when dependencies change
 	useEffect(() => {
-		const updateFavicon = async () => {
-			if (faviconUrl && ssoAppId && projectId) {
-				let favicon = faviconUrl;
-				// projectId and ssoAppId have been sanitized already
-				favicon = favicon.replace('{projectId}', projectId);
-				favicon = favicon.replace('{ssoAppId}', ssoAppId);
-
-				if (isFaviconUrlSecure(favicon, faviconUrl)) {
-					const existingFaviconUrl = await getExistingFaviconUrl(
-						baseFunctionsUrl,
-						favicon
-					);
-					if (existingFaviconUrl) {
-						let link = document.querySelector(
-							"link[rel~='icon']"
-						) as HTMLLinkElement;
-						if (!link) {
-							link = document.createElement('link');
-							link.rel = 'icon';
-							document.getElementsByTagName('head')[0].appendChild(link);
-						}
-						link.href = existingFaviconUrl;
-					}
-				}
-			}
-		};
-
 		updateFavicon();
-	}, [baseFunctionsUrl, faviconUrl, projectId, ssoAppId]);
+	}, [updateFavicon]);
 
-	const styleId = urlParams.get('style') || process.env.DESCOPE_STYLE_ID;
+	const styleId = urlParams.get('style') || env.DESCOPE_STYLE_ID;
 
 	const flowId =
-		urlParams.get('flow') || process.env.DESCOPE_FLOW_ID || 'sign-up-or-in';
+		urlParams.get('flow') || env.DESCOPE_FLOW_ID || 'sign-up-or-in';
 
 	const debug =
-		urlParams.get('debug') === 'true' ||
-		process.env.DESCOPE_FLOW_DEBUG === 'true';
+		urlParams.get('debug') === 'true' || env.DESCOPE_FLOW_DEBUG === 'true';
 
 	const done = urlParams.get('done') || false;
 
-	const locale = urlParams.get('locale') || process.env.DESCOPE_LOCALE;
+	const locale = urlParams.get('locale') || env.DESCOPE_LOCALE;
 
-	const tenantId = urlParams.get('tenant') || process.env.DESCOPE_TENANT_ID;
+	const tenantId = urlParams.get('tenant') || env.DESCOPE_TENANT_ID;
 
-	const backgroundColor = urlParams.get('bg') || process.env.DESCOPE_BG_COLOR;
+	const backgroundColor = urlParams.get('bg') || env.DESCOPE_BG_COLOR;
 
 	const theme = (urlParams.get('theme') ||
-		process.env.DESCOPE_FLOW_THEME) as React.ComponentProps<
-		typeof Descope
-	>['theme'];
+		env.DESCOPE_FLOW_THEME) as React.ComponentProps<typeof Descope>['theme'];
 
 	const isWideContainer =
 		urlParams.get('wide') === 'true' ||
