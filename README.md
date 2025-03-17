@@ -6,9 +6,9 @@ This is a React web application that runs Descope's login flows according to the
 
 ### Deployment
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fdescope%2Fauth-hosting&env=DESCOPE_PROJECT_ID&demo-title=Descope%20Hosted%20Auth%20Page&demo-description=https%3A%2F%2Fgithub.com%2Fdescope%2Fauth-hosting%2F%23readme&demo-url=https%3A%2F%2Fauth.descope.io%2F)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fdescope%2Fauth-hosting&env=DESCOPE_PROJECT_ID&demo-title=Descope%20Hosted%20Auth%20Page&demo-description=https%3A%2F%2Fgithub.com%2Fdescope%2Fauth-hosting%2F%23readme&demo-url=https%3A%2F%2Fapi.descope.com%2Flogin)
 
-By default, the app is deployed to the Descope hosting page in [https://auth.descope.io](https://auth.descope.io).  
+By default, the app is deployed to the Descope hosting page in [https://api.descope.com/login](https://api.descope.com/login).  
 The main purpose is to allow easy integration for descopers implementing authentication with Descope (such as OIDC [use case](#open-id-connect-oidc-use-cases-in-descope)).
 
 In case you want to have your own hosted page (customize styling, your own domain, etc.), you can use this repository as a template, do the relevant modification and host it (using Vercel, etc.)
@@ -65,3 +65,38 @@ These are the different query parameters you can use:
 In case you don't want to provide the project ID as part of the URL, you can specify it as an environment variable `DESCOPE_PROJECT_ID`.  
 You can use `.env` file for that.  
 From the project root directory run: `cp .env.example .env`, and set your Descope Project and flow IDs.
+
+**Using docker**
+
+In case you want to use the docker version these are the steps:
+
+1. Build (Official hosted docker image is comming soon)
+
+```(bash)
+# Optional build-args: (ex - using custom API host or pinning the project id)
+docker build
+	--build-arg REACT_APP_DESCOPE_BASE_URL="https://api.descope.com"
+	--build-arg REACT_APP_CONTENT_BASE_URL="https://static.descope.com/pages"
+	--build-arg REACT_APP_USE_ORIGIN_BASE_URL="false"
+	--build-arg REACT_APP_FAVICON_URL="https://imgs.descope.com/auth-hosting/favicon.svg"
+	--build-arg DESCOPE_PROJECT_ID=""
+	--build-arg DESCOPE_FLOW_ID=""
+	--tag my-registry.com/descope/auth-hosting
+	--push
+	.
+```
+
+2. Run
+
+```(bash)
+docker run -p 8080:8080 auth-hosting
+# (optional) the build-args are available also during run-time as env vars:
+docker run -p 8080:8080
+	-e REACT_APP_DESCOPE_BASE_URL="https://api.descope.com"
+	-e REACT_APP_CONTENT_BASE_URL="https://static.descope.com/pages"
+	-e REACT_APP_USE_ORIGIN_BASE_URL="false"
+	-e REACT_APP_FAVICON_URL="https://imgs.descope.com/auth-hosting/favicon.svg"
+	-e DESCOPE_PROJECT_ID=""
+	-e DESCOPE_FLOW_ID=""
+	my-registry.com/descope/auth-hosting
+```
