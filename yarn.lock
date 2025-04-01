@@ -1297,10 +1297,10 @@
   resolved "https://registry.yarnpkg.com/@descope/escape-markdown/-/escape-markdown-0.1.5.tgz#d669f79fd98443d3ab2c0b36d589cf990c3ddd17"
   integrity sha512-TbYhdQCdJoySICCASVuWed8ciQcHt5/zMJc9ar8qvyV0bY9IJ8SKTw+6j9mg0xhnwG9bSivDW2hvqJk45hhxUQ==
 
-"@descope/react-sdk@2.12.4":
-  version "2.12.4"
-  resolved "https://registry.yarnpkg.com/@descope/react-sdk/-/react-sdk-2.12.4.tgz#6ac619d52d72264d5ef6d47bfb20046652ab409e"
-  integrity sha512-WpVVm6wSU2X2UdwzK/kuIKY3fOV97RYC89Qljh9SBevx2d9Uh/u90V1ZyCEuB1/RhEKE+oW2mNnCTA/YmOqYFA==
+"@descope/react-sdk@2.12.5":
+  version "2.12.5"
+  resolved "https://registry.yarnpkg.com/@descope/react-sdk/-/react-sdk-2.12.5.tgz#adbf1b123f724fce07cea676f4355b8907ee53cd"
+  integrity sha512-nAgbLu8llAkVjC/HE2r02KKYxf8V4NyXZCB8pg53kBW8SUUnnc7VHwE7n9/Thdgx5IBnpw6TzqhZ6Fx/DcyX8Q==
   dependencies:
     "@descope/access-key-management-widget" "0.4.12"
     "@descope/applications-portal-widget" "0.3.12"
@@ -1309,7 +1309,7 @@
     "@descope/role-management-widget" "0.3.12"
     "@descope/sdk-helpers" "0.3.0"
     "@descope/user-management-widget" "0.7.12"
-    "@descope/user-profile-widget" "0.4.11"
+    "@descope/user-profile-widget" "0.4.12"
     "@descope/web-component" "3.40.7"
     "@descope/web-js-sdk" "1.29.1"
 
@@ -1370,10 +1370,10 @@
     reselect "5.1.1"
     tslib "2.8.1"
 
-"@descope/user-profile-widget@0.4.11":
-  version "0.4.11"
-  resolved "https://registry.yarnpkg.com/@descope/user-profile-widget/-/user-profile-widget-0.4.11.tgz#1b439591d5d91de1fa2262dddccad739e9728cd4"
-  integrity sha512-UmQkixnHccc0mqg9bHWrosa9dBigNM/y7NKKRA/ji2RVG6MogXAiGKb06VCjoLRUX2uJsKtVG23oTx6rYNMHWw==
+"@descope/user-profile-widget@0.4.12":
+  version "0.4.12"
+  resolved "https://registry.yarnpkg.com/@descope/user-profile-widget/-/user-profile-widget-0.4.12.tgz#9b26cf76502b5aeda17b2537d6d964fb92154062"
+  integrity sha512-FSbLGUGMvB1jfqAM0sUcVsIIoqFOtH7ywQ88HsrGvHyfAO8wICVuRfH5avschA/WEs2CtSrj+dNB9W3xbTj7/w==
   dependencies:
     "@descope/sdk-component-drivers" "0.2.52"
     "@descope/sdk-helpers" "0.3.0"
