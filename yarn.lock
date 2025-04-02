@@ -1297,26 +1297,26 @@
   resolved "https://registry.yarnpkg.com/@descope/escape-markdown/-/escape-markdown-0.1.5.tgz#d669f79fd98443d3ab2c0b36d589cf990c3ddd17"
   integrity sha512-TbYhdQCdJoySICCASVuWed8ciQcHt5/zMJc9ar8qvyV0bY9IJ8SKTw+6j9mg0xhnwG9bSivDW2hvqJk45hhxUQ==
 
-"@descope/react-sdk@2.13.0":
-  version "2.13.0"
-  resolved "https://registry.yarnpkg.com/@descope/react-sdk/-/react-sdk-2.13.0.tgz#ac96fe965fed37390b2c0fe609d87d2f0976e06c"
-  integrity sha512-kWk6DIZ/gih7rhSJdzYMSA4ZBp84AX+wIXRCHglP0M2mvRJ6hMPeTbW6aQ0oDoPR0A9QxOy3OmrxO3y9aMS4Mw==
+"@descope/react-sdk@2.13.1":
+  version "2.13.1"
+  resolved "https://registry.yarnpkg.com/@descope/react-sdk/-/react-sdk-2.13.1.tgz#cb375d98c6365abec50c96818aa695613661711d"
+  integrity sha512-sXOO7uWYn9WAfI4fk8rJHkZ8+4XGDQfBL4CdGnGof9NPrBbfVjGQplbzbB8HPMFQJxJ92HwbkG3nGEH4zhoQPw==
   dependencies:
     "@descope/access-key-management-widget" "0.4.13"
     "@descope/applications-portal-widget" "0.3.13"
     "@descope/audit-management-widget" "0.4.13"
     "@descope/core-js-sdk" "2.41.0"
-    "@descope/role-management-widget" "0.3.13"
+    "@descope/role-management-widget" "0.3.14"
     "@descope/sdk-helpers" "0.3.0"
     "@descope/user-management-widget" "0.7.13"
     "@descope/user-profile-widget" "0.4.13"
     "@descope/web-component" "3.40.8"
     "@descope/web-js-sdk" "1.30.0"
 
-"@descope/role-management-widget@0.3.13":
-  version "0.3.13"
-  resolved "https://registry.yarnpkg.com/@descope/role-management-widget/-/role-management-widget-0.3.13.tgz#aca6a1ce9976918a88c3e9ed93639187128a62dd"
-  integrity sha512-QwPFiKbEzqc85OK68BVPtmXlXZlWjvMgDq94LCXcc+JCiTSFm9pvR107CfJ+kATYXkoNeCkk9pz3oPsZ3qNj9g==
+"@descope/role-management-widget@0.3.14":
+  version "0.3.14"
+  resolved "https://registry.yarnpkg.com/@descope/role-management-widget/-/role-management-widget-0.3.14.tgz#06f858350938a5a4cfb39d0d5c94f626ccd3b562"
+  integrity sha512-2UFMdaSa4vUFEfh+e0z7OWskylBFN+RneC3myAYc8bFJ1jw/hDiqJks1Hh5rdRT1mq5sgRJn/aexhjMD7jHCuA==
   dependencies:
     "@descope/sdk-component-drivers" "0.2.52"
     "@descope/sdk-helpers" "0.3.0"
