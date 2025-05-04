@@ -61,7 +61,7 @@ const App = () => {
 
 	// If exists in URI use it, otherwise use env
 	const pathnameProjectId = projectRegex.exec(
-		window.location.pathname?.split('/').at(-1) || ''
+		window.location.pathname?.split('/').pop() || ''
 	)?.[0];
 	projectId = pathnameProjectId ?? envProjectId ?? '';
 
