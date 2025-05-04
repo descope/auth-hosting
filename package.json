@@ -66,7 +66,7 @@
 		"lint": "eslint --fix --max-warnings 0",
 		"lint:all": "yarn run lint .",
 		"start": "react-app-rewired start",
-		"build": "react-app-rewired build",
+		"build": "react-app-rewired build --production",
 		"test": "react-scripts test --coverage",
 		"eject": "react-scripts eject"
 	},
@@ -86,6 +86,7 @@
 	},
 	"browserslist": {
 		"production": [
+			"Chrome>=90",
 			">0.2%",
 			"not dead",
 			"not op_mini all"
