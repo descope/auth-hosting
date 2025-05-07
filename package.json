@@ -3,7 +3,7 @@
 	"version": "0.1.0",
 	"private": true,
 	"dependencies": {
-		"@descope/react-sdk": "2.14.12",
+		"@descope/react-sdk": "2.14.13",
 		"@emotion/react": "11.14.0",
 		"@emotion/styled": "11.14.0",
 		"@mui/icons-material": "5.17.1",
