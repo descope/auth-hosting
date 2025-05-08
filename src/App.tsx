@@ -84,11 +84,6 @@ const App = () => {
 			faviconUrlTemplate
 		});
 
-		if (!ssoAppId) {
-			logger.log('Missing ssoAppId skipping favicon update');
-			return;
-		}
-
 		if (!defaultFaviconUrl) {
 			logger.log('Missing defaultFaviconUrl skipping favicon update');
 			return;
@@ -106,10 +101,12 @@ const App = () => {
 		}
 
 		logger.log('URL is secure, fetching favicon...');
-		const existingFaviconUrl = await getFaviconUrl(
-			faviconUrl,
-			defaultFaviconUrl
-		);
+
+		let existingFaviconUrl = defaultFaviconUrl;
+		if (ssoAppId) {
+			logger.log('Checking custom favicon for ssoAppId:', ssoAppId);
+			existingFaviconUrl = await getFaviconUrl(faviconUrl, defaultFaviconUrl);
+		}
 
 		let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
 		if (!link) {
