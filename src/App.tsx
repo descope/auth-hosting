@@ -102,6 +102,7 @@ const App = () => {
 
 		logger.log('URL is secure, fetching favicon...');
 
+		// If ssoAppId is not provided, fallback to using the default favicon URL.
 		let existingFaviconUrl = defaultFaviconUrl;
 		if (ssoAppId) {
 			logger.log('Checking custom favicon for ssoAppId:', ssoAppId);
