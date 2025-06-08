@@ -5,6 +5,11 @@
 		output stdout
 		level info
 	}
+
+	trusted_proxies cloudflare {
+		interval 12h
+		timeout 15s
+	}
 }
 
 http://*:{$PORT:8080} {
