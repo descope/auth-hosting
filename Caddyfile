@@ -7,7 +7,7 @@
 	}
 }
 
-*:{$PORT:8080} {
+http://*:{$PORT:8080} {
 	log
 	encode gzip
 
