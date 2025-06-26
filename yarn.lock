@@ -1297,10 +1297,10 @@
   resolved "https://registry.yarnpkg.com/@descope/escape-markdown/-/escape-markdown-0.1.5.tgz#d669f79fd98443d3ab2c0b36d589cf990c3ddd17"
   integrity sha512-TbYhdQCdJoySICCASVuWed8ciQcHt5/zMJc9ar8qvyV0bY9IJ8SKTw+6j9mg0xhnwG9bSivDW2hvqJk45hhxUQ==
 
-"@descope/react-sdk@2.14.23":
-  version "2.14.23"
-  resolved "https://registry.yarnpkg.com/@descope/react-sdk/-/react-sdk-2.14.23.tgz#4ec751a673e106c3e109cbd57d8db972b33d59b1"
-  integrity sha512-CQJCAAvRye/fNe0T6jXdHtAx7sY4tAJsskE4UTJtrllr5zmchU07fWIBFk4QRa+SRAJFMazhE4iTztVCKgJ5Qw==
+"@descope/react-sdk@2.14.24":
+  version "2.14.24"
+  resolved "https://registry.yarnpkg.com/@descope/react-sdk/-/react-sdk-2.14.24.tgz#928a3c506858aa9e3ae4b7261b3894db8e9e52a6"
+  integrity sha512-BpQtgjlGJK+0uuIS1f990IiF9IhGgwKprU5yrmLlqAf9ORWU0h4IJ+bz2LY0xeOo8s34YCBX6+V77l7pZZ0zrQ==
   dependencies:
     "@descope/access-key-management-widget" "0.4.30"
     "@descope/applications-portal-widget" "0.3.30"
