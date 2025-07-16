@@ -158,6 +158,8 @@ const App = () => {
 		'descope-login-container': !isWideContainer
 	});
 
+	const form = { userCode: urlParams.get('user_code') || '' }
+
 	const flowProps = {
 		flowId,
 		debug,
@@ -165,6 +167,7 @@ const App = () => {
 		tenant: tenantId,
 		theme,
 		styleId,
+		form,
 		...((flowId === 'saml-config' || flowId === 'sso-config') && {
 			autoFocus: false,
 			onSuccess: () => {
