@@ -158,7 +158,7 @@ const App = () => {
 		'descope-login-container': !isWideContainer
 	});
 
-	const form = { userCode: urlParams.get('user_code') || '' }
+	const form = { userCode: urlParams.get('user_code') || '' };
 
 	const flowProps = {
 		flowId,
