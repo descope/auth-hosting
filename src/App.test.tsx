@@ -155,11 +155,11 @@ describe('App component', () => {
 
 	test('that the flow can be customized with search params', async () => {
 		window.location.pathname = `/${packageJson.homepage}/${validProjectId}`;
-		window.location.search = `?debug=${debug}&flow=${flowId}`;
+		window.location.search = `?debug=${debug}&flow=${flowId}&user_code=12345`;
 		render(<App />);
 		await waitFor(() =>
 			expect(mockDescope).toHaveBeenCalledWith(
-				expect.objectContaining({ debug, flowId })
+				expect.objectContaining({ debug, flowId, form: { userCode: '12345' } })
 			)
 		);
 	});
