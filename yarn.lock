@@ -1275,10 +1275,10 @@
     reselect "5.1.1"
     tslib "2.8.1"
 
-"@descope/applications-portal-widget@0.3.33":
-  version "0.3.33"
-  resolved "https://registry.yarnpkg.com/@descope/applications-portal-widget/-/applications-portal-widget-0.3.33.tgz#befef8bf7283f71cc9b5c949b50b51ec80d9e39f"
-  integrity sha512-cm7O4L2thI3uOym1qGZCoT7HGHSbgVV2+IDySSzU5PnV2NhQFeNl+sv6f5SvrHkyh5lW6TGinaxO/GRM8XrnHQ==
+"@descope/applications-portal-widget@0.4.0":
+  version "0.4.0"
+  resolved "https://registry.yarnpkg.com/@descope/applications-portal-widget/-/applications-portal-widget-0.4.0.tgz#600d772b5b2e9f13e69553b91492dd0e8e05041c"
+  integrity sha512-b0b1jY/FDCOKC15KynuVEe/Eq+EK9YYlORZjmN7VFPPfdYYNGcTl8xpRlOsG7PDvVVh8gTcR1peP3DjLQz7ZkA==
   dependencies:
     "@descope/sdk-component-drivers" "0.4.0"
     "@descope/sdk-helpers" "0.3.0"
@@ -1319,13 +1319,13 @@
   resolved "https://registry.yarnpkg.com/@descope/escape-markdown/-/escape-markdown-0.1.5.tgz#d669f79fd98443d3ab2c0b36d589cf990c3ddd17"
   integrity sha512-TbYhdQCdJoySICCASVuWed8ciQcHt5/zMJc9ar8qvyV0bY9IJ8SKTw+6j9mg0xhnwG9bSivDW2hvqJk45hhxUQ==
 
-"@descope/react-sdk@2.16.1":
-  version "2.16.1"
-  resolved "https://registry.yarnpkg.com/@descope/react-sdk/-/react-sdk-2.16.1.tgz#b6c24bb534e28035bd7da3dd47edf729797300be"
-  integrity sha512-MvJv7hbWK4kj+GPUFdmeJaL1eF3cz02PLeYssEHwrtx/+M8/JT7kosa7jK6zWfOc4uDoaS2gDdxmErBuKvXHmQ==
+"@descope/react-sdk@2.16.2":
+  version "2.16.2"
+  resolved "https://registry.yarnpkg.com/@descope/react-sdk/-/react-sdk-2.16.2.tgz#a71d0c03aa44690c37854c11fefdcd81a45da1ee"
+  integrity sha512-rBsrRIMYSfYR01upRppuw4r0hVw0OgEKBMF8QzP0rY9yg1gIkY3r5NzqH+M+OqQHANsrwAQBNqZYxt6x2KU23A==
   dependencies:
     "@descope/access-key-management-widget" "0.5.0"
-    "@descope/applications-portal-widget" "0.3.33"
+    "@descope/applications-portal-widget" "0.4.0"
     "@descope/audit-management-widget" "0.5.0"
     "@descope/core-js-sdk" "2.44.4"
     "@descope/role-management-widget" "0.4.0"
