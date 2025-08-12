@@ -7,6 +7,7 @@ import Welcome from './components/Welcome';
 import useOidcMfa from './hooks/useOidcMfa';
 import { env } from './env';
 import { logger } from './utils/logger';
+import { ensureUrlHasOrigin } from './utils/url';
 
 const projectRegex = /^P([a-zA-Z0-9]{27}|[a-zA-Z0-9]{31})$/;
 const ssoAppRegex = /^[a-zA-Z0-9\-_]{1,30}$/;
@@ -48,7 +49,9 @@ const App = () => {
 	const defaultFaviconUrl =
 		env.REACT_APP_DEFAULT_FAVICON_URL || env.DEFAULT_FAVICON_URL || '';
 	const faviconUrlTemplate =
-		env.REACT_APP_FAVICON_URL_TEMPLATE || env.REACT_APP_FAVICON_URL || '';
+		ensureUrlHasOrigin(env.REACT_APP_FAVICON_URL_TEMPLATE) ||
+		env.REACT_APP_FAVICON_URL ||
+		'';
 
 	// Force origin base URL
 	if (env.REACT_APP_USE_ORIGIN_BASE_URL === 'true')
