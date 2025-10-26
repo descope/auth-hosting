@@ -142,7 +142,9 @@ const App = () => {
 
 	const backgroundColor = urlParams.get('bg') || env.DESCOPE_BG_COLOR;
 
-	const storeLastAuthUser = urlParams.get('storeLastAuthUser') === 'true' || env.DESCOPE_STORE_LAST_AUTH_USER === 'true';
+	const storeLastAuthUser =
+		urlParams.get('storeLastAuthUser') === 'true' ||
+		env.DESCOPE_STORE_LAST_AUTH_USER === 'true';
 
 	const theme = (urlParams.get('theme') ||
 		env.DESCOPE_FLOW_THEME) as React.ComponentProps<typeof Descope>['theme'];
