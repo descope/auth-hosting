@@ -31,8 +31,8 @@ You can refer to either the [main documentation](https://docs.descope.com/custom
 
 ### Running locally
 
-- `yarn install`
-- `yarn start`
+- `pnpm install`
+- `pnpm start`
 - Go to `http://localhost:3000/<PROJECT_ID>`
 
 **Using URL params**
@@ -59,6 +59,8 @@ These are the different query parameters you can use:
 7. `theme` query parameter is optional. The default value is `light`, but otherwise it will override the theme for your flows rendered with the SDK.
 
 8. `style` query parameter is optional. The default style in your project will be used if not defined, but this allows you to override the `style` for the flows rendered with the SDK.
+
+9. `storeLastAuthUser` query parameter is optional. Pass this parameter to ensure the last authenticated user is not saved when the flow ends. For example, append `storeLastAuthUser=false` to the URL to disable saving the last user.
 
 **Using .env**
 
