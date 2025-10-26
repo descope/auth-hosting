@@ -143,7 +143,7 @@ const App = () => {
 	const backgroundColor = urlParams.get('bg') || env.DESCOPE_BG_COLOR;
 
 	const storeLastAuthUser =
-		urlParams.get('storeLastAuthUser') === 'true' ||
+		urlParams.get('store_last_auth_user') === 'true' ||
 		env.DESCOPE_STORE_LAST_AUTH_USER === 'true';
 
 	const theme = (urlParams.get('theme') ||
