@@ -31,8 +31,8 @@ You can refer to either the [main documentation](https://docs.descope.com/custom
 
 ### Running locally
 
-- `yarn install`
-- `yarn start`
+- `pnpm install`
+- `pnpm start`
 - Go to `http://localhost:3000/<PROJECT_ID>`
 
 **Using URL params**

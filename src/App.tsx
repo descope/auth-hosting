@@ -142,6 +142,8 @@ const App = () => {
 
 	const backgroundColor = urlParams.get('bg') || env.DESCOPE_BG_COLOR;
 
+	const storeLastUser = urlParams.get('store_last_user') === 'true';
+
 	const theme = (urlParams.get('theme') ||
 		env.DESCOPE_FLOW_THEME) as React.ComponentProps<typeof Descope>['theme'];
 
@@ -187,7 +189,11 @@ const App = () => {
 	};
 
 	return (
-		<AuthProvider projectId={projectId} baseUrl={baseUrl}>
+		<AuthProvider
+			projectId={projectId}
+			baseUrl={baseUrl}
+			storeLastAuthenticatedUser={storeLastUser}
+		>
 			<div className="app" style={{ backgroundColor }}>
 				{!done && projectId && flowId && (
 					<div className={containerClasses} data-testid="descope-component">
