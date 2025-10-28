@@ -182,7 +182,9 @@ const App = () => {
 	// This is sensitive to mobile
 	const css: CSSProperties = {
 		width: width !== undefined ? `calc(min(${width}px, 100dvw))` : undefined,
-		height: height !== undefined ? `calc(min(${height}px, 100dvh))` : undefined
+		height: height !== undefined ? `calc(min(${height}px, 100dvh))` : undefined,
+		// disable pinch zoom, gets mistriggered on Safari when tapping out of a text input.
+		touchAction: 'pan-x, pan-y'
 	};
 
 	const flowProps = {
