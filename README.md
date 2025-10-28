@@ -62,7 +62,7 @@ These are the different query parameters you can use:
 
 9. `store_last_auth_user` query parameter is optional. Pass this parameter to ensure the last authenticated user is not saved when the flow ends. For example, append `store_last_auth_user=false` to the URL to disable saving the last user.
 
-10. `width`, `height` are optional query parameters, controlling the sizing of the flow screen in pixels. Any value larger than the screen is clamped down.
+10. `width` & `height` are optional query parameters, controlling the sizing of the flow screen in pixels. Any value larger than the screen is clamped down.
 
 **Using .env**
 
