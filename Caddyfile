@@ -1,4 +1,6 @@
 {
+	http_port {$PORT:8080}
+	auto_https off
 	debug
 	log {
 		format console
@@ -7,7 +9,7 @@
 	}
 }
 
-http://*:{$PORT:8080} {
+http:// {
 	log
 	encode gzip
 
