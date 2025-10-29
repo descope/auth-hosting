@@ -29,24 +29,14 @@ const isFaviconUrlSecure = (url: string) => {
 };
 
 const getClientParams = (urlParams: URLSearchParams) => {
-	const clientArgs = urlParams
-		.getAll('')
-		.filter((key) => key.startsWith('client.'));
-	if (clientArgs.length === 0) {
-		// we don't want to pass an empty object in that case
-		return undefined;
-	}
-
+	// Build an array of [key,value] pairs and filter those starting with the prefix.
 	const clientParams: { [key: string]: string } = {};
-	clientArgs.forEach((fullKey) => {
-		const value = urlParams.get(fullKey);
-		if (value !== null) {
-			const clientKey = fullKey.replace('client.', '');
-			clientParams[clientKey] = value;
+	Array.from(urlParams.entries()).forEach(([key, value]) => {
+		if (key.startsWith('client.')) {
+			clientParams[key.replace('client.', '')] = value;
 		}
 	});
-
-	return clientParams;
+	return Object.keys(clientParams).length > 0 ? clientParams : undefined;
 };
 
 const getFaviconUrl = async (url: string, defaultFaviconUrl: string) => {
