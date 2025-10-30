@@ -160,14 +160,16 @@ const App = () => {
 
 	const form = { userCode: urlParams.get('user_code') || '' };
 
-	const [width, height] = ['width', 'height'].map((key) => {
-		let value = urlParams.has(key)
-			? parseInt(urlParams.get(key)!, 10)
-			: undefined;
+	const [width, height] = [
+		['width', 'REACT_APP_FLOW_WIDTH'],
+		['height', 'REACT_APP_FLOW_HEIGHT']
+	].map(([key, envVar]) => {
+		const value = urlParams.get(key) ?? env[envVar];
+		let num = value !== undefined ? parseInt(value, 10) : undefined;
 
-		if (Number.isNaN(value)) value = undefined;
+		if (Number.isNaN(value)) num = undefined;
 
-		return value;
+		return num;
 	});
 
 	const hasWidthHeight = width !== undefined || height !== undefined;
