@@ -1309,10 +1309,10 @@
   resolved "https://registry.npmjs.org/@descope/escape-markdown/-/escape-markdown-0.1.5.tgz"
   integrity sha512-TbYhdQCdJoySICCASVuWed8ciQcHt5/zMJc9ar8qvyV0bY9IJ8SKTw+6j9mg0xhnwG9bSivDW2hvqJk45hhxUQ==
 
-"@descope/react-sdk@2.22.0":
-  version "2.22.0"
-  resolved "https://registry.yarnpkg.com/@descope/react-sdk/-/react-sdk-2.22.0.tgz#0d839ea867b38d2cbcd60a1c6f9b9f6194289866"
-  integrity sha512-2+3b3gvcNPopBMpY2Xxp9KuI14ikw5/3bMPOanngeqDhPS3R5+oJq+G0je8VIo3lgvARqcH8xrPoJmy/vvN8Pg==
+"@descope/react-sdk@2.23.0":
+  version "2.23.0"
+  resolved "https://registry.yarnpkg.com/@descope/react-sdk/-/react-sdk-2.23.0.tgz#f3b36b336059b6f3694d56cccfc2e48106a97fd3"
+  integrity sha512-nxTuv8RAtxnHI8E11aGlPFZNsPPNCdMP62j4kWEjzEuxtKa/YbLd5E0iKXvKr/0WZMGW7EVpmzhZES7y9bALTA==
   dependencies:
     "@descope/access-key-management-widget" "0.5.17"
     "@descope/applications-portal-widget" "0.4.17"
