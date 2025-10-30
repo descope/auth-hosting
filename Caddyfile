@@ -24,6 +24,8 @@ http://*:{$PORT:8080} {
 		REACT_APP_USE_ORIGIN_BASE_URL '{$REACT_APP_USE_ORIGIN_BASE_URL:false}'
 		REACT_APP_FAVICON_URL_TEMPLATE '{$REACT_APP_FAVICON_URL_TEMPLATE:https://api.descope.com/pages/\{projectId}}/v2-beta/\{ssoAppId}/assets/favicon.ico'
 		REACT_APP_DEFAULT_FAVICON_URL '{$REACT_APP_DEFAULT_FAVICON_URL:https://imgs.descope.com/auth-hosting/favicon.svg}'
+		REACT_APP_FLOW_WIDTH '{$REACT_APP_FLOW_WIDTH}'
+		REACT_APP_FLOW_HEIGHT '{$REACT_APP_FLOW_HEIGHT}'
 		DESCOPE_PROJECT_ID '{$DESCOPE_PROJECT_ID}'
 		DESCOPE_FLOW_ID '{$DESCOPE_FLOW_ID}'
 		LOGGER '{$LOGGER:false}'
@@ -39,6 +41,8 @@ window.env = {
 	REACT_APP_USE_ORIGIN_BASE_URL: {{ placeholder "http.vars.REACT_APP_USE_ORIGIN_BASE_URL" }},
 	REACT_APP_FAVICON_URL_TEMPLATE: {{ placeholder "http.vars.REACT_APP_FAVICON_URL_TEMPLATE" }},
 	REACT_APP_DEFAULT_FAVICON_URL: {{ placeholder "http.vars.REACT_APP_DEFAULT_FAVICON_URL" }},
+	REACT_APP_FLOW_WIDTH: {{ placeholder "http.vars.REACT_APP_FLOW_WIDTH" }},
+	REACT_APP_FLOW_HEIGHT: {{ placeholder "http.vars.REACT_APP_FLOW_HEIGHT" }},
 	DESCOPE_PROJECT_ID: {{ placeholder "http.vars.DESCOPE_PROJECT_ID" }},
 	DESCOPE_FLOW_ID: {{ placeholder "http.vars.DESCOPE_FLOW_ID" }},
 	LOGGER: {{ placeholder "http.vars.LOGGER" }}

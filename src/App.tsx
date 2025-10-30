@@ -1,6 +1,6 @@
 import { AuthProvider, Descope } from '@descope/react-sdk';
 import clsx from 'clsx';
-import React, { useEffect, useMemo, useCallback } from 'react';
+import React, { useEffect, useMemo, useCallback, CSSProperties } from 'react';
 import './App.css';
 import Done from './components/Done';
 import Welcome from './components/Welcome';
@@ -158,13 +158,36 @@ const App = () => {
 
 	const shadow = urlParams.get('shadow') !== 'false';
 
-	const containerClasses = clsx({
-		'descope-base-container': shadow,
-		'descope-wide-container': isWideContainer,
-		'descope-login-container': !isWideContainer
+	const form = { userCode: urlParams.get('user_code') || '' };
+
+	const [width, height] = [
+		['width', 'REACT_APP_FLOW_WIDTH'],
+		['height', 'REACT_APP_FLOW_HEIGHT']
+	].map(([key, envVar]) => {
+		const value = urlParams.get(key) ?? env[envVar];
+		let num = value !== undefined ? parseInt(value, 10) : undefined;
+
+		if (Number.isNaN(value)) num = undefined;
+
+		return num;
 	});
 
-	const form = { userCode: urlParams.get('user_code') || '' };
+	const hasWidthHeight = width !== undefined || height !== undefined;
+
+	const containerClasses = clsx({
+		'descope-base-container': shadow,
+		'descope-wide-container': !hasWidthHeight && isWideContainer,
+		'descope-login-container': !hasWidthHeight && !isWideContainer
+	});
+
+	// See: https://web.dev/blog/viewport-units
+	// This is sensitive to mobile
+	const css: CSSProperties = {
+		width: width !== undefined ? `min(${width}px, 100dvw)` : undefined,
+		minHeight: height !== undefined ? `min(${height}px, 100dvh)` : undefined,
+		// disable pinch zoom, gets mistriggered on Safari when tapping out of a text input.
+		touchAction: 'pan-x pan-y'
+	};
 
 	const flowProps = {
 		flowId,
@@ -200,7 +223,11 @@ const App = () => {
 		>
 			<div className="app" style={{ backgroundColor }}>
 				{!done && projectId && flowId && (
-					<div className={containerClasses} data-testid="descope-component">
+					<div
+						className={containerClasses}
+						style={css}
+						data-testid="descope-component"
+					>
 						<Descope {...flowProps} />
 					</div>
 				)}
