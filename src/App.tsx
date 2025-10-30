@@ -28,6 +28,17 @@ const isFaviconUrlSecure = (url: string) => {
 	}
 };
 
+const getClientParams = (urlParams: URLSearchParams) => {
+	// Build an array of [key,value] pairs and filter those starting with the prefix.
+	const clientParams: { [key: string]: string } = {};
+	Array.from(urlParams.entries()).forEach(([key, value]) => {
+		if (key.startsWith('client.')) {
+			clientParams[key.replace('client.', '')] = value;
+		}
+	});
+	return Object.keys(clientParams).length > 0 ? clientParams : undefined;
+};
+
 const getFaviconUrl = async (url: string, defaultFaviconUrl: string) => {
 	logger.log('Attempting to fetch favicon from:', url);
 	try {
@@ -166,6 +177,8 @@ const App = () => {
 
 	const form = { userCode: urlParams.get('user_code') || '' };
 
+	const client = useMemo(() => getClientParams(urlParams), [urlParams]);
+
 	const flowProps = {
 		flowId,
 		debug,
@@ -174,6 +187,7 @@ const App = () => {
 		theme,
 		styleId,
 		form,
+		client,
 		...((flowId === 'saml-config' || flowId === 'sso-config') && {
 			autoFocus: false,
 			onSuccess: () => {
