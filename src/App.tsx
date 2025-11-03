@@ -29,30 +29,31 @@ const isFaviconUrlSecure = (url: string) => {
 };
 
 /// Parse the width & height options allowing amounts like "50%" or "800px"
-const getSizingValues = ({ urlParams }: { urlParams: URLSearchParams }) => {
-	const [width, height] = [
-		['width', 'REACT_APP_FLOW_WIDTH'],
-		['height', 'REACT_APP_FLOW_HEIGHT']
-	].map(([key, envVar]) => {
-		const value = urlParams.get(key) ?? env[envVar];
+const getSizingValue = ({
+	urlParams,
+	key,
+	envVar
+}: {
+	urlParams: URLSearchParams;
+	key: string;
+	envVar: string;
+}) => {
+	const value = urlParams.get(key) ?? env[envVar];
 
-		const [match, amount, unit] = /^(\d+)(px|%)$/.exec(value ?? '') ?? [];
+	const [match, amount, unit] = /^(\d+)(px|%)$/.exec(value ?? '') ?? [];
 
-		if (!match) {
-			// eslint-disable-next-line no-console
-			console.warn(`'${key}' is set to invalid value ${JSON.stringify(value)}`);
-			return undefined;
-		}
+	if (!match) {
+		// eslint-disable-next-line no-console
+		console.warn(`'${key}' is set to invalid value ${JSON.stringify(value)}`);
+		return undefined;
+	}
 
-		const unitMapping: Record<string, string> = {
-			px: 'px',
-			'%': key === 'width' ? 'dvw' : 'dvh'
-		};
+	const unitMapping: Record<string, string> = {
+		px: 'px',
+		'%': key === 'width' ? 'dvw' : 'dvh'
+	};
 
-		return parseInt(amount, 10) + unitMapping[unit];
-	});
-
-	return { width, height };
+	return parseInt(amount, 10) + unitMapping[unit];
 };
 
 const getFaviconUrl = async (url: string, defaultFaviconUrl: string) => {
@@ -187,7 +188,16 @@ const App = () => {
 
 	const form = { userCode: urlParams.get('user_code') || '' };
 
-	const { width, height } = getSizingValues({ urlParams });
+	const width = getSizingValue({
+		urlParams,
+		key: 'width',
+		envVar: 'REACT_APP_FLOW_WIDTH'
+	});
+	const height = getSizingValue({
+		urlParams,
+		key: 'height',
+		envVar: 'REACT_APP_FLOW_HEIGHT'
+	});
 	const hasWidthHeight = width !== undefined || height !== undefined;
 
 	const containerClasses = clsx({
