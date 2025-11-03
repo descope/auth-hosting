@@ -28,6 +28,33 @@ const isFaviconUrlSecure = (url: string) => {
 	}
 };
 
+/// Parse the width & height options allowing amounts like "50%" or "800px"
+const getSizingValues = ({ urlParams }: { urlParams: URLSearchParams }) => {
+	const [width, height] = [
+		['width', 'REACT_APP_FLOW_WIDTH'],
+		['height', 'REACT_APP_FLOW_HEIGHT']
+	].map(([key, envVar]) => {
+		const value = urlParams.get(key) ?? env[envVar];
+
+		const [match, amount, unit] = /^(\d+)(px|%)$/.exec(value ?? '') ?? [];
+
+		if (!match) {
+			// eslint-disable-next-line no-console
+			console.warn(`'${key}' is set to invalid value ${JSON.stringify(value)}`);
+			return undefined;
+		}
+
+		const unitMapping: Record<string, string> = {
+			px: 'px',
+			'%': key === 'width' ? 'dvw' : 'dvh'
+		};
+
+		return parseInt(amount, 10) + unitMapping[unit];
+	});
+
+	return { width, height };
+};
+
 const getFaviconUrl = async (url: string, defaultFaviconUrl: string) => {
 	logger.log('Attempting to fetch favicon from:', url);
 	try {
@@ -160,18 +187,7 @@ const App = () => {
 
 	const form = { userCode: urlParams.get('user_code') || '' };
 
-	const [width, height] = [
-		['width', 'REACT_APP_FLOW_WIDTH'],
-		['height', 'REACT_APP_FLOW_HEIGHT']
-	].map(([key, envVar]) => {
-		const value = urlParams.get(key) ?? env[envVar];
-		let num = value !== undefined ? parseInt(value, 10) : undefined;
-
-		if (Number.isNaN(value)) num = undefined;
-
-		return num;
-	});
-
+	const { width, height } = getSizingValues({ urlParams });
 	const hasWidthHeight = width !== undefined || height !== undefined;
 
 	const containerClasses = clsx({
@@ -183,10 +199,8 @@ const App = () => {
 	// See: https://web.dev/blog/viewport-units
 	// This is sensitive to mobile
 	const css: CSSProperties = {
-		width: width !== undefined ? `min(${width}px, 100dvw)` : undefined,
-		minHeight: height !== undefined ? `min(${height}px, 100dvh)` : undefined,
-		// disable pinch zoom, gets mistriggered on Safari when tapping out of a text input.
-		touchAction: 'pan-x pan-y'
+		width: width !== undefined ? `min(${width}, 100dvw)` : undefined,
+		minHeight: height !== undefined ? `min(${height}, 100dvh)` : undefined
 	};
 
 	const flowProps = {
