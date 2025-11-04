@@ -1,6 +1,6 @@
 import { AuthProvider, Descope } from '@descope/react-sdk';
 import clsx from 'clsx';
-import React, { useEffect, useMemo, useCallback } from 'react';
+import React, { useEffect, useMemo, useCallback, CSSProperties } from 'react';
 import './App.css';
 import Done from './components/Done';
 import Welcome from './components/Welcome';
@@ -151,7 +151,8 @@ const App = () => {
 
 	const tenantId = urlParams.get('tenant') || env.DESCOPE_TENANT_ID;
 
-	const backgroundColor = urlParams.get('bg') || env.DESCOPE_BG_COLOR;
+	const background =
+		urlParams.get('bg') || env.DESCOPE_BG || env.DESCOPE_BG_COLOR;
 
 	const storeLastAuthUser =
 		urlParams.get('store_last_auth_user') === 'false' ||
@@ -176,6 +177,23 @@ const App = () => {
 	});
 
 	const form = { userCode: urlParams.get('user_code') || '' };
+
+	const bodyCss: CSSProperties = {};
+
+	try {
+		if (!background?.startsWith('https://')) {
+			// eslint-disable-next-line no-console
+			console.error(`background must be a https:// URL`);
+			throw new Error();
+		}
+		const url = new URL(background ?? '');
+		bodyCss.backgroundImage = `url(${url})`;
+		bodyCss.backgroundSize = 'cover';
+		logger.log('Using background url', url);
+	} catch (err) {
+		logger.log('Using background as color', background);
+		bodyCss.backgroundColor = background;
+	}
 
 	const client = useMemo(() => getClientParams(urlParams), [urlParams]);
 
@@ -212,7 +230,7 @@ const App = () => {
 			baseUrl={baseUrl}
 			storeLastAuthenticatedUser={storeLastAuthUser}
 		>
-			<div className="app" style={{ backgroundColor }}>
+			<div className="app" style={bodyCss}>
 				{!done && projectId && flowId && (
 					<div className={containerClasses} data-testid="descope-component">
 						<Descope {...flowProps} />
