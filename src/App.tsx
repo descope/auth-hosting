@@ -178,22 +178,29 @@ const App = () => {
 
 	const form = { userCode: urlParams.get('user_code') || '' };
 
-	const bodyCss: CSSProperties = {};
-
-	try {
-		if (!background?.startsWith('https://')) {
-			// eslint-disable-next-line no-console
-			console.error(`background must be a https:// URL`);
-			throw new Error();
+	const bodyCss = useMemo(() => {
+		const css: CSSProperties = {};
+		try {
+			if (!background?.startsWith('https://')) {
+				if (background?.startsWith('http://')) {
+					// eslint-disable-next-line no-console
+					console.error(`background must be a https:// URL`);
+				}
+				throw new Error();
+			}
+			const url = new URL(background ?? '');
+			// We want url("https://whatever.invalid") with any quotes escaped correctly
+			// so JSON.stringify is a convenient option.
+			css.backgroundImage = `url(${JSON.stringify(url.toString())})`;
+			css.backgroundSize = 'cover';
+			logger.log('Using background url', url);
+		} catch (err) {
+			logger.log('Using background as color', background);
+			css.backgroundColor = background;
 		}
-		const url = new URL(background ?? '');
-		bodyCss.backgroundImage = `url(${url})`;
-		bodyCss.backgroundSize = 'cover';
-		logger.log('Using background url', url);
-	} catch (err) {
-		logger.log('Using background as color', background);
-		bodyCss.backgroundColor = background;
-	}
+
+		return css;
+	}, [background]);
 
 	const client = useMemo(() => getClientParams(urlParams), [urlParams]);
 
@@ -230,7 +237,7 @@ const App = () => {
 			baseUrl={baseUrl}
 			storeLastAuthenticatedUser={storeLastAuthUser}
 		>
-			<div className="app" style={bodyCss}>
+			<div className="app" style={bodyCss} data-testid="app">
 				{!done && projectId && flowId && (
 					<div className={containerClasses} data-testid="descope-component">
 						<Descope {...flowProps} />
