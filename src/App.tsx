@@ -54,7 +54,7 @@ const getSizingValue = ({
 	};
 
 	return parseInt(amount, 10) + unitMapping[unit];
-}
+};
 
 const getClientParams = (urlParams: URLSearchParams) => {
 	// Build an array of [key,value] pairs and filter those starting with the prefix.
