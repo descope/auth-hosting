@@ -190,39 +190,43 @@ const App = () => {
 	const theme = (urlParams.get('theme') ||
 		env.DESCOPE_FLOW_THEME) as React.ComponentProps<typeof Descope>['theme'];
 
-	const isWideContainer =
-		urlParams.get('wide') === 'true' ||
-		flowId === 'saml-config' ||
-		flowId === 'sso-config';
-
-	const shadow = urlParams.get('shadow') !== 'false';
-
 	const form = { userCode: urlParams.get('user_code') || '' };
 
-	const width = getSizingValue({
-		urlParams,
-		key: 'width',
-		envVar: 'REACT_APP_FLOW_WIDTH'
-	});
-	const height = getSizingValue({
-		urlParams,
-		key: 'height',
-		envVar: 'REACT_APP_FLOW_HEIGHT'
-	});
-	const hasWidthHeight = width !== undefined || height !== undefined;
+	const { containerCss, containerClasses } = useMemo(() => {
+		const isWideContainer =
+			urlParams.get('wide') === 'true' ||
+			flowId === 'saml-config' ||
+			flowId === 'sso-config';
 
-	const containerClasses = clsx({
-		'descope-base-container': shadow,
-		'descope-wide-container': !hasWidthHeight && isWideContainer,
-		'descope-login-container': !hasWidthHeight && !isWideContainer
-	});
+		const shadow = urlParams.get('shadow') !== 'false';
 
-	// See: https://web.dev/blog/viewport-units
-	// This is sensitive to mobile
-	const css: CSSProperties = {
-		width: width !== undefined ? `min(${width}, 100dvw)` : undefined,
-		minHeight: height !== undefined ? `min(${height}, 100dvh)` : undefined
-	};
+		const width = getSizingValue({
+			urlParams,
+			key: 'width',
+			envVar: 'REACT_APP_FLOW_WIDTH'
+		});
+		const height = getSizingValue({
+			urlParams,
+			key: 'height',
+			envVar: 'REACT_APP_FLOW_HEIGHT'
+		});
+		const hasWidthHeight = width !== undefined || height !== undefined;
+
+		const classes = clsx({
+			'descope-base-container': shadow,
+			'descope-wide-container': !hasWidthHeight && isWideContainer,
+			'descope-login-container': !hasWidthHeight && !isWideContainer
+		});
+
+		// See: https://web.dev/blog/viewport-units
+		// This is sensitive to mobile
+		const css: CSSProperties = {
+			width: width !== undefined ? `min(${width}, 100dvw)` : undefined,
+			minHeight: height !== undefined ? `min(${height}, 100dvh)` : undefined
+		};
+
+		return { containerCss: css, containerClasses: classes };
+	}, [urlParams, flowId]);
 
 	const client = useMemo(() => getClientParams(urlParams), [urlParams]);
 
@@ -263,7 +267,7 @@ const App = () => {
 				{!done && projectId && flowId && (
 					<div
 						className={containerClasses}
-						style={css}
+						style={containerCss}
 						data-testid="descope-component"
 					>
 						<Descope {...flowProps} />
