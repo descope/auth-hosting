@@ -62,7 +62,9 @@ These are the different query parameters you can use:
 
 9. `store_last_auth_user` query parameter is optional. Pass this parameter to ensure the last authenticated user is not saved when the flow ends. For example, append `store_last_auth_user=false` to the URL to disable saving the last user.
 
-10. `width` & `height` are optional query parameters, controlling the sizing of the flow screen in pixels. Any value larger than the screen is clamped down.
+10. Additional query parameters prefixed with `client.` are passed to the `Descope` component as its `client` prop. For example: `client.k1=v1&client.k2=v2` becomes `{ k1: 'v1', k2: 'v2' }`.
+
+11. `width` & `height` are optional query parameters, controlling the sizing of the flow screen in pixels. Any value larger than the screen is clamped down.
 
 **Using .env**
 

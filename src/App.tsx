@@ -54,6 +54,17 @@ const getSizingValue = ({
 	};
 
 	return parseInt(amount, 10) + unitMapping[unit];
+}
+
+const getClientParams = (urlParams: URLSearchParams) => {
+	// Build an array of [key,value] pairs and filter those starting with the prefix.
+	const clientParams: { [key: string]: string } = {};
+	Array.from(urlParams.entries()).forEach(([key, value]) => {
+		if (key.startsWith('client.')) {
+			clientParams[key.replace('client.', '')] = value;
+		}
+	});
+	return Object.keys(clientParams).length > 0 ? clientParams : undefined;
 };
 
 const getFaviconUrl = async (url: string, defaultFaviconUrl: string) => {
@@ -213,6 +224,8 @@ const App = () => {
 		minHeight: height !== undefined ? `min(${height}, 100dvh)` : undefined
 	};
 
+	const client = useMemo(() => getClientParams(urlParams), [urlParams]);
+
 	const flowProps = {
 		flowId,
 		debug,
@@ -221,6 +234,7 @@ const App = () => {
 		theme,
 		styleId,
 		form,
+		client,
 		...((flowId === 'saml-config' || flowId === 'sso-config') && {
 			autoFocus: false,
 			onSuccess: () => {
