@@ -5,8 +5,6 @@ ARG REACT_APP_DESCOPE_BASE_URL="https://api.descope.com"
 ARG REACT_APP_CONTENT_BASE_URL="https://static.descope.com/pages"
 ARG REACT_APP_USE_ORIGIN_BASE_URL="false"
 ARG REACT_APP_FAVICON_URL="https://imgs.descope.com/auth-hosting/favicon.svg"
-ARG REACT_APP_DESCOPE_FLOW_WIDTH=""
-ARG REACT_APP_DESCOPE_FLOW_HEIGHT=""
 ARG DESCOPE_PROJECT_ID=""
 ARG DESCOPE_FLOW_ID=""
 
