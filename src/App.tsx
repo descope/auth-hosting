@@ -28,6 +28,34 @@ const isFaviconUrlSecure = (url: string) => {
 	}
 };
 
+/// Parse the width & height options allowing amounts like "50%" or "800px"
+const getSizingValue = ({
+	urlParams,
+	key,
+	envVar
+}: {
+	urlParams: URLSearchParams;
+	key: string;
+	envVar: string;
+}) => {
+	const value = urlParams.get(key) ?? env[envVar];
+
+	const [match, amount, unit] = /^(\d+)(px|%)$/.exec(value ?? '') ?? [];
+
+	if (!match) {
+		// eslint-disable-next-line no-console
+		console.warn(`'${key}' is set to invalid value ${JSON.stringify(value)}`);
+		return undefined;
+	}
+
+	const unitMapping: Record<string, string> = {
+		px: 'px',
+		'%': key === 'width' ? 'dvw' : 'dvh'
+	};
+
+	return parseInt(amount, 10) + unitMapping[unit];
+};
+
 const getClientParams = (urlParams: URLSearchParams) => {
 	// Build an array of [key,value] pairs and filter those starting with the prefix.
 	const clientParams: { [key: string]: string } = {};
@@ -163,19 +191,6 @@ const App = () => {
 	const theme = (urlParams.get('theme') ||
 		env.DESCOPE_FLOW_THEME) as React.ComponentProps<typeof Descope>['theme'];
 
-	const isWideContainer =
-		urlParams.get('wide') === 'true' ||
-		flowId === 'saml-config' ||
-		flowId === 'sso-config';
-
-	const shadow = urlParams.get('shadow') !== 'false';
-
-	const containerClasses = clsx({
-		'descope-base-container': shadow,
-		'descope-wide-container': isWideContainer,
-		'descope-login-container': !isWideContainer
-	});
-
 	const form = { userCode: urlParams.get('user_code') || '' };
 
 	const bodyCss = useMemo(() => {
@@ -201,6 +216,42 @@ const App = () => {
 
 		return css;
 	}, [background]);
+
+	const { containerCss, containerClasses } = useMemo(() => {
+		const isWideContainer =
+			urlParams.get('wide') === 'true' ||
+			flowId === 'saml-config' ||
+			flowId === 'sso-config';
+
+		const shadow = urlParams.get('shadow') !== 'false';
+
+		const width = getSizingValue({
+			urlParams,
+			key: 'width',
+			envVar: 'REACT_APP_FLOW_WIDTH'
+		});
+		const height = getSizingValue({
+			urlParams,
+			key: 'height',
+			envVar: 'REACT_APP_FLOW_HEIGHT'
+		});
+		const hasWidthHeight = width !== undefined || height !== undefined;
+
+		const classes = clsx({
+			'descope-base-container': shadow,
+			'descope-wide-container': !hasWidthHeight && isWideContainer,
+			'descope-login-container': !hasWidthHeight && !isWideContainer
+		});
+
+		// See: https://web.dev/blog/viewport-units
+		// This is sensitive to mobile
+		const css: CSSProperties = {
+			width: width !== undefined ? `min(${width}, 100dvw)` : undefined,
+			minHeight: height !== undefined ? `min(${height}, 100dvh)` : undefined
+		};
+
+		return { containerCss: css, containerClasses: classes };
+	}, [urlParams, flowId]);
 
 	const client = useMemo(() => getClientParams(urlParams), [urlParams]);
 
@@ -239,7 +290,11 @@ const App = () => {
 		>
 			<div className="app" style={bodyCss} data-testid="app">
 				{!done && projectId && flowId && (
-					<div className={containerClasses} data-testid="descope-component">
+					<div
+						className={containerClasses}
+						style={containerCss}
+						data-testid="descope-component"
+					>
 						<Descope {...flowProps} />
 					</div>
 				)}

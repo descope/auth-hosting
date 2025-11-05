@@ -225,6 +225,112 @@ describe('App component', () => {
 		});
 	});
 
+	describe('container sizing options', () => {
+		beforeEach(() => {
+			jest.clearAllMocks();
+			env.REACT_APP_BASE_FUNCTIONS_URL = 'https://example.com';
+			env.DESCOPE_PROJECT_ID = 'P1234567890123456789012345678901';
+			window.location.pathname = `/${packageJson.homepage}/${validProjectId}`;
+			window.location.search = '';
+			delete env.REACT_APP_FLOW_WIDTH;
+			delete env.REACT_APP_FLOW_HEIGHT;
+			env.DESCOPE_FLOW_ID = 'test';
+
+			Object.defineProperty(window, 'location', {
+				value: {
+					...window.location,
+					search: '?sso_app_id=testSsoAppId',
+					pathname: '/test'
+				},
+				writable: true
+			});
+		});
+
+		it('normal', async () => {
+			render(<App />);
+
+			expect(await screen.findByTestId('descope-component')).toHaveClass(
+				'descope-base-container',
+				'descope-login-container'
+			);
+		});
+
+		it('without shadow', async () => {
+			window.location.search = '?shadow=false';
+			render(<App />);
+
+			expect(await screen.findByTestId('descope-component')).toHaveClass(
+				'descope-login-container'
+			);
+		});
+
+		it('wide', async () => {
+			window.location.search = '?wide=true';
+			render(<App />);
+
+			expect(await screen.findByTestId('descope-component')).toHaveClass(
+				'descope-base-container',
+				'descope-wide-container'
+			);
+		});
+
+		it('wide irrelevant if width/height set', async () => {
+			env.REACT_APP_FLOW_WIDTH = '100px';
+			render(<App />);
+
+			expect(await screen.findByTestId('descope-component')).toHaveClass(
+				'descope-base-container'
+			);
+
+			expect(await screen.findByTestId('descope-component')).toHaveStyle(
+				'width: min(100px, 100dvw);'
+			);
+		});
+
+		it('width and height set in pixels', async () => {
+			env.REACT_APP_FLOW_WIDTH = '100px';
+			env.REACT_APP_FLOW_HEIGHT = '300px';
+			render(<App />);
+
+			expect(await screen.findByTestId('descope-component')).toHaveClass(
+				'descope-base-container'
+			);
+
+			expect(await screen.findByTestId('descope-component')).toHaveStyle({
+				width: 'min(100px, 100dvw)',
+				'min-height': 'min(300px, 100dvh)'
+			});
+		});
+
+		it('width and height set in percentage', async () => {
+			env.REACT_APP_FLOW_WIDTH = '50%';
+			env.REACT_APP_FLOW_HEIGHT = '25%';
+			render(<App />);
+
+			expect(await screen.findByTestId('descope-component')).toHaveClass(
+				'descope-base-container'
+			);
+
+			expect(await screen.findByTestId('descope-component')).toHaveStyle({
+				width: 'min(50dvw, 100dvw)',
+				'min-height': 'min(25dvh, 100dvh)'
+			});
+		});
+
+		it('width invalid', async () => {
+			env.REACT_APP_FLOW_WIDTH = '50 blabla';
+			render(<App />);
+
+			expect(await screen.findByTestId('descope-component')).toHaveClass(
+				'descope-base-container',
+				'descope-login-container'
+			);
+			expect(
+				await screen.findByTestId('descope-component')
+			).not.toHaveAttribute('style');
+		});
+	});
+
 	describe('favicon', () => {
 		beforeEach(() => {
 			jest.clearAllMocks();

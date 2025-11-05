@@ -9,7 +9,7 @@ ARG DESCOPE_PROJECT_ID=""
 ARG DESCOPE_FLOW_ID=""
 
 ARG BUILDPLATFORM
-FROM --platform=${BUILDPLATFORM} node:${NODE_VERSION}-alpine as builder
+FROM --platform=${BUILDPLATFORM} node:${NODE_VERSION}-alpine AS builder
 ENV NODE_ENV=production
 
 WORKDIR /app
