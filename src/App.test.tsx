@@ -473,6 +473,96 @@ describe('App component', () => {
 		});
 	});
 
+	describe('bg', () => {
+		beforeEach(() => {
+			jest.clearAllMocks();
+			env.REACT_APP_BASE_FUNCTIONS_URL = 'https://example.com';
+			env.DESCOPE_PROJECT_ID = 'P1234567890123456789012345678901';
+			delete env.DESCOPE_BG;
+			delete env.DESCOPE_BG_COLOR;
+
+			Object.defineProperty(window, 'location', {
+				value: {
+					...window.location,
+					search: '?sso_app_id=testSsoAppId',
+					pathname: '/test'
+				},
+				writable: true
+			});
+		});
+
+		it('should allow a secure image background', async () => {
+			mockFetch.mockResolvedValueOnce({
+				ok: true,
+				status: 200
+			});
+
+			env.DESCOPE_BG = 'https://example.com/bg.png';
+			render(<App />);
+
+			expect(await screen.findByTestId('app')).toHaveStyle({
+				'background-image': 'url("https://example.com/bg.png")',
+				'background-size': 'cover'
+			});
+		});
+
+		it('should disallow an insecure image background', async () => {
+			mockFetch.mockResolvedValueOnce({
+				ok: true,
+				status: 200
+			});
+
+			env.DESCOPE_BG = 'http://example.com/bg.png';
+			render(<App />);
+
+			expect(await screen.findByTestId('app')).toHaveStyle({
+				'background-color': 'http://example.com/bg.png' // try to interpret as color
+			});
+		});
+
+		it('should allow a color name', async () => {
+			mockFetch.mockResolvedValueOnce({
+				ok: true,
+				status: 200
+			});
+
+			env.DESCOPE_BG = 'red';
+			render(<App />);
+
+			expect(await screen.findByTestId('app')).toHaveStyle({
+				'background-color': 'red'
+			});
+		});
+
+		it('should allow a color hex', async () => {
+			mockFetch.mockResolvedValueOnce({
+				ok: true,
+				status: 200
+			});
+
+			env.DESCOPE_BG = '#ff00ff';
+			render(<App />);
+
+			expect(await screen.findByTestId('app')).toHaveStyle({
+				'background-color': '#ff00ff'
+			});
+		});
+
+		it('should allow a color hex with old env', async () => {
+			mockFetch.mockResolvedValueOnce({
+				ok: true,
+				status: 200
+			});
+
+			env.DESCOPE_BG_COLOR = '#ff00ff';
+			render(<App />);
+
+			expect(await screen.findByTestId('app')).toHaveStyle({
+				'background-color': '#ff00ff'
+			});
+		});
+	});
+
 	describe('useOidcMfa', () => {
 		beforeEach(() => {
 			Object.defineProperty(window, 'location', {

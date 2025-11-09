@@ -179,7 +179,8 @@ const App = () => {
 
 	const tenantId = urlParams.get('tenant') || env.DESCOPE_TENANT_ID;
 
-	const backgroundColor = urlParams.get('bg') || env.DESCOPE_BG_COLOR;
+	const background =
+		urlParams.get('bg') || env.DESCOPE_BG || env.DESCOPE_BG_COLOR;
 
 	const storeLastAuthUser =
 		urlParams.get('store_last_auth_user') === 'false' ||
@@ -191,6 +192,30 @@ const App = () => {
 		env.DESCOPE_FLOW_THEME) as React.ComponentProps<typeof Descope>['theme'];
 
 	const form = { userCode: urlParams.get('user_code') || '' };
+
+	const bodyCss = useMemo(() => {
+		const css: CSSProperties = {};
+		try {
+			if (!background?.startsWith('https://')) {
+				if (background?.startsWith('http://')) {
+					// eslint-disable-next-line no-console
+					console.error(`background must be a https:// URL`);
+				}
+				throw new Error();
+			}
+			const url = new URL(background ?? '');
+			// We want url("https://whatever.invalid") with any quotes escaped correctly
+			// so JSON.stringify is a convenient option.
+			css.backgroundImage = `url(${JSON.stringify(url.toString())})`;
+			css.backgroundSize = 'cover';
+			logger.log('Using background url', url);
+		} catch (err) {
+			logger.log('Using background as color', background);
+			css.backgroundColor = background;
+		}
+
+		return css;
+	}, [background]);
 
 	const { containerCss, containerClasses } = useMemo(() => {
 		const isWideContainer =
@@ -263,7 +288,7 @@ const App = () => {
 			baseUrl={baseUrl}
 			storeLastAuthenticatedUser={storeLastAuthUser}
 		>
-			<div className="app" style={{ backgroundColor }}>
+			<div className="app" style={bodyCss} data-testid="app">
 				{!done && projectId && flowId && (
 					<div
 						className={containerClasses}
