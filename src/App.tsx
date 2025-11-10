@@ -188,6 +188,12 @@ const App = () => {
 			? false
 			: undefined;
 
+	const persistTokens =
+		urlParams.get('persist_tokens') === 'false' ||
+		env.DESCOPE_PERSIST_TOKENS === 'false'
+			? false
+			: undefined;
+
 	const theme = (urlParams.get('theme') ||
 		env.DESCOPE_FLOW_THEME) as React.ComponentProps<typeof Descope>['theme'];
 
@@ -287,6 +293,7 @@ const App = () => {
 			projectId={projectId}
 			baseUrl={baseUrl}
 			storeLastAuthenticatedUser={storeLastAuthUser}
+			persistTokens={persistTokens}
 		>
 			<div className="app" style={bodyCss} data-testid="app">
 				{!done && projectId && flowId && (
