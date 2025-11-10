@@ -20,7 +20,7 @@ COPY . .
 
 RUN yarn build
 
-FROM ghcr.io/descope/caddy:v0.1.44
+FROM ghcr.io/descope/caddy:v0.1.45
 
 ENV PORT=8080
 ENV WWW_ROOT=/www
