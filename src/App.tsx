@@ -39,12 +39,13 @@ const getSizingValue = ({
 	envVar: string;
 }) => {
 	const value = urlParams.get(key) ?? env[envVar];
+	if (value === undefined) return undefined;
 
 	const [match, amount, unit] = /^(\d+)(px|%)$/.exec(value ?? '') ?? [];
 
 	if (!match) {
 		// eslint-disable-next-line no-console
-		console.warn(`'${key}' is set to invalid value ${JSON.stringify(value)}`);
+		console.error(`'${key}' is set to invalid value ${JSON.stringify(value)}`);
 		return undefined;
 	}
 
