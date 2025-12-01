@@ -3,10 +3,9 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 import { env } from './env';
 import Error from './Error';
+import { ensureUrlHasOrigin } from './utils/url';
 
-const contentBaseUrl = env.REACT_APP_CONTENT_BASE_URL?.startsWith('/')
-	? window.location.origin + env.REACT_APP_CONTENT_BASE_URL
-	: env.REACT_APP_CONTENT_BASE_URL;
+const contentBaseUrl = ensureUrlHasOrigin(env.REACT_APP_CONTENT_BASE_URL);
 
 if (contentBaseUrl) {
 	localStorage.setItem('base.content.url', contentBaseUrl);
