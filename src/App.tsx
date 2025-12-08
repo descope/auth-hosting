@@ -287,6 +287,7 @@ const App = () => {
 				return;
 			}
 			if (e?.output?.onSuccessRedirectUrl) {
+				// make sure to validate the URL in the flow against approved domains
 				window?.location.assign(e?.output?.onSuccessRedirectUrl);
 			}
 		},
