@@ -287,9 +287,9 @@ const App = () => {
 				window?.location.assign(newUrl.toString());
 				return;
 			}
-			if (e?.flowOutput?.onSuccessRedirectUrl) {
+			if (e?.detail?.flowOutput?.onSuccessRedirectUrl) {
 				// make sure to validate the URL in the flow against approved domains
-				window?.location.assign(e?.flowOutput?.onSuccessRedirectUrl);
+				window?.location.assign(e?.detail?.flowOutput?.onSuccessRedirectUrl);
 			}
 		},
 		...((flowId === 'saml-config' || flowId === 'sso-config') && {
