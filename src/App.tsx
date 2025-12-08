@@ -288,7 +288,6 @@ const App = () => {
 			}
 			if (e?.output?.onSuccessRedirectUrl) {
 				window?.location.assign(e?.output?.onSuccessRedirectUrl);
-				return;
 			}
 		},
 		...((flowId === 'saml-config' || flowId === 'sso-config') && {
