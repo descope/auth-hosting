@@ -1,4 +1,5 @@
 import { AuthProvider, Descope } from '@descope/react-sdk';
+import { FlowJWTResponse } from '@descope/web-component';
 import clsx from 'clsx';
 import React, { useEffect, useMemo, useCallback, CSSProperties } from 'react';
 import './App.css';
@@ -271,7 +272,7 @@ const App = () => {
 		styleId,
 		form,
 		client,
-		onSuccess: (e) => {
+		onSuccess: (e: FlowJWTResponse) => {
 			if (flowId === 'saml-config' || flowId === 'sso-config') {
 				let search = window?.location.search;
 				if (search) {
@@ -286,9 +287,9 @@ const App = () => {
 				window?.location.assign(newUrl.toString());
 				return;
 			}
-			if (e?.output?.onSuccessRedirectUrl) {
+			if (e?.flowOutput?.onSuccessRedirectUrl) {
 				// make sure to validate the URL in the flow against approved domains
-				window?.location.assign(e?.output?.onSuccessRedirectUrl);
+				window?.location.assign(e?.flowOutput?.onSuccessRedirectUrl);
 			}
 		},
 		...((flowId === 'saml-config' || flowId === 'sso-config') && {
