@@ -200,6 +200,8 @@ const App = () => {
 
 	const form = { userCode: urlParams.get('user_code') || '' };
 
+	const onSuccessRedirectURL = urlParams.get('onSuccessRedirectUrl') || env.DESCOPE_ON_SUCCESS_REDIRECT_URL;
+
 	const bodyCss = useMemo(() => {
 		const css: CSSProperties = {};
 		try {
@@ -271,9 +273,14 @@ const App = () => {
 		styleId,
 		form,
 		client,
-		...((flowId === 'saml-config' || flowId === 'sso-config') && {
+		...((flowId === 'saml-config' || flowId === 'sso-config' || !!onSuccessRedirectURL) && {
 			autoFocus: false,
 			onSuccess: () => {
+				if (onSuccessRedirectURL) {
+					window?.location.assign(onSuccessRedirectURL);
+					return;
+				}
+
 				let search = window?.location.search;
 				if (search) {
 					search = `${search}&done=true`;
