@@ -272,7 +272,7 @@ const App = () => {
 		styleId,
 		form,
 		client,
-		onSuccess: (e: FlowJWTResponse) => {
+		onSuccess: (e: CustomEvent<FlowJWTResponse>) => {
 			if (flowId === 'saml-config' || flowId === 'sso-config') {
 				let search = window?.location.search;
 				if (search) {
