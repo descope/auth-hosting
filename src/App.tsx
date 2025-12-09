@@ -1,4 +1,5 @@
 import { AuthProvider, Descope } from '@descope/react-sdk';
+import { FlowJWTResponse } from '@descope/web-component';
 import clsx from 'clsx';
 import React, { useEffect, useMemo, useCallback, CSSProperties } from 'react';
 import './App.css';
@@ -271,9 +272,8 @@ const App = () => {
 		styleId,
 		form,
 		client,
-		...((flowId === 'saml-config' || flowId === 'sso-config') && {
-			autoFocus: false,
-			onSuccess: () => {
+		onSuccess: (e: CustomEvent<FlowJWTResponse>) => {
+			if (flowId === 'saml-config' || flowId === 'sso-config') {
 				let search = window?.location.search;
 				if (search) {
 					search = `${search}&done=true`;
@@ -285,7 +285,15 @@ const App = () => {
 				newUrl.pathname = window?.location.pathname;
 				newUrl.search = search;
 				window?.location.assign(newUrl.toString());
+				return;
 			}
+			if (e?.detail?.flowOutput?.onSuccessRedirectUrl) {
+				// make sure to validate the URL in the flow against approved domains
+				window?.location.assign(e?.detail?.flowOutput?.onSuccessRedirectUrl);
+			}
+		},
+		...((flowId === 'saml-config' || flowId === 'sso-config') && {
+			autoFocus: false
 		})
 	};
 
