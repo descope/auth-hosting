@@ -1,5 +1,13 @@
 {
 	"$schema": "https://docs.renovatebot.com/renovate-schema.json",
 	"extends": ["local>descope/renovate-config"],
-	"postUpdateOptions": ["yarnDedupeHighest"]
+	"postUpdateOptions": ["yarnDedupeHighest"],
+  "packageRules": [
+    	{
+			"matchDatasources": ["docker"],
+			"matchPackageNames": ["ghcr.io/descope/caddy"],
+			"enabled": true,
+			"minimumReleaseAge": "1 day"
+		}
+  ]
 }
