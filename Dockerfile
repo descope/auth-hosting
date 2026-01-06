@@ -1,6 +1,5 @@
 # syntax=docker/dockerfile:1@sha256:93bfd3b68c109427185cd78b4779fc82b484b0b7618e36d0f104d4d801e66d25
 ARG NODE_VERSION=18
-ARG CADDY_VERSION=0.1.79
 ARG HTML_DIR=/usr/share/nginx/html
 ARG REACT_APP_DESCOPE_BASE_URL="https://api.descope.com"
 ARG REACT_APP_CONTENT_BASE_URL="https://static.descope.com/pages"
@@ -30,7 +29,7 @@ RUN caddy validate --config /etc/caddy/Caddyfile && \
 
 # build the final image with the correct target architecture (dont specify target)
 # Caddy is based on gcr.io/distroless/static-debian12:nonroot which does not contain /bin/sh so can't us RUN command here!
-FROM ghcr.io/descope/caddy:v${CADDY_VERSION} AS production
+FROM ghcr.io/descope/caddy:v0.1.79 AS production
 
 ENV PORT=8080
 ENV WWW_ROOT=/www
