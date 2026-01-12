@@ -5622,10 +5622,10 @@ eslint-plugin-security@1.7.1:
   dependencies:
     safe-regex "^2.1.1"
 
-eslint-plugin-testing-library@7.15.1:
-  version "7.15.1"
-  resolved "https://registry.yarnpkg.com/eslint-plugin-testing-library/-/eslint-plugin-testing-library-7.15.1.tgz#f230a98b27073a55556e2e4fba74174a3d728c0f"
-  integrity sha512-bz4s4S3yCbTShgcv4S8XE3Ku5psYtKyuoded/WQyFS3sNt7mzRnCSUkSNbNOgfq/6f79EQZ++1jZL6anbnyrRA==
+eslint-plugin-testing-library@7.15.2:
+  version "7.15.2"
+  resolved "https://registry.yarnpkg.com/eslint-plugin-testing-library/-/eslint-plugin-testing-library-7.15.2.tgz#fa347ad64accae5e55ad51408b13298c75000863"
+  integrity sha512-Wb3OzW6oxjJqcn6asvAGFRQIXRZ1DKPUQRej7S0LmGaiMFlSYh+NZqiODxZro8LmFpxwUDnb+67Lk2ioL96YZA==
   dependencies:
     "@typescript-eslint/scope-manager" "^8.15.0"
     "@typescript-eslint/utils" "^8.15.0"
