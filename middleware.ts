@@ -1,7 +1,6 @@
 import { next } from '@vercel/functions';
+import { projectRegex } from './src/shared/projectRegex';
 
-// Duplicated in src/App.tsx — keep both in sync if the format changes
-const projectRegex = /^P([a-zA-Z0-9]{27}|[a-zA-Z0-9]{31})$/;
 const DEFAULT_BASE_URL = 'https://api.descope.com';
 const FETCH_TIMEOUT_MS = 2000;
 
@@ -35,8 +34,8 @@ const middleware = async (request: Request) => {
 				cache: 'force-cache'
 			});
 			if (response.ok) {
-				const config = await response.json();
-				if (config.allowAuthHostingIframeEmbedding === true) {
+				const projectConfig = await response.json();
+				if (projectConfig.allowAuthHostingIframeEmbedding === true) {
 					// Project explicitly allows iframe embedding — omit X-Frame-Options
 					return next();
 				}

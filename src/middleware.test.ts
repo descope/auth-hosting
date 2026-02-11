@@ -6,8 +6,16 @@ jest.mock('@vercel/functions', () => ({
 }));
 
 const mockedNext = next as jest.MockedFunction<typeof next>;
-const mockFetch = jest.fn();
-global.fetch = mockFetch;
+const mockFetch = jest.fn() as jest.Mock & typeof fetch;
+const originalFetch = global.fetch;
+
+beforeAll(() => {
+	global.fetch = mockFetch;
+});
+
+afterAll(() => {
+	global.fetch = originalFetch;
+});
 
 const fakeRequest = (url: string): Request => ({ url }) as unknown as Request;
 
@@ -27,6 +35,10 @@ const expectFetchCalledWith = (configUrl: string) => {
 describe('middleware', () => {
 	beforeEach(() => {
 		jest.clearAllMocks();
+	});
+
+	afterEach(() => {
+		jest.useRealTimers();
 	});
 
 	describe('when no project ID is in the URL', () => {
@@ -131,7 +143,6 @@ describe('middleware', () => {
 			jest.advanceTimersByTime(2000);
 			await promise;
 			expectXFrameOptions();
-			jest.useRealTimers();
 		});
 	});
 
