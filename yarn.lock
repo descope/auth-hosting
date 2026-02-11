@@ -3250,6 +3250,18 @@
   resolved "https://registry.yarnpkg.com/@unrs/resolver-binding-win32-x64-msvc/-/resolver-binding-win32-x64-msvc-1.11.1.tgz#538b1e103bf8d9864e7b85cc96fa8d6fb6c40777"
   integrity sha512-lrW200hZdbfRtztbygyaq/6jP6AKE8qQN2KvPcJ+x7wiD038YtnYtZ82IMNJ69GJibV7bwL3y9FgK+5w/pYt6g==
 
+"@vercel/functions@^3.4.2":
+  version "3.4.2"
+  resolved "https://registry.yarnpkg.com/@vercel/functions/-/functions-3.4.2.tgz#e3958f78530f07b5aef63a99e827a3137660904a"
+  integrity sha512-WDsNNuGOOUhRYxfcSgk8nlXaYW/6u1Lw2eaKm0y4+gDPGK/hwmYIeP2hESfccuCiPXd5ZGO8Jz/V5Ud3ZByoUQ==
+  dependencies:
+    "@vercel/oidc" "3.2.0"
+
+"@vercel/oidc@3.2.0":
+  version "3.2.0"
+  resolved "https://registry.yarnpkg.com/@vercel/oidc/-/oidc-3.2.0.tgz#5782a4d4904443f015808705b5537cf9c3b68528"
+  integrity sha512-UycprH3T6n3jH0k44NHMa7pnFHGu/N05MjojYr+Mc6I7obkoLIJujSWwin1pCvdy/eOxrI/l3uDLQsmcrOb4ug==
+
 "@webassemblyjs/ast@1.14.1", "@webassemblyjs/ast@^1.14.1":
   version "1.14.1"
   resolved "https://registry.npmjs.org/@webassemblyjs/ast/-/ast-1.14.1.tgz"
