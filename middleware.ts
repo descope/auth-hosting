@@ -1,7 +1,7 @@
 import { next } from '@vercel/functions';
 import { projectRegex } from './src/shared/projectRegex';
 
-const DEFAULT_BASE_URL = 'https://api.descope.com';
+const DEFAULT_BASE_URL = 'https://api.descope.org';
 const FETCH_TIMEOUT_MS = 2000;
 
 const getConfigBaseUrl = (url: URL): string => {
