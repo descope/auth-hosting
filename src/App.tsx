@@ -8,8 +8,8 @@ import Welcome from './components/Welcome';
 import useOidcMfa from './hooks/useOidcMfa';
 import { env } from './env';
 import { logger } from './utils/logger';
+import { projectRegex } from './shared/projectRegex';
 
-const projectRegex = /^P([a-zA-Z0-9]{27}|[a-zA-Z0-9]{31})$/;
 const ssoAppRegex = /^[a-zA-Z0-9\-_]{1,30}$/;
 
 const isFaviconUrlSecure = (url: string) => {
