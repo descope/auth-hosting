@@ -8,7 +8,7 @@ const getConfigBaseUrl = (url: URL): string => {
 	// When accessing the Vercel deployment directly (e.g. for testing),
 	// the .well-known endpoint doesn't exist on the Vercel origin.
 	// Fall back to the production API for the configuration check.
-	if (url.hostname.endsWith('.vercel.app')) {
+	if (url.hostname.endsWith('.preview.descope.org')) {
 		return DEFAULT_BASE_URL;
 	}
 	return url.origin;
