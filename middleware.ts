@@ -1,7 +1,6 @@
 import { next } from '@vercel/functions';
 import { projectRegex } from './src/shared/projectRegex';
 
-const DEFAULT_BASE_URL = 'https://api.descope.org';
 const FETCH_TIMEOUT_MS = 2000;
 
 const getConfigBaseUrl = (url: URL): string => {
@@ -9,7 +8,7 @@ const getConfigBaseUrl = (url: URL): string => {
 	// the .well-known endpoint doesn't exist on the Vercel origin.
 	// Fall back to the production API for the configuration check.
 	if (url.hostname.endsWith('.preview.descope.org')) {
-		return DEFAULT_BASE_URL;
+		return 'https://api.descope.com';
 	}
 	return url.origin;
 };
@@ -57,6 +56,8 @@ const middleware = async (request: Request) => {
 
 export default middleware;
 
+// Vercel reads this config to decide which routes invoke the middleware.
+// Skip static assets so we only run (and fetch project config) on document routes.
 export const config = {
 	matcher: [
 		'/((?!.*\\.(?:js|css|map|ico|svg|png|jpg|jpeg|gif|webp|woff2?|ttf|eot)$).*)'

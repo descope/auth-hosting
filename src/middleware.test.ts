@@ -149,26 +149,28 @@ describe('middleware', () => {
 	describe('config base URL resolution', () => {
 		const projectId = `P${'a'.repeat(27)}`;
 
-		it('uses api.descope.com for .vercel.app hostnames', async () => {
+		it('uses api.descope.com for .preview.descope.org hostnames', async () => {
 			mockFetch.mockResolvedValueOnce({
 				ok: true,
 				json: async () => ({ allowAuthHostingIframeEmbedding: true })
 			});
 			await middleware(
-				fakeRequest(`https://my-app.vercel.app/login/${projectId}`)
+				fakeRequest(`https://123456789.preview.descope.org/login/${projectId}`)
 			);
 			expectFetchCalledWith(
 				`https://api.descope.com/.well-known/project-configuration/${projectId}`
 			);
 		});
 
-		it('uses api.descope.com for nested .vercel.app subdomains', async () => {
+		it('uses api.descope.com for nested .preview.descope.org subdomains', async () => {
 			mockFetch.mockResolvedValueOnce({
 				ok: true,
 				json: async () => ({ allowAuthHostingIframeEmbedding: true })
 			});
 			await middleware(
-				fakeRequest(`https://branch.my-app.vercel.app/login/${projectId}`)
+				fakeRequest(
+					`https://branch.123456789.preview.descope.org/login/${projectId}`
+				)
 			);
 			expectFetchCalledWith(
 				`https://api.descope.com/.well-known/project-configuration/${projectId}`
