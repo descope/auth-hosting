@@ -1,14 +1,15 @@
 import { AuthProvider, Descope } from '@descope/react-sdk';
+import { FlowJWTResponse } from '@descope/web-component';
 import clsx from 'clsx';
-import React, { useEffect, useMemo, useCallback } from 'react';
+import React, { useEffect, useMemo, useCallback, CSSProperties } from 'react';
 import './App.css';
 import Done from './components/Done';
 import Welcome from './components/Welcome';
 import useOidcMfa from './hooks/useOidcMfa';
 import { env } from './env';
 import { logger } from './utils/logger';
+import { projectRegex } from './shared/projectRegex';
 
-const projectRegex = /^P([a-zA-Z0-9]{27}|[a-zA-Z0-9]{31})$/;
 const ssoAppRegex = /^[a-zA-Z0-9\-_]{1,30}$/;
 
 const isFaviconUrlSecure = (url: string) => {
@@ -26,6 +27,46 @@ const isFaviconUrlSecure = (url: string) => {
 		logger.error('Error checking favicon URL security:', error);
 		return false;
 	}
+};
+
+/// Parse the width & height options allowing amounts like "50%" or "800px"
+const getSizingValue = ({
+	urlParams,
+	key,
+	envVar
+}: {
+	urlParams: URLSearchParams;
+	key: string;
+	envVar: string;
+}) => {
+	const value = urlParams.get(key) ?? env[envVar];
+	if (value === undefined) return undefined;
+
+	const [match, amount, unit] = /^(\d+)(px|%)$/.exec(value ?? '') ?? [];
+
+	if (!match) {
+		// eslint-disable-next-line no-console
+		console.error(`'${key}' is set to invalid value ${JSON.stringify(value)}`);
+		return undefined;
+	}
+
+	const unitMapping: Record<string, string> = {
+		px: 'px',
+		'%': key === 'width' ? 'dvw' : 'dvh'
+	};
+
+	return parseInt(amount, 10) + unitMapping[unit];
+};
+
+const getClientParams = (urlParams: URLSearchParams) => {
+	// Build an array of [key,value] pairs and filter those starting with the prefix.
+	const clientParams: { [key: string]: string } = {};
+	Array.from(urlParams.entries()).forEach(([key, value]) => {
+		if (key.startsWith('client.')) {
+			clientParams[key.replace('client.', '')] = value;
+		}
+	});
+	return Object.keys(clientParams).length > 0 ? clientParams : undefined;
 };
 
 const getFaviconUrl = async (url: string, defaultFaviconUrl: string) => {
@@ -140,25 +181,87 @@ const App = () => {
 
 	const tenantId = urlParams.get('tenant') || env.DESCOPE_TENANT_ID;
 
-	const backgroundColor = urlParams.get('bg') || env.DESCOPE_BG_COLOR;
+	const background =
+		urlParams.get('bg') || env.DESCOPE_BG || env.DESCOPE_BG_COLOR;
+
+	const storeLastAuthUser =
+		urlParams.get('store_last_auth_user') === 'false' ||
+		env.DESCOPE_STORE_LAST_AUTH_USER === 'false'
+			? false
+			: undefined;
+
+	const persistTokens =
+		urlParams.get('persist_tokens') === 'false' ||
+		env.DESCOPE_PERSIST_TOKENS === 'false'
+			? false
+			: undefined;
 
 	const theme = (urlParams.get('theme') ||
 		env.DESCOPE_FLOW_THEME) as React.ComponentProps<typeof Descope>['theme'];
 
-	const isWideContainer =
-		urlParams.get('wide') === 'true' ||
-		flowId === 'saml-config' ||
-		flowId === 'sso-config';
-
-	const shadow = urlParams.get('shadow') !== 'false';
-
-	const containerClasses = clsx({
-		'descope-base-container': shadow,
-		'descope-wide-container': isWideContainer,
-		'descope-login-container': !isWideContainer
-	});
-
 	const form = { userCode: urlParams.get('user_code') || '' };
+
+	const bodyCss = useMemo(() => {
+		const css: CSSProperties = {};
+		try {
+			if (!background?.startsWith('https://')) {
+				if (background?.startsWith('http://')) {
+					// eslint-disable-next-line no-console
+					console.error(`background must be a https:// URL`);
+				}
+				throw new Error();
+			}
+			const url = new URL(background ?? '');
+			// We want url("https://whatever.invalid") with any quotes escaped correctly
+			// so JSON.stringify is a convenient option.
+			css.backgroundImage = `url(${JSON.stringify(url.toString())})`;
+			css.backgroundSize = 'cover';
+			logger.log('Using background url', url);
+		} catch (err) {
+			logger.log('Using background as color', background);
+			css.backgroundColor = background;
+		}
+
+		return css;
+	}, [background]);
+
+	const { containerCss, containerClasses } = useMemo(() => {
+		const isWideContainer =
+			urlParams.get('wide') === 'true' ||
+			flowId === 'saml-config' ||
+			flowId === 'sso-config';
+
+		const shadow = urlParams.get('shadow') !== 'false';
+
+		const width = getSizingValue({
+			urlParams,
+			key: 'width',
+			envVar: 'REACT_APP_FLOW_WIDTH'
+		});
+		const height = getSizingValue({
+			urlParams,
+			key: 'height',
+			envVar: 'REACT_APP_FLOW_HEIGHT'
+		});
+		const hasWidthHeight = width !== undefined || height !== undefined;
+
+		const classes = clsx({
+			'descope-base-container': shadow,
+			'descope-wide-container': !hasWidthHeight && isWideContainer,
+			'descope-login-container': !hasWidthHeight && !isWideContainer
+		});
+
+		// See: https://web.dev/blog/viewport-units
+		// This is sensitive to mobile
+		const css: CSSProperties = {
+			width: width !== undefined ? `min(${width}, 100dvw)` : undefined,
+			minHeight: height !== undefined ? `min(${height}, 100dvh)` : undefined
+		};
+
+		return { containerCss: css, containerClasses: classes };
+	}, [urlParams, flowId]);
+
+	const client = useMemo(() => getClientParams(urlParams), [urlParams]);
 
 	const flowProps = {
 		flowId,
@@ -168,9 +271,9 @@ const App = () => {
 		theme,
 		styleId,
 		form,
-		...((flowId === 'saml-config' || flowId === 'sso-config') && {
-			autoFocus: false,
-			onSuccess: () => {
+		client,
+		onSuccess: (e: CustomEvent<FlowJWTResponse>) => {
+			if (flowId === 'saml-config' || flowId === 'sso-config') {
 				let search = window?.location.search;
 				if (search) {
 					search = `${search}&done=true`;
@@ -182,15 +285,32 @@ const App = () => {
 				newUrl.pathname = window?.location.pathname;
 				newUrl.search = search;
 				window?.location.assign(newUrl.toString());
+				return;
 			}
+			if (e?.detail?.flowOutput?.onSuccessRedirectUrl) {
+				// make sure to validate the URL in the flow against approved domains
+				window?.location.assign(e?.detail?.flowOutput?.onSuccessRedirectUrl);
+			}
+		},
+		...((flowId === 'saml-config' || flowId === 'sso-config') && {
+			autoFocus: false
 		})
 	};
 
 	return (
-		<AuthProvider projectId={projectId} baseUrl={baseUrl}>
-			<div className="app" style={{ backgroundColor }}>
+		<AuthProvider
+			projectId={projectId}
+			baseUrl={baseUrl}
+			storeLastAuthenticatedUser={storeLastAuthUser}
+			persistTokens={persistTokens}
+		>
+			<div className="app" style={bodyCss} data-testid="app">
 				{!done && projectId && flowId && (
-					<div className={containerClasses} data-testid="descope-component">
+					<div
+						className={containerClasses}
+						style={containerCss}
+						data-testid="descope-component"
+					>
 						<Descope {...flowProps} />
 					</div>
 				)}

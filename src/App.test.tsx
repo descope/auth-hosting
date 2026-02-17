@@ -155,11 +155,16 @@ describe('App component', () => {
 
 	test('that the flow can be customized with search params', async () => {
 		window.location.pathname = `/${packageJson.homepage}/${validProjectId}`;
-		window.location.search = `?debug=${debug}&flow=${flowId}&user_code=12345`;
+		window.location.search = `?debug=${debug}&flow=${flowId}&user_code=12345&client.k1=v1&client.k2=v2&client.k3=82`;
 		render(<App />);
 		await waitFor(() =>
 			expect(mockDescope).toHaveBeenCalledWith(
-				expect.objectContaining({ debug, flowId, form: { userCode: '12345' } })
+				expect.objectContaining({
+					debug,
+					flowId,
+					form: { userCode: '12345' },
+					client: { k1: 'v1', k2: 'v2', k3: '82' }
+				})
 			)
 		);
 	});
@@ -217,6 +222,112 @@ describe('App component', () => {
 					`${baseUrl}/test?done=true`
 				);
 			});
+		});
+	});
+
+	describe('container sizing options', () => {
+		beforeEach(() => {
+			jest.clearAllMocks();
+			env.REACT_APP_BASE_FUNCTIONS_URL = 'https://example.com';
+			env.DESCOPE_PROJECT_ID = 'P1234567890123456789012345678901';
+			window.location.pathname = `/${packageJson.homepage}/${validProjectId}`;
+			window.location.search = '';
+			delete env.REACT_APP_FLOW_WIDTH;
+			delete env.REACT_APP_FLOW_HEIGHT;
+			env.DESCOPE_FLOW_ID = 'test';
+
+			Object.defineProperty(window, 'location', {
+				value: {
+					...window.location,
+					search: '?sso_app_id=testSsoAppId',
+					pathname: '/test'
+				},
+				writable: true
+			});
+		});
+
+		it('normal', async () => {
+			render(<App />);
+
+			expect(await screen.findByTestId('descope-component')).toHaveClass(
+				'descope-base-container',
+				'descope-login-container'
+			);
+		});
+
+		it('without shadow', async () => {
+			window.location.search = '?shadow=false';
+			render(<App />);
+
+			expect(await screen.findByTestId('descope-component')).toHaveClass(
+				'descope-login-container'
+			);
+		});
+
+		it('wide', async () => {
+			window.location.search = '?wide=true';
+			render(<App />);
+
+			expect(await screen.findByTestId('descope-component')).toHaveClass(
+				'descope-base-container',
+				'descope-wide-container'
+			);
+		});
+
+		it('wide irrelevant if width/height set', async () => {
+			env.REACT_APP_FLOW_WIDTH = '100px';
+			render(<App />);
+
+			expect(await screen.findByTestId('descope-component')).toHaveClass(
+				'descope-base-container'
+			);
+
+			expect(await screen.findByTestId('descope-component')).toHaveStyle(
+				'width: min(100px, 100dvw);'
+			);
+		});
+
+		it('width and height set in pixels', async () => {
+			env.REACT_APP_FLOW_WIDTH = '100px';
+			env.REACT_APP_FLOW_HEIGHT = '300px';
+			render(<App />);
+
+			expect(await screen.findByTestId('descope-component')).toHaveClass(
+				'descope-base-container'
+			);
+
+			expect(await screen.findByTestId('descope-component')).toHaveStyle({
+				width: 'min(100px, 100dvw)',
+				'min-height': 'min(300px, 100dvh)'
+			});
+		});
+
+		it('width and height set in percentage', async () => {
+			env.REACT_APP_FLOW_WIDTH = '50%';
+			env.REACT_APP_FLOW_HEIGHT = '25%';
+			render(<App />);
+
+			expect(await screen.findByTestId('descope-component')).toHaveClass(
+				'descope-base-container'
+			);
+
+			expect(await screen.findByTestId('descope-component')).toHaveStyle({
+				width: 'min(50dvw, 100dvw)',
+				'min-height': 'min(25dvh, 100dvh)'
+			});
+		});
+
+		it('width invalid', async () => {
+			env.REACT_APP_FLOW_WIDTH = '50 blabla';
+			render(<App />);
+
+			expect(await screen.findByTestId('descope-component')).toHaveClass(
+				'descope-base-container',
+				'descope-login-container'
+			);
+			expect(
+				await screen.findByTestId('descope-component')
+			).not.toHaveAttribute('style');
 		});
 	});
 
@@ -358,6 +469,96 @@ describe('App component', () => {
 				// eslint-disable-next-line testing-library/no-node-access -- can't query head with screen
 				const link = document.querySelector("link[rel~='icon']");
 				expect(link).not.toBeInTheDocument();
+			});
+		});
+	});
+
+	describe('bg', () => {
+		beforeEach(() => {
+			jest.clearAllMocks();
+			env.REACT_APP_BASE_FUNCTIONS_URL = 'https://example.com';
+			env.DESCOPE_PROJECT_ID = 'P1234567890123456789012345678901';
+			delete env.DESCOPE_BG;
+			delete env.DESCOPE_BG_COLOR;
+
+			Object.defineProperty(window, 'location', {
+				value: {
+					...window.location,
+					search: '?sso_app_id=testSsoAppId',
+					pathname: '/test'
+				},
+				writable: true
+			});
+		});
+
+		it('should allow a secure image background', async () => {
+			mockFetch.mockResolvedValueOnce({
+				ok: true,
+				status: 200
+			});
+
+			env.DESCOPE_BG = 'https://example.com/bg.png';
+			render(<App />);
+
+			expect(await screen.findByTestId('app')).toHaveStyle({
+				'background-image': 'url("https://example.com/bg.png")',
+				'background-size': 'cover'
+			});
+		});
+
+		it('should disallow an insecure image background', async () => {
+			mockFetch.mockResolvedValueOnce({
+				ok: true,
+				status: 200
+			});
+
+			env.DESCOPE_BG = 'http://example.com/bg.png';
+			render(<App />);
+
+			expect(await screen.findByTestId('app')).toHaveStyle({
+				'background-color': 'http://example.com/bg.png' // try to interpret as color
+			});
+		});
+
+		it('should allow a color name', async () => {
+			mockFetch.mockResolvedValueOnce({
+				ok: true,
+				status: 200
+			});
+
+			env.DESCOPE_BG = 'red';
+			render(<App />);
+
+			expect(await screen.findByTestId('app')).toHaveStyle({
+				'background-color': 'red'
+			});
+		});
+
+		it('should allow a color hex', async () => {
+			mockFetch.mockResolvedValueOnce({
+				ok: true,
+				status: 200
+			});
+
+			env.DESCOPE_BG = '#ff00ff';
+			render(<App />);
+
+			expect(await screen.findByTestId('app')).toHaveStyle({
+				'background-color': '#ff00ff'
+			});
+		});
+
+		it('should allow a color hex with old env', async () => {
+			mockFetch.mockResolvedValueOnce({
+				ok: true,
+				status: 200
+			});
+
+			env.DESCOPE_BG_COLOR = '#ff00ff';
+			render(<App />);
+
+			expect(await screen.findByTestId('app')).toHaveStyle({
+				'background-color': '#ff00ff'
 			});
 		});
 	});

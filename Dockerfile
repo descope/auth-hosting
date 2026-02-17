@@ -7,9 +7,9 @@ ARG REACT_APP_USE_ORIGIN_BASE_URL="false"
 ARG REACT_APP_FAVICON_URL="https://imgs.descope.com/auth-hosting/favicon.svg"
 ARG DESCOPE_PROJECT_ID=""
 ARG DESCOPE_FLOW_ID=""
-
 ARG BUILDPLATFORM
-FROM --platform=${BUILDPLATFORM} node:${NODE_VERSION}-alpine as builder
+
+FROM --platform=${BUILDPLATFORM} node:${NODE_VERSION}-alpine AS builder
 ENV NODE_ENV=production
 
 WORKDIR /app
@@ -20,7 +20,16 @@ COPY . .
 
 RUN yarn build
 
-FROM ghcr.io/descope/caddy:v0.1.40
+# Step 2 Validate Caddyfile before copying to distroless
+FROM alpine:latest AS validator
+RUN apk add --no-cache caddy
+COPY Caddyfile /etc/caddy/Caddyfile
+RUN caddy validate --config /etc/caddy/Caddyfile && \
+    caddy fmt --overwrite /etc/caddy/Caddyfile
+
+# build the final image with the correct target architecture (dont specify target)
+# Caddy is based on gcr.io/distroless/static-debian12:nonroot which does not contain /bin/sh so can't us RUN command here!
+FROM ghcr.io/descope/caddy:0.1.89 AS production
 
 ENV PORT=8080
 ENV WWW_ROOT=/www
@@ -32,9 +41,5 @@ WORKDIR ${WWW_ROOT}
 
 COPY --from=builder --chown=1000:1000 /app/build ${WWW_ROOT}
 COPY --from=builder --chown=1000:1000 /app/package.json ${WWW_ROOT}
-
 ADD --chown=nonroot:nonroot Caddyfile /etc/caddy/Caddyfile
-
-RUN caddy validate --config /etc/caddy/Caddyfile
-
 CMD ["run", "--config", "/etc/caddy/Caddyfile"]

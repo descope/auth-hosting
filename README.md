@@ -52,13 +52,21 @@ These are the different query parameters you can use:
 
 4. `debug`query parameter is optional. If debug mode is needed use`debug=true`
 
-5. `bg` query parameter is optional. If you wish to use a different background color, you can use this parameter. (ex. `bg=black` or `bg=gray`)
+5. `bg` query parameter is optional. If you wish to use a different background color or URL, you can use this parameter.
+   - **Color name**: You can use a [web color](https://developer.mozilla.org/en-US/docs/Web/CSS/color_value), e.g. `bg=red`, `bg=%23ff0000`. Note that some symbols such as `#` will have to be URL encoded.
+   - **Image URL**: You can specify a URL to an image such as `https://example.com/background.png`. This image will be sized to cover the screen.
 
 6. `wide` query parameter is optional. If wide mode is nedded use `wide=true`. This will widen the flow component that is rendered, which is used for large forms made with Flow screens.
 
 7. `theme` query parameter is optional. The default value is `light`, but otherwise it will override the theme for your flows rendered with the SDK.
 
 8. `style` query parameter is optional. The default style in your project will be used if not defined, but this allows you to override the `style` for the flows rendered with the SDK.
+
+9. `store_last_auth_user` query parameter is optional. Pass this parameter to ensure the last authenticated user is not saved when the flow ends. For example, append `store_last_auth_user=false` to the URL to disable saving the last user.
+
+10. Additional query parameters prefixed with `client.` are passed to the `Descope` component as its `client` prop. For example: `client.k1=v1&client.k2=v2` becomes `{ k1: 'v1', k2: 'v2' }`.
+
+11. `width` & `height` are optional query parameters, controlling the sizing of the flow screen in either pixels or a percentage of the viewport (e.g. `50%`, `1200px`). Any value larger than the screen is clamped down.
 
 **Using .env**
 
