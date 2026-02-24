@@ -2560,11 +2560,6 @@
   resolved "https://registry.npmjs.org/@types/mime/-/mime-1.3.5.tgz"
   integrity sha512-/pyBZWSLD2n0dcHE3hq8s8ZvcETHtEuF+3E7XVt0Ig2nvsVQXdghHVcEkIWjy9A0wKfTn97a/PSDYohKIlnP/w==
 
-"@types/ms@2.1.0":
-  version "2.1.0"
-  resolved "https://registry.yarnpkg.com/@types/ms/-/ms-2.1.0.tgz#052aa67a48eccc4309d7f0191b7e41434b90bb78"
-  integrity sha512-GsCCIZDE/p3i96vtEqx+7dBUGXrc7zeSK3wwPHIaRThS+9OhWIXRqzs4d6k1SVU8g91DrNRWxWUGhp5KXQb2VA==
-
 "@types/node-forge@^1.3.0":
   version "1.3.10"
   resolved "https://registry.npmjs.org/@types/node-forge/-/node-forge-1.3.10.tgz"
@@ -3047,20 +3042,17 @@
   resolved "https://registry.yarnpkg.com/@unrs/resolver-binding-win32-x64-msvc/-/resolver-binding-win32-x64-msvc-1.11.1.tgz#538b1e103bf8d9864e7b85cc96fa8d6fb6c40777"
   integrity sha512-lrW200hZdbfRtztbygyaq/6jP6AKE8qQN2KvPcJ+x7wiD038YtnYtZ82IMNJ69GJibV7bwL3y9FgK+5w/pYt6g==
 
-"@vercel/functions@2.2.13":
-  version "2.2.13"
-  resolved "https://registry.yarnpkg.com/@vercel/functions/-/functions-2.2.13.tgz#8b290efb46967cd5e02b366a62176987a765fad5"
-  integrity sha512-14ArBSIIcOBx9nrEgaJb4Bw+en1gl6eSoJWh8qjifLl5G3E4dRXCFOT8HP+w66vb9Wqyd1lAQBrmRhRwOj9X9A==
+"@vercel/functions@3.4.1":
+  version "3.4.1"
+  resolved "https://registry.yarnpkg.com/@vercel/functions/-/functions-3.4.1.tgz#7fd0113a1b3dc21738b9d8159a8dab76b9fcfa41"
+  integrity sha512-+wqs1fscC1l2NZYL8Ahxe/vba4YzcuhxTV99Kf8sNwNeATaxQ9rbR6BILksoGDmm99YiD0wc0hBJcYxVNwiNaw==
   dependencies:
-    "@vercel/oidc" "2.0.2"
+    "@vercel/oidc" "3.1.0"
 
-"@vercel/oidc@2.0.2":
-  version "2.0.2"
-  resolved "https://registry.yarnpkg.com/@vercel/oidc/-/oidc-2.0.2.tgz#ca96b3dd690fd6d6f835b6638a9c9d836ed2e228"
-  integrity sha512-59PBFx3T+k5hLTEWa3ggiMpGRz1OVvl9eN8SUai+A43IsqiOuAe7qPBf+cray/Fj6mkgnxm/D7IAtjc8zSHi7g==
-  dependencies:
-    "@types/ms" "2.1.0"
-    ms "2.1.3"
+"@vercel/oidc@3.1.0":
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/@vercel/oidc/-/oidc-3.1.0.tgz#066caee449b84079f33c7445fc862464fe10ec32"
+  integrity sha512-Fw28YZpRnA3cAHHDlkt7xQHiJ0fcL+NRcIqsocZQUSmbzeIKRpwttJjik5ZGanXP+vlA4SbTg+AbA3bP363l+w==
 
 "@webassemblyjs/ast@1.14.1", "@webassemblyjs/ast@^1.14.1":
   version "1.14.1"
