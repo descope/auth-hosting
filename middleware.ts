@@ -8,7 +8,7 @@ const getConfigBaseUrl = (url: URL): string => {
 	// the .well-known endpoint doesn't exist on the Vercel origin.
 	// Fall back to the production API for the configuration check.
 	if (url.hostname.endsWith('.preview.descope.org')) {
-		return 'https://api.descope.com';
+		return 'https://api.descope.org';
 	}
 	return url.origin;
 };
@@ -30,7 +30,7 @@ const middleware = async (request: Request) => {
 			const configUrl = `${baseUrl}/.well-known/project-configuration/${projectId}`;
 			const response = await fetch(configUrl, {
 				signal: controller.signal,
-				cache: 'force-cache'
+				cache: 'no-store'
 			});
 			if (response.ok) {
 				const projectConfig = await response.json();
