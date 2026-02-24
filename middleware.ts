@@ -3,18 +3,12 @@ import { projectRegex } from './src/shared/projectRegex';
 
 const FETCH_TIMEOUT_MS = 2000;
 
-const STATIC_EXT =
-	/\.(?:js|css|map|ico|svg|png|jpg|jpeg|gif|webp|woff2?|ttf|eot)$/;
-
-const NO_CACHE_HEADERS: Record<string, string> = {
-	'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
-	'CDN-Cache-Control': 'no-store',
-	'Vercel-CDN-Cache-Control': 'no-store'
-};
-
 const getConfigBaseUrl = (url: URL): string => {
+	// When accessing the Vercel deployment directly (e.g. for testing),
+	// the .well-known endpoint doesn't exist on the Vercel origin.
+	// Fall back to the production API for the configuration check.
 	if (url.hostname.endsWith('.preview.descope.org')) {
-		return 'https://api.descope.org';
+		return 'https://api.descope.com';
 	}
 	return url.origin;
 };
@@ -22,14 +16,12 @@ const getConfigBaseUrl = (url: URL): string => {
 const middleware = async (request: Request) => {
 	const url = new URL(request.url);
 
-	if (STATIC_EXT.test(url.pathname)) {
-		return next({ headers: NO_CACHE_HEADERS });
-	}
-
+	// Extract the project ID from the URL path (last segment)
 	const pathSegments = url.pathname.split('/').filter(Boolean);
 	const lastSegment = pathSegments[pathSegments.length - 1] || '';
 	const projectId = projectRegex.exec(lastSegment)?.[0];
 
+	// If we have a project ID, check if iframe embedding is allowed
 	if (projectId) {
 		const controller = new AbortController();
 		const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
@@ -38,12 +30,13 @@ const middleware = async (request: Request) => {
 			const configUrl = `${baseUrl}/.well-known/project-configuration/${projectId}`;
 			const response = await fetch(configUrl, {
 				signal: controller.signal,
-				cache: 'no-store'
+				cache: 'force-cache'
 			});
 			if (response.ok) {
 				const projectConfig = await response.json();
 				if (projectConfig.allowAuthHostingIframeEmbedding === true) {
-					return next({ headers: NO_CACHE_HEADERS });
+					// Project explicitly allows iframe embedding — omit X-Frame-Options
+					return next();
 				}
 			}
 		} catch {
@@ -53,12 +46,20 @@ const middleware = async (request: Request) => {
 		}
 	}
 
+	// Default: add X-Frame-Options to prevent clickjacking
 	return next({
 		headers: {
-			...NO_CACHE_HEADERS,
 			'X-Frame-Options': 'SAMEORIGIN'
 		}
 	});
 };
 
 export default middleware;
+
+// Vercel reads this config to decide which routes invoke the middleware.
+// Skip static assets so we only run (and fetch project config) on document routes.
+export const config = {
+	matcher: [
+		'/((?!.*\\.(?:js|css|map|ico|svg|png|jpg|jpeg|gif|webp|woff2?|ttf|eot)$).*)'
+	]
+};
