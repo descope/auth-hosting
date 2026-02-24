@@ -2,6 +2,7 @@ import { next } from '@vercel/functions';
 import { projectRegex } from './src/shared/projectRegex';
 
 const FETCH_TIMEOUT_MS = 2000;
+const DESCOPE_MIDDLEWARE_HEADER = 'x-descope-middleware';
 
 const getConfigBaseUrl = (url: URL): string => {
 	// When accessing the Vercel deployment directly (e.g. for testing),
@@ -36,7 +37,7 @@ const middleware = async (request: Request) => {
 				const projectConfig = await response.json();
 				if (projectConfig.allowAuthHostingIframeEmbedding === true) {
 					// Project explicitly allows iframe embedding — omit X-Frame-Options
-					return next({ headers: { moshe: 'true' } });
+					return next({ headers: { [DESCOPE_MIDDLEWARE_HEADER]: 'true' } });
 				}
 			}
 		} catch {
@@ -49,7 +50,7 @@ const middleware = async (request: Request) => {
 	// Default: add X-Frame-Options to prevent clickjacking
 	return next({
 		headers: {
-			moshe: 'false',
+			[DESCOPE_MIDDLEWARE_HEADER]: 'false',
 			'X-Frame-Options': 'SAMEORIGIN'
 		}
 	});
