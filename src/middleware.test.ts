@@ -1,5 +1,5 @@
 import { next } from '@vercel/functions';
-import middleware, { config } from '../middleware';
+import middleware from '../middleware';
 
 jest.mock('@vercel/functions', () => ({
 	next: jest.fn()
@@ -19,16 +19,28 @@ afterAll(() => {
 
 const fakeRequest = (url: string): Request => ({ url }) as unknown as Request;
 
+const NO_CACHE_HEADERS: Record<string, string> = {
+	'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
+	'CDN-Cache-Control': 'no-store',
+	'Vercel-CDN-Cache-Control': 'no-store'
+};
+
+const expectNoCacheOnly = () => {
+	expect(mockedNext).toHaveBeenCalledWith({
+		headers: NO_CACHE_HEADERS
+	});
+};
+
 const expectXFrameOptions = () => {
 	expect(mockedNext).toHaveBeenCalledWith({
-		headers: { 'X-Frame-Options': 'SAMEORIGIN' }
+		headers: { ...NO_CACHE_HEADERS, 'X-Frame-Options': 'SAMEORIGIN' }
 	});
 };
 
 const expectFetchCalledWith = (configUrl: string) => {
 	expect(mockFetch).toHaveBeenCalledWith(
 		configUrl,
-		expect.objectContaining({ cache: 'force-cache' })
+		expect.objectContaining({ cache: 'no-store' })
 	);
 };
 
@@ -82,7 +94,7 @@ describe('middleware', () => {
 			expectFetchCalledWith(
 				`https://example.com/.well-known/project-configuration/${projectId28}`
 			);
-			expect(mockedNext).toHaveBeenCalledWith();
+			expectNoCacheOnly();
 		});
 
 		it('omits X-Frame-Options when embedding is allowed (32-char ID)', async () => {
@@ -94,7 +106,7 @@ describe('middleware', () => {
 			expectFetchCalledWith(
 				`https://example.com/.well-known/project-configuration/${projectId32}`
 			);
-			expect(mockedNext).toHaveBeenCalledWith();
+			expectNoCacheOnly();
 		});
 
 		it('adds X-Frame-Options when allowAuthHostingIframeEmbedding is false', async () => {
@@ -149,7 +161,7 @@ describe('middleware', () => {
 	describe('config base URL resolution', () => {
 		const projectId = `P${'a'.repeat(27)}`;
 
-		it('uses api.descope.com for .preview.descope.org hostnames', async () => {
+		it('uses api.descope.org for .preview.descope.org hostnames', async () => {
 			mockFetch.mockResolvedValueOnce({
 				ok: true,
 				json: async () => ({ allowAuthHostingIframeEmbedding: true })
@@ -158,11 +170,11 @@ describe('middleware', () => {
 				fakeRequest(`https://123456789.preview.descope.org/login/${projectId}`)
 			);
 			expectFetchCalledWith(
-				`https://api.descope.com/.well-known/project-configuration/${projectId}`
+				`https://api.descope.org/.well-known/project-configuration/${projectId}`
 			);
 		});
 
-		it('uses api.descope.com for nested .preview.descope.org subdomains', async () => {
+		it('uses api.descope.org for nested .preview.descope.org subdomains', async () => {
 			mockFetch.mockResolvedValueOnce({
 				ok: true,
 				json: async () => ({ allowAuthHostingIframeEmbedding: true })
@@ -173,7 +185,7 @@ describe('middleware', () => {
 				)
 			);
 			expectFetchCalledWith(
-				`https://api.descope.com/.well-known/project-configuration/${projectId}`
+				`https://api.descope.org/.well-known/project-configuration/${projectId}`
 			);
 		});
 
@@ -191,24 +203,20 @@ describe('middleware', () => {
 		});
 	});
 
-	describe('matcher config', () => {
-		it('exports a matcher that excludes static file extensions', () => {
-			expect(config.matcher).toBeDefined();
-			expect(config.matcher.length).toBeGreaterThan(0);
-
-			// eslint-disable-next-line security/detect-non-literal-regexp
-			const pattern = new RegExp(config.matcher[0]);
-			// Should match document routes
-			const projectId = `P${'a'.repeat(27)}`;
-			expect(pattern.test(`/login/${projectId}`)).toBe(true);
-			expect(pattern.test('/')).toBe(true);
-
-			// Should not match static assets
-			expect(pattern.test('/static/main.js')).toBe(false);
-			expect(pattern.test('/static/style.css')).toBe(false);
-			expect(pattern.test('/favicon.ico')).toBe(false);
-			expect(pattern.test('/logo.svg')).toBe(false);
-			expect(pattern.test('/image.png')).toBe(false);
+	describe('static assets', () => {
+		it.each([
+			'/static/main.js',
+			'/static/style.css',
+			'/favicon.ico',
+			'/logo.svg',
+			'/image.png',
+			'/font.woff2',
+			'/source.map',
+			'/photo.jpeg'
+		])('returns no-cache headers without fetch for %s', async (path) => {
+			await middleware(fakeRequest(`https://example.com${path}`));
+			expect(mockFetch).not.toHaveBeenCalled();
+			expectNoCacheOnly();
 		});
 	});
 });
