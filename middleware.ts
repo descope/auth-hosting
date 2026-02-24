@@ -8,7 +8,7 @@ const getConfigBaseUrl = (url: URL): string => {
 	// the .well-known endpoint doesn't exist on the Vercel origin.
 	// Fall back to the production API for the configuration check.
 	if (url.hostname.endsWith('.preview.descope.org')) {
-		return 'https://api.descope.com';
+		return 'https://api.descope.org';
 	}
 	return url.origin;
 };
@@ -36,7 +36,7 @@ const middleware = async (request: Request) => {
 				const projectConfig = await response.json();
 				if (projectConfig.allowAuthHostingIframeEmbedding === true) {
 					// Project explicitly allows iframe embedding — omit X-Frame-Options
-					return next();
+					return next({ headers: { moshe: 'true' } });
 				}
 			}
 		} catch {
@@ -49,6 +49,7 @@ const middleware = async (request: Request) => {
 	// Default: add X-Frame-Options to prevent clickjacking
 	return next({
 		headers: {
+			moshe: 'false',
 			'X-Frame-Options': 'SAMEORIGIN'
 		}
 	});
