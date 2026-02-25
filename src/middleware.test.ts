@@ -19,29 +19,47 @@ afterAll(() => {
 
 const fakeRequest = (url: string): Request => ({ url }) as unknown as Request;
 
-const expectXFrameOptions = () => {
+const expectHeaders = (expectedHeaders: Record<string, string>) => {
 	expect(mockedNext).toHaveBeenCalledWith({
-		headers: { 'X-Frame-Options': 'SAMEORIGIN' }
+		headers: expectedHeaders
+	});
+};
+
+const expectXFrameOptions = () => {
+	expectHeaders({
+		'x-descope-middleware': 'noProject',
+		'X-Frame-Options': 'SAMEORIGIN'
 	});
 };
 
 const expectFetchCalledWith = (configUrl: string) => {
 	expect(mockFetch).toHaveBeenCalledWith(
 		configUrl,
-		expect.objectContaining({ cache: 'force-cache' })
+		expect.objectContaining({ signal: expect.any(AbortSignal) })
 	);
 };
 
 describe('middleware', () => {
+	const originalEnv = process.env.MIDDLEWARE_DESCOPE_BASE_URL;
+
 	beforeEach(() => {
 		jest.clearAllMocks();
 	});
 
 	afterEach(() => {
 		jest.useRealTimers();
+		if (originalEnv !== undefined) {
+			process.env.MIDDLEWARE_DESCOPE_BASE_URL = originalEnv;
+		} else {
+			delete process.env.MIDDLEWARE_DESCOPE_BASE_URL;
+		}
 	});
 
 	describe('when no project ID is in the URL', () => {
+		beforeEach(() => {
+			process.env.MIDDLEWARE_DESCOPE_BASE_URL = 'https://api.descope.com';
+		});
+
 		it('adds X-Frame-Options for root path', async () => {
 			await middleware(fakeRequest('https://example.com/'));
 			expect(mockFetch).not.toHaveBeenCalled();
@@ -72,6 +90,11 @@ describe('middleware', () => {
 	describe('when a valid project ID is in the URL', () => {
 		const projectId28 = `P${'a'.repeat(27)}`;
 		const projectId32 = `P${'b'.repeat(31)}`;
+		const baseUrl = 'https://api.descope.com';
+
+		beforeEach(() => {
+			process.env.MIDDLEWARE_DESCOPE_BASE_URL = baseUrl;
+		});
 
 		it('omits X-Frame-Options when embedding is allowed (28-char ID)', async () => {
 			mockFetch.mockResolvedValueOnce({
@@ -80,9 +103,9 @@ describe('middleware', () => {
 			});
 			await middleware(fakeRequest(`https://example.com/login/${projectId28}`));
 			expectFetchCalledWith(
-				`https://example.com/.well-known/project-configuration/${projectId28}`
+				`${baseUrl}/.well-known/project-configuration/${projectId28}`
 			);
-			expect(mockedNext).toHaveBeenCalledWith();
+			expectHeaders({ 'x-descope-middleware': 'iframeEnabled' });
 		});
 
 		it('omits X-Frame-Options when embedding is allowed (32-char ID)', async () => {
@@ -92,9 +115,9 @@ describe('middleware', () => {
 			});
 			await middleware(fakeRequest(`https://example.com/login/${projectId32}`));
 			expectFetchCalledWith(
-				`https://example.com/.well-known/project-configuration/${projectId32}`
+				`${baseUrl}/.well-known/project-configuration/${projectId32}`
 			);
-			expect(mockedNext).toHaveBeenCalledWith();
+			expectHeaders({ 'x-descope-middleware': 'iframeEnabled' });
 		});
 
 		it('adds X-Frame-Options when allowAuthHostingIframeEmbedding is false', async () => {
@@ -103,7 +126,10 @@ describe('middleware', () => {
 				json: async () => ({ allowAuthHostingIframeEmbedding: false })
 			});
 			await middleware(fakeRequest(`https://example.com/login/${projectId28}`));
-			expectXFrameOptions();
+			expectHeaders({
+				'x-descope-middleware': 'iframeDisabled',
+				'X-Frame-Options': 'SAMEORIGIN'
+			});
 		});
 
 		it('adds X-Frame-Options when allowAuthHostingIframeEmbedding is missing', async () => {
@@ -112,19 +138,28 @@ describe('middleware', () => {
 				json: async () => ({})
 			});
 			await middleware(fakeRequest(`https://example.com/login/${projectId28}`));
-			expectXFrameOptions();
+			expectHeaders({
+				'x-descope-middleware': 'iframeDisabled',
+				'X-Frame-Options': 'SAMEORIGIN'
+			});
 		});
 
 		it('adds X-Frame-Options when config fetch response is not ok', async () => {
 			mockFetch.mockResolvedValueOnce({ ok: false });
 			await middleware(fakeRequest(`https://example.com/login/${projectId28}`));
-			expectXFrameOptions();
+			expectHeaders({
+				'x-descope-middleware': 'failed',
+				'X-Frame-Options': 'SAMEORIGIN'
+			});
 		});
 
 		it('adds X-Frame-Options when config fetch throws', async () => {
 			mockFetch.mockRejectedValueOnce(new Error('Network error'));
 			await middleware(fakeRequest(`https://example.com/login/${projectId28}`));
-			expectXFrameOptions();
+			expectHeaders({
+				'x-descope-middleware': 'failed',
+				'X-Frame-Options': 'SAMEORIGIN'
+			});
 		});
 
 		it('adds X-Frame-Options when config fetch times out', async () => {
@@ -142,14 +177,38 @@ describe('middleware', () => {
 			);
 			jest.advanceTimersByTime(2000);
 			await promise;
-			expectXFrameOptions();
+			expectHeaders({
+				'x-descope-middleware': 'failed',
+				'X-Frame-Options': 'SAMEORIGIN'
+			});
 		});
 	});
 
-	describe('config base URL resolution', () => {
+	describe('env var configuration', () => {
 		const projectId = `P${'a'.repeat(27)}`;
 
-		it('uses api.descope.com for .preview.descope.org hostnames', async () => {
+		it('returns misconfigured when MIDDLEWARE_DESCOPE_BASE_URL is not set with project ID', async () => {
+			delete process.env.MIDDLEWARE_DESCOPE_BASE_URL;
+			await middleware(fakeRequest(`https://example.com/login/${projectId}`));
+			expect(mockFetch).not.toHaveBeenCalled();
+			expectHeaders({
+				'x-descope-middleware': 'misconfigured',
+				'X-Frame-Options': 'SAMEORIGIN'
+			});
+		});
+
+		it('returns misconfigured when MIDDLEWARE_DESCOPE_BASE_URL is not set without project ID', async () => {
+			delete process.env.MIDDLEWARE_DESCOPE_BASE_URL;
+			await middleware(fakeRequest('https://example.com/login/'));
+			expect(mockFetch).not.toHaveBeenCalled();
+			expectHeaders({
+				'x-descope-middleware': 'misconfigured',
+				'X-Frame-Options': 'SAMEORIGIN'
+			});
+		});
+
+		it('uses MIDDLEWARE_DESCOPE_BASE_URL when set', async () => {
+			process.env.MIDDLEWARE_DESCOPE_BASE_URL = 'https://api.descope.com';
 			mockFetch.mockResolvedValueOnce({
 				ok: true,
 				json: async () => ({ allowAuthHostingIframeEmbedding: true })
@@ -160,34 +219,26 @@ describe('middleware', () => {
 			expectFetchCalledWith(
 				`https://api.descope.com/.well-known/project-configuration/${projectId}`
 			);
+			expectHeaders({ 'x-descope-middleware': 'iframeEnabled' });
 		});
 
-		it('uses api.descope.com for nested .preview.descope.org subdomains', async () => {
+		it('works with custom base URL', async () => {
+			process.env.MIDDLEWARE_DESCOPE_BASE_URL =
+				'https://custom.api.example.com';
 			mockFetch.mockResolvedValueOnce({
 				ok: true,
-				json: async () => ({ allowAuthHostingIframeEmbedding: true })
-			});
-			await middleware(
-				fakeRequest(
-					`https://branch.123456789.preview.descope.org/login/${projectId}`
-				)
-			);
-			expectFetchCalledWith(
-				`https://api.descope.com/.well-known/project-configuration/${projectId}`
-			);
-		});
-
-		it('uses request origin for custom domain', async () => {
-			mockFetch.mockResolvedValueOnce({
-				ok: true,
-				json: async () => ({ allowAuthHostingIframeEmbedding: true })
+				json: async () => ({ allowAuthHostingIframeEmbedding: false })
 			});
 			await middleware(
 				fakeRequest(`https://auth.example.com/login/${projectId}`)
 			);
 			expectFetchCalledWith(
-				`https://auth.example.com/.well-known/project-configuration/${projectId}`
+				`https://custom.api.example.com/.well-known/project-configuration/${projectId}`
 			);
+			expectHeaders({
+				'x-descope-middleware': 'iframeDisabled',
+				'X-Frame-Options': 'SAMEORIGIN'
+			});
 		});
 	});
 
