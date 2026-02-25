@@ -17,6 +17,9 @@ const middleware = async (request: Request) => {
 		});
 	}
 
+	// Remove trailing slash from base URL if present
+	const normalizedBaseUrl = baseUrl.replace(/\/+$/, '');
+
 	// Extract the project ID from the URL path (last segment)
 	const pathSegments = url.pathname.split('/').filter(Boolean);
 	const lastSegment = pathSegments[pathSegments.length - 1] || '';
@@ -34,7 +37,7 @@ const middleware = async (request: Request) => {
 	const controller = new AbortController();
 	const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
 	try {
-		const configUrl = `${baseUrl}/.well-known/project-configuration/${projectId}`;
+		const configUrl = `${normalizedBaseUrl}/.well-known/project-configuration/${projectId}`;
 		const response = await fetch(configUrl, {
 			signal: controller.signal
 		});

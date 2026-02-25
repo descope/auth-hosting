@@ -240,6 +240,35 @@ describe('middleware', () => {
 				'X-Frame-Options': 'SAMEORIGIN'
 			});
 		});
+
+		it('handles trailing slash in base URL', async () => {
+			process.env.MIDDLEWARE_DESCOPE_BASE_URL = 'https://api.descope.com/';
+			mockFetch.mockResolvedValueOnce({
+				ok: true,
+				json: async () => ({ allowAuthHostingIframeEmbedding: true })
+			});
+			await middleware(fakeRequest(`https://example.com/login/${projectId}`));
+			expectFetchCalledWith(
+				`https://api.descope.com/.well-known/project-configuration/${projectId}`
+			);
+			expectHeaders({ 'x-descope-middleware': 'iframeEnabled' });
+		});
+
+		it('handles multiple trailing slashes in base URL', async () => {
+			process.env.MIDDLEWARE_DESCOPE_BASE_URL = 'https://api.descope.com///';
+			mockFetch.mockResolvedValueOnce({
+				ok: true,
+				json: async () => ({ allowAuthHostingIframeEmbedding: false })
+			});
+			await middleware(fakeRequest(`https://example.com/login/${projectId}`));
+			expectFetchCalledWith(
+				`https://api.descope.com/.well-known/project-configuration/${projectId}`
+			);
+			expectHeaders({
+				'x-descope-middleware': 'iframeDisabled',
+				'X-Frame-Options': 'SAMEORIGIN'
+			});
+		});
 	});
 
 	describe('matcher config', () => {
