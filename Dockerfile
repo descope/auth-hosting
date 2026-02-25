@@ -29,7 +29,7 @@ RUN caddy validate --config /etc/caddy/Caddyfile && \
 
 # build the final image with the correct target architecture (dont specify target)
 # Caddy is based on gcr.io/distroless/static-debian12:nonroot which does not contain /bin/sh so can't us RUN command here!
-FROM ghcr.io/descope/caddy:0.1.89 AS production
+FROM ghcr.io/descope/caddy:v0.1.91 AS production
 
 ENV PORT=8080
 ENV WWW_ROOT=/www
