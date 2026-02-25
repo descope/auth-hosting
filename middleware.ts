@@ -3,55 +3,80 @@ import { projectRegex } from './src/shared/projectRegex';
 
 const FETCH_TIMEOUT_MS = 2000;
 
-const getConfigBaseUrl = (url: URL): string => {
-	// When accessing the Vercel deployment directly (e.g. for testing),
-	// the .well-known endpoint doesn't exist on the Vercel origin.
-	// Fall back to the production API for the configuration check.
-	if (url.hostname.endsWith('.preview.descope.org')) {
-		return 'https://api.descope.com';
-	}
-	return url.origin;
-};
-
 const middleware = async (request: Request) => {
 	const url = new URL(request.url);
+
+	// Check base URL environment variable is set
+	const baseUrl = process.env.MIDDLEWARE_DESCOPE_BASE_URL;
+	if (!baseUrl) {
+		return next({
+			headers: {
+				'x-descope-middleware': 'misconfigured',
+				'X-Frame-Options': 'SAMEORIGIN'
+			}
+		});
+	}
+
+	// Remove trailing slash from base URL if present
+	const normalizedBaseUrl = baseUrl.replace(/\/+$/, '');
 
 	// Extract the project ID from the URL path (last segment)
 	const pathSegments = url.pathname.split('/').filter(Boolean);
 	const lastSegment = pathSegments[pathSegments.length - 1] || '';
 	const projectId = projectRegex.exec(lastSegment)?.[0];
-
-	// If we have a project ID, check if iframe embedding is allowed
-	if (projectId) {
-		const controller = new AbortController();
-		const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
-		try {
-			const baseUrl = getConfigBaseUrl(url);
-			const configUrl = `${baseUrl}/.well-known/project-configuration/${projectId}`;
-			const response = await fetch(configUrl, {
-				signal: controller.signal,
-				cache: 'force-cache'
-			});
-			if (response.ok) {
-				const projectConfig = await response.json();
-				if (projectConfig.allowAuthHostingIframeEmbedding === true) {
-					// Project explicitly allows iframe embedding — omit X-Frame-Options
-					return next();
-				}
+	if (!projectId) {
+		return next({
+			headers: {
+				'x-descope-middleware': 'noProject',
+				'X-Frame-Options': 'SAMEORIGIN'
 			}
-		} catch {
-			// On error or timeout, fall through to add the header (secure default)
-		} finally {
-			clearTimeout(timeoutId);
-		}
+		});
 	}
 
-	// Default: add X-Frame-Options to prevent clickjacking
-	return next({
-		headers: {
-			'X-Frame-Options': 'SAMEORIGIN'
+	// Try to fetch project configuration with timeout
+	const controller = new AbortController();
+	const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+	try {
+		const configUrl = `${normalizedBaseUrl}/.well-known/project-configuration/${projectId}`;
+		const response = await fetch(configUrl, {
+			signal: controller.signal
+		});
+		if (response.ok) {
+			const projectConfig = await response.json();
+			if (projectConfig.allowAuthHostingIframeEmbedding === true) {
+				// Project explicitly allows iframe embedding — omit X-Frame-Options
+				return next({
+					headers: {
+						'x-descope-middleware': 'iframeEnabled'
+					}
+				});
+			}
+			// allowAuthHostingIframeEmbedding is false or missing
+			return next({
+				headers: {
+					'x-descope-middleware': 'iframeDisabled',
+					'X-Frame-Options': 'SAMEORIGIN'
+				}
+			});
 		}
-	});
+		// Response not ok, treat as failed
+		return next({
+			headers: {
+				'x-descope-middleware': 'failed',
+				'X-Frame-Options': 'SAMEORIGIN'
+			}
+		});
+	} catch {
+		// On error or timeout, return failed status
+		return next({
+			headers: {
+				'x-descope-middleware': 'failed',
+				'X-Frame-Options': 'SAMEORIGIN'
+			}
+		});
+	} finally {
+		clearTimeout(timeoutId);
+	}
 };
 
 export default middleware;
