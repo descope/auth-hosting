@@ -12,6 +12,8 @@ import { projectRegex } from './shared/projectRegex';
 
 const ssoAppRegex = /^[a-zA-Z0-9\-_]{1,30}$/;
 
+const DEFAULT_SSO_APP_ID = 'descope-default-oidc';
+
 const isFaviconUrlSecure = (url: string) => {
 	try {
 		const parsedUrl = new URL(url);
@@ -113,7 +115,7 @@ const App = () => {
 		[]
 	);
 
-	let ssoAppId = urlParams.get('sso_app_id') || '';
+	let ssoAppId = urlParams.get('sso_app_id') || DEFAULT_SSO_APP_ID;
 	ssoAppId = ssoAppRegex.exec(ssoAppId)?.[0] || '';
 
 	// Memoize updateFavicon with useCallback
