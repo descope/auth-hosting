@@ -52,7 +52,7 @@
 		"eslint-plugin-security": "1.7.1",
 		"eslint-plugin-testing-library": "7.15.3",
 		"husky": "8.0.3",
-		"lint-staged": "15.5.2",
+		"lint-staged": "16.2.7",
 		"prettier": "3.8.1",
 		"react-app-rewired": "^2.2.1",
 		"react-scripts": "5.0.1",
