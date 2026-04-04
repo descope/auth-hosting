@@ -561,6 +561,56 @@ describe('App component', () => {
 				'background-color': '#ff00ff'
 			});
 		});
+
+		it('should normalize bare 6-digit hex from env (no leading #)', async () => {
+			mockFetch.mockResolvedValueOnce({
+				ok: true,
+				status: 200
+			});
+
+			env.DESCOPE_BG = 'ff00ff';
+			render(<App />);
+
+			expect(await screen.findByTestId('app')).toHaveStyle({
+				'background-color': '#ff00ff'
+			});
+		});
+
+		it('should normalize bare hex from bg query param', async () => {
+			mockFetch.mockResolvedValueOnce({
+				ok: true,
+				status: 200
+			});
+
+			Object.defineProperty(window, 'location', {
+				value: {
+					...window.location,
+					search: '?bg=aabbcc',
+					pathname: '/test'
+				},
+				writable: true
+			});
+
+			render(<App />);
+
+			expect(await screen.findByTestId('app')).toHaveStyle({
+				'background-color': '#aabbcc'
+			});
+		});
+
+		it('should normalize bare 3-digit hex', async () => {
+			mockFetch.mockResolvedValueOnce({
+				ok: true,
+				status: 200
+			});
+
+			env.DESCOPE_BG = 'f0a';
+			render(<App />);
+
+			expect(await screen.findByTestId('app')).toHaveStyle({
+				'background-color': '#f0a'
+			});
+		});
 	});
 
 	describe('useOidcMfa', () => {

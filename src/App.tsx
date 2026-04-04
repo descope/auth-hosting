@@ -12,6 +12,18 @@ import { projectRegex } from './shared/projectRegex';
 
 const ssoAppRegex = /^[a-zA-Z0-9\-_]{1,30}$/;
 
+/** Bare hex (no leading #) so ?bg=ffffff works; raw # in query strings is not sent by browsers (fragment delimiter). */
+const BARE_HEX_COLOR = /^[0-9A-Fa-f]{3}$|^[0-9A-Fa-f]{6}$|^[0-9A-Fa-f]{8}$/;
+
+const normalizeBackgroundParam = (
+	value: string | null | undefined
+): string | undefined => {
+	if (value == null || value === '') return undefined;
+	const trimmed = value.trim();
+	if (BARE_HEX_COLOR.test(trimmed)) return `#${trimmed}`;
+	return value;
+};
+
 const isFaviconUrlSecure = (url: string) => {
 	try {
 		const parsedUrl = new URL(url);
@@ -181,8 +193,9 @@ const App = () => {
 
 	const tenantId = urlParams.get('tenant') || env.DESCOPE_TENANT_ID;
 
-	const background =
-		urlParams.get('bg') || env.DESCOPE_BG || env.DESCOPE_BG_COLOR;
+	const background = normalizeBackgroundParam(
+		urlParams.get('bg') || env.DESCOPE_BG || env.DESCOPE_BG_COLOR
+	);
 
 	const storeLastAuthUser =
 		urlParams.get('store_last_auth_user') === 'false' ||
