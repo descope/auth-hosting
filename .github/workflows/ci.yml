@@ -133,7 +133,7 @@ jobs:
           role-session-name: ${{ env.IMAGE_NAME }}-${{ github.run_number }}@${{ github.run_attempt }}
       - name: Login to Amazon ECR
         id: login-ecr
-        uses: aws-actions/amazon-ecr-login@c962da2960ed15f492addc26fffa274485265950 # v2.0.2
+        uses: aws-actions/amazon-ecr-login@261fc3d4806db1fa66a15cc11113c456db8870a7 # v2.1.0
       - name: Extract metadata for the Docker image
         id: meta
         uses: descope/.github/.github/actions/docker/metadata@78dee7027fa991e6c0eefc6b6cf2f2972e385791 # main
