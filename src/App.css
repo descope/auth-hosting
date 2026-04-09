@@ -87,6 +87,61 @@ body,
 	display: inline-block;
 }
 
+.done-page {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	padding: 24px;
+	box-sizing: border-box;
+}
+
+.done-card {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	max-width: 520px;
+	width: 100%;
+	padding: 40px 28px;
+	border-radius: 20px;
+	background: linear-gradient(180deg, #f6fbff 0%, #ffffff 100%);
+	box-shadow: 0 12px 32px rgba(0, 130, 181, 0.15);
+	border: 1px solid rgba(0, 130, 181, 0.2);
+}
+
+.done-check {
+	height: 64px;
+	width: 64px;
+	border-radius: 50%;
+	background: #0082b5;
+	color: #ffffff;
+	font-size: 36px;
+	font-weight: 700;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	margin-bottom: 18px;
+}
+
+.done-title {
+	margin: 0;
+	font-family: 'JetBrains Mono';
+	font-size: 34px;
+	line-height: 128%;
+	letter-spacing: 0.4px;
+	color: #0082b5;
+}
+
+.done-subtitle {
+	margin: 12px 0 0;
+	max-width: 420px;
+	font-size: 20px;
+	line-height: 150%;
+	text-align: center;
+	display: block;
+}
+
 h1 {
 	margin: 0px;
 	font-weight: 800;
@@ -110,6 +165,18 @@ p {
 @media only screen and (max-width: 600px) {
 	.app-content {
 		width: 90%;
+	}
+
+	.done-card {
+		padding: 30px 20px;
+	}
+
+	.done-title {
+		font-size: 26px;
+	}
+
+	.done-subtitle {
+		font-size: 18px;
 	}
 
 	.descope-container {
