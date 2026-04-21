@@ -4,7 +4,7 @@
 	"private": true,
 	"dependencies": {
 		"@descope/react-sdk": "2.27.8",
-		"@descope/web-component": "3.59.1",
+		"@descope/web-component": "3.59.2",
 		"@emotion/react": "11.14.0",
 		"@emotion/styled": "11.14.1",
 		"@mui/icons-material": "5.18.0",
