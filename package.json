@@ -3,8 +3,8 @@
 	"version": "0.1.0",
 	"private": true,
 	"dependencies": {
-		"@descope/react-sdk": "2.26.8",
-		"@descope/web-component": "3.57.0",
+		"@descope/react-sdk": "2.27.9",
+		"@descope/web-component": "3.60.0",
 		"@emotion/react": "11.14.0",
 		"@emotion/styled": "11.14.1",
 		"@mui/icons-material": "5.18.0",
@@ -15,11 +15,11 @@
 		"react-dom": "18.3.1",
 		"rfdc": "^1.3.0",
 		"usehooks-ts": "2.9.4",
-		"web-vitals": "3.5.1"
+		"web-vitals": "3.5.2"
 	},
 	"devDependencies": {
 		"@babel/plugin-proposal-private-property-in-object": "7.21.11",
-		"@babel/preset-env": "7.29.0",
+		"@babel/preset-env": "7.29.2",
 		"@babel/preset-react": "7.28.5",
 		"@testing-library/jest-dom": "6.9.1",
 		"@testing-library/react": "15.0.7",
@@ -51,7 +51,7 @@
 		"eslint-plugin-react-hooks": "7.0.1",
 		"eslint-plugin-security": "1.7.1",
 		"eslint-plugin-testing-library": "7.15.3",
-		"husky": "8.0.3",
+		"husky": "9.1.7",
 		"lint-staged": "15.5.2",
 		"prettier": "3.8.1",
 		"react-app-rewired": "^2.2.1",
