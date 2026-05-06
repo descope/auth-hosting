@@ -1309,10 +1309,10 @@
   resolved "https://registry.yarnpkg.com/@descope/escape-markdown/-/escape-markdown-0.1.6.tgz#66b5ce59d1ed29a3c43a51089d1d8682074670fe"
   integrity sha512-3ENrye8fyyAp88w8OoKGsEl/kH0GgcrPiDRoOajhCODOJnoJ8P/4/giBEjWZV/FKllW4Z5mSXGACEmlINOZLCA==
 
-"@descope/outbound-applications-widget@0.2.34":
-  version "0.2.34"
-  resolved "https://registry.yarnpkg.com/@descope/outbound-applications-widget/-/outbound-applications-widget-0.2.34.tgz#2bc40080c3e205a0e2cb239e59b9c5029820f23b"
-  integrity sha512-NwwHcVJvxZhBhwLDYZ4Ias+R5csW8+hVt29vd77RkuWoBtgXDJZYHSf95luf38QCeKDCq4SAzSq5CBiL96NXxw==
+"@descope/outbound-applications-widget@0.2.35":
+  version "0.2.35"
+  resolved "https://registry.yarnpkg.com/@descope/outbound-applications-widget/-/outbound-applications-widget-0.2.35.tgz#6f18c8eb6caa51dd9d456846b50c527168154fbe"
+  integrity sha512-SVqwEiQgOOJnELIpaQVZCBQqn6Sl4N6Znjf7ss28iW5yKtsFWEKOD2k1lwuXX54hNOGIf87KWyzggP+dipUuug==
   dependencies:
     "@descope/sdk-component-drivers" "0.9.1"
     "@descope/sdk-helpers" "0.7.0"
@@ -1326,16 +1326,16 @@
     reselect "5.1.1"
     tslib "2.8.1"
 
-"@descope/react-sdk@2.27.9":
-  version "2.27.9"
-  resolved "https://registry.yarnpkg.com/@descope/react-sdk/-/react-sdk-2.27.9.tgz#32899c1773f16463aeeb3156179bfb4d6627b7aa"
-  integrity sha512-nLIpXoo5A/uMVfyEDuhWigZ1hN0dVIxfG6kLnmUwgcyLna3ZoHkNJ3b5ir0IzeKZvn8lslfuIRllYEyOHlaIiA==
+"@descope/react-sdk@2.27.10":
+  version "2.27.10"
+  resolved "https://registry.yarnpkg.com/@descope/react-sdk/-/react-sdk-2.27.10.tgz#70fa960c523c9e8a1af3099a6ac50883556e07aa"
+  integrity sha512-X8p1LpRD6RHgvJYjZKpFL7FdFmZIp3fWkqrlNEoRstABK0/OrM7Oukk/rQn4yhJTBfi16oIuk7SQ17/y5uJtBg==
   dependencies:
     "@descope/access-key-management-widget" "0.5.43"
     "@descope/applications-portal-widget" "0.6.3"
     "@descope/audit-management-widget" "0.6.5"
     "@descope/core-js-sdk" "2.60.0"
-    "@descope/outbound-applications-widget" "0.2.34"
+    "@descope/outbound-applications-widget" "0.2.35"
     "@descope/role-management-widget" "0.5.35"
     "@descope/sdk-helpers" "0.7.0"
     "@descope/tenant-profile-widget" "0.5.34"
