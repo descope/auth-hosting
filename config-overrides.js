@@ -34,11 +34,20 @@ module.exports = {
 					try {
 						// Filter out any keys that start with 'npm_'
 						const filteredEnv = Object.fromEntries(
-							Object.entries(process.env).filter(
-								([key]) =>
-									key.startsWith('REACT_APP') ||
-									key.startsWith('NEXT_PUBLIC') ||
-									key.startsWith('PUBLIC_URL')
+							Object.entries(process.env).filter(([key]) =>
+								[
+									'REACT_APP_DESCOPE_BASE_URL',
+									'REACT_APP_CONTENT_BASE_URL',
+									'REACT_APP_USE_ORIGIN_BASE_URL',
+									'REACT_APP_FAVICON_URL_TEMPLATE',
+									'REACT_APP_DEFAULT_FAVICON_URL',
+									'DESCOPE_PROJECT_ID',
+									'DESCOPE_FLOW_ID',
+									'LOGGER',
+									// Legacy env var names
+									'REACT_APP_FAVICON_URL',
+									'DEFAULT_FAVICON_URL'
+								].includes(key)
 							)
 						);
 
