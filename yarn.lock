@@ -1326,10 +1326,10 @@
     reselect "5.1.1"
     tslib "2.8.1"
 
-"@descope/react-sdk@2.28.1":
-  version "2.28.1"
-  resolved "https://registry.yarnpkg.com/@descope/react-sdk/-/react-sdk-2.28.1.tgz#3bc9d9b13e9d6496905b9e27e47a0fd3eda62c38"
-  integrity sha512-po2YvPBYIYBdXyce/jnnxyE4dyqw7QuatxG43SV4bWRVPxY5xRVO9clmc1fxvWi5uDshPDxdZL12YmIQgwESCw==
+"@descope/react-sdk@2.28.2":
+  version "2.28.2"
+  resolved "https://registry.yarnpkg.com/@descope/react-sdk/-/react-sdk-2.28.2.tgz#c5898d0e667b2f5cd4ed788c262fd3a97e36f114"
+  integrity sha512-hOcJYUvFJHPNe9rWCQGztuxrXC9nISXpBVnB7jsaniCQ7Xz7NWJZPRWiGUi76BSZIIC2rEV/un/h8Ux60IU9Qw==
   dependencies:
     "@descope/access-key-management-widget" "0.5.47"
     "@descope/applications-portal-widget" "0.6.7"
