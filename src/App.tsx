@@ -167,6 +167,15 @@ const App = () => {
 		updateFavicon();
 	}, [updateFavicon]);
 
+	const title = urlParams.get('title');
+
+	// Update the document title when provided via the title query param
+	useEffect(() => {
+		if (title) {
+			document.title = title;
+		}
+	}, [title]);
+
 	const styleId = urlParams.get('style') || env.DESCOPE_STYLE_ID;
 
 	const flowId =
