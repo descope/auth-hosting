@@ -18,7 +18,7 @@ const BARE_HEX_COLOR = /^[0-9A-Fa-f]{3,4}$|^[0-9A-Fa-f]{6}$|^[0-9A-Fa-f]{8}$/;
 const normalizeBackgroundParam = (
 	value: string | null | undefined
 ): string | undefined => {
-	if (!value) return value;
+	if (!value) return undefined;
 	const trimmed = value.trim();
 	if (BARE_HEX_COLOR.test(trimmed)) return `#${trimmed}`;
 	return value;
