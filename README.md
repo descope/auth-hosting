@@ -68,6 +68,8 @@ These are the different query parameters you can use:
 
 11. `width` & `height` are optional query parameters, controlling the sizing of the flow screen in either pixels or a percentage of the viewport (e.g. `50%`, `1200px`). Any value larger than the screen is clamped down.
 
+12. `title` query parameter is optional. If provided, it sets the browser tab/document title (e.g. `title=Sign%20in`).
+
 **Using .env**
 
 In case you don't want to provide the project ID as part of the URL, you can specify it as an environment variable `DESCOPE_PROJECT_ID`.  

@@ -169,6 +169,13 @@ describe('App component', () => {
 		);
 	});
 
+	test('sets the document title from the title search param', async () => {
+		window.location.pathname = `/${packageJson.homepage}/${validProjectId}`;
+		window.location.search = `?title=My%20Custom%20Title`;
+		render(<App />);
+		await waitFor(() => expect(document.title).toBe('My Custom Title'));
+	});
+
 	describe('onSuccess callback', () => {
 		beforeEach(() => {
 			jest.clearAllMocks();
