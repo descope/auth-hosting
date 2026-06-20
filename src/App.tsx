@@ -334,7 +334,7 @@ const App = () => {
 						style={containerCss}
 						data-testid="descope-component"
 					>
-						<FlowGate>
+						<FlowGate baseUrl={baseUrl} projectId={projectId}>
 							<Descope {...flowProps} />
 						</FlowGate>
 					</div>
