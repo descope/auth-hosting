@@ -15,11 +15,9 @@ import { env } from './env';
 
 const mockDescope = jest.fn();
 const mockAuthProvider = jest.fn();
-const mockFlowNext = jest.fn();
 
 jest.mock('@descope/react-sdk', () => ({
 	...jest.requireActual('@descope/react-sdk'),
-	useDescope: () => ({ flow: { next: mockFlowNext } }),
 	Descope: ({ onSuccess, ...props }: { onSuccess: () => void }) => {
 		mockDescope(props);
 		return (
@@ -66,8 +64,10 @@ describe('App component', () => {
 
 	beforeEach(() => {
 		jest.resetModules();
-		mockFlowNext.mockReset();
-		mockFlowNext.mockResolvedValue({ ok: true });
+		mockFetch.mockReset();
+		mockFetch.mockResolvedValue({ ok: false });
+		delete env.REACT_APP_DESCOPE_BASE_URL;
+		delete env.REACT_APP_USE_ORIGIN_BASE_URL;
 		env.DESCOPE_PROJECT_ID = '';
 		window.location.pathname = '';
 		window.localStorage.clear();
@@ -687,36 +687,30 @@ describe('App component', () => {
 	describe('flow domain gate', () => {
 		beforeEach(() => {
 			jest.clearAllMocks();
-			mockFlowNext.mockResolvedValue({ ok: true });
+			env.REACT_APP_DESCOPE_BASE_URL = baseUrl;
 			window.location.pathname = `/${packageJson.homepage}/${validProjectId}`;
 			window.location.search = '';
 		});
 
-		it('renders the flow when the domain probe does not return 8202', async () => {
-			mockFlowNext.mockResolvedValueOnce({
-				ok: false,
-				error: { errorCode: 'E062108' }
+		it('renders the flow when the domain is approved', async () => {
+			mockFetch.mockResolvedValue({
+				ok: true,
+				json: async () => ({ success: true })
 			});
 			render(<App />);
 			expect(await screen.findByTestId('descope-button')).toBeInTheDocument();
 		});
 
-		it('blocks the flow and shows an error when the domain probe returns 8202', async () => {
-			mockFlowNext.mockResolvedValueOnce({
-				ok: false,
-				error: { errorCode: '8202' }
+		it('blocks the flow and shows an error when the domain is not approved', async () => {
+			mockFetch.mockResolvedValue({
+				ok: true,
+				json: async () => ({ success: false })
 			});
 			render(<App />);
 			await waitFor(() =>
 				expect(screen.queryByTestId('descope-button')).not.toBeInTheDocument()
 			);
 			expect(screen.getByText(/something went wrong/i)).toBeInTheDocument();
-		});
-
-		it('fails open and renders the flow when the probe throws', async () => {
-			mockFlowNext.mockRejectedValueOnce(new Error('network'));
-			render(<App />);
-			expect(await screen.findByTestId('descope-button')).toBeInTheDocument();
 		});
 	});
 });
