@@ -5,6 +5,7 @@ import React, { useEffect, useMemo, useCallback, CSSProperties } from 'react';
 import './App.css';
 import Done from './components/Done';
 import Welcome from './components/Welcome';
+import FlowGate from './components/FlowGate';
 import useOidcMfa from './hooks/useOidcMfa';
 import { env } from './env';
 import { logger } from './utils/logger';
@@ -333,7 +334,9 @@ const App = () => {
 						style={containerCss}
 						data-testid="descope-component"
 					>
-						<Descope {...flowProps} />
+						<FlowGate>
+							<Descope {...flowProps} />
+						</FlowGate>
 					</div>
 				)}
 				{!done && (!projectId || !flowId) && <Welcome />}
