@@ -2622,10 +2622,10 @@
   dependencies:
     "@types/react" "*"
 
-"@types/react@*", "@types/react@18.3.29":
-  version "18.3.29"
-  resolved "https://registry.yarnpkg.com/@types/react/-/react-18.3.29.tgz#7f3b6e1515499d4fd199cc8fd4710114be36c1a2"
-  integrity sha512-ch0qJdr2JY0r04NXSprbK6TXOgnaJ1Tz23fm5W+z0/CBah6BSBc3n96h7K9GOtwh0HrilNWHIBzE1Ko4Dcw/Wg==
+"@types/react@*", "@types/react@18.3.30":
+  version "18.3.30"
+  resolved "https://registry.yarnpkg.com/@types/react/-/react-18.3.30.tgz#e915809a3fb2bf752361d356b821bc754697e3cd"
+  integrity sha512-3ek6mwJL5/VBewBcY4S66cqlCtK3qi4WIq37Z0m/NHw1hjhI7274Mx1qz/+ggSzyBCOEf7eHjBN6INjPAWYfYw==
   dependencies:
     "@types/prop-types" "*"
     csstype "^3.2.2"
