@@ -7,6 +7,7 @@ import Done from './components/Done';
 import Welcome from './components/Welcome';
 import FlowGate from './components/FlowGate';
 import useOidcMfa from './hooks/useOidcMfa';
+import { clearOidcSession } from './utils/oidcSession';
 import { env } from './env';
 import { logger } from './utils/logger';
 import { projectRegex } from './shared/projectRegex';
@@ -296,6 +297,7 @@ const App = () => {
 		form,
 		client,
 		onSuccess: (e: CustomEvent<FlowJWTResponse>) => {
+			clearOidcSession();
 			if (flowId === 'saml-config' || flowId === 'sso-config') {
 				let search = window?.location.search;
 				if (search) {
