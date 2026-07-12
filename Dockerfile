@@ -29,7 +29,7 @@ RUN caddy validate --config /etc/caddy/Caddyfile && \
 
 # build the final image with the correct target architecture (dont specify target)
 # Caddy is based on gcr.io/distroless/static-debian12:nonroot which does not contain /bin/sh so can't us RUN command here!
-FROM ghcr.io/verity-org/caddy:2.11.3 AS production
+FROM ghcr.io/verity-org/caddy:2.11.4 AS production
 
 ENV PORT=8080
 ENV WWW_ROOT=/www
@@ -42,4 +42,4 @@ WORKDIR ${WWW_ROOT}
 COPY --from=builder --chown=1000:1000 /app/build ${WWW_ROOT}
 COPY --from=builder --chown=1000:1000 /app/package.json ${WWW_ROOT}
 ADD --chown=nonroot:nonroot Caddyfile /etc/caddy/Caddyfile
-CMD ["run", "--config", "/etc/caddy/Caddyfile"]
+CMD ["caddy", "run", "--config", "/etc/caddy/Caddyfile"]
