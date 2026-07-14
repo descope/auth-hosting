@@ -42,4 +42,4 @@ WORKDIR ${WWW_ROOT}
 COPY --from=builder --chown=1000:1000 /app/build ${WWW_ROOT}
 COPY --from=builder --chown=1000:1000 /app/package.json ${WWW_ROOT}
 ADD --chown=nonroot:nonroot Caddyfile /etc/caddy/Caddyfile
-CMD ["run", "--config", "/etc/caddy/Caddyfile"]
+CMD ["caddy", "run", "--config", "/etc/caddy/Caddyfile"]
