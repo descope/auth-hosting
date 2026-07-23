@@ -28,7 +28,7 @@ RUN caddy validate --config /etc/caddy/Caddyfile && \
     caddy fmt --overwrite /etc/caddy/Caddyfile
 
 # build the final image with the correct target architecture (dont specify target)
-FROM ghcr.io/verity-org/caddy:2.11.4=fips AS production
+FROM ghcr.io/verity-org/caddy:2.11.4-fips AS production
 
 # Patch curl/libcurl (Alpine base ships 8.19.0-r0) — CVE fixed in 8.20.0-r0
 RUN apk add --no-cache --upgrade curl=8.20.0-r0 libcurl=8.20.0-r0
