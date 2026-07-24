@@ -28,8 +28,7 @@ RUN caddy validate --config /etc/caddy/Caddyfile && \
     caddy fmt --overwrite /etc/caddy/Caddyfile
 
 # build the final image with the correct target architecture (dont specify target)
-# Caddy is based on gcr.io/distroless/static-debian12:nonroot which does not contain /bin/sh so can't us RUN command here!
-FROM ghcr.io/verity-org/caddy:2.11.4 AS production
+FROM ghcr.io/verity-org/caddy:2.11.4-fips AS production
 
 ENV PORT=8080
 ENV WWW_ROOT=/www
