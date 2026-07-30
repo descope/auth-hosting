@@ -28,7 +28,7 @@ RUN caddy validate --config /etc/caddy/Caddyfile && \
     caddy fmt --overwrite /etc/caddy/Caddyfile
 
 # build the final image with the correct target architecture (dont specify target)
-FROM ghcr.io/verity-org/caddy:2.11.4-fips AS production
+FROM verity.supply/caddy:2.11-fips@sha256:f17f0bd2887cce7e99e189e93819dfbe0114cf029d210d4d4cc83cb7b06878e9 AS production
 
 ENV PORT=8080
 ENV WWW_ROOT=/www
