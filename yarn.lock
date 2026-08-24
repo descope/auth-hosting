@@ -1305,10 +1305,10 @@
     jwt-decode "4.0.0"
     tslib "2.8.1"
 
-"@descope/core-js-sdk@2.69.0":
-  version "2.69.0"
-  resolved "https://registry.yarnpkg.com/@descope/core-js-sdk/-/core-js-sdk-2.69.0.tgz#7a66cb6aff1ad923069d9f7a0ec0223be0beabe0"
-  integrity sha512-bGRORw48AiXzyPo9x6iUBfMKlQQrlVB8y8CTPvpGbkVVqw3SHaSdDVrlTMIs9/7SFehGx4+BFPob/Hs1albdYw==
+"@descope/core-js-sdk@2.70.0":
+  version "2.70.0"
+  resolved "https://registry.yarnpkg.com/@descope/core-js-sdk/-/core-js-sdk-2.70.0.tgz#d13d0a4569accf36b918d4882a7e502fc38a79d7"
+  integrity sha512-VH9gO7fj+nJB+bDAEDgDcc5GvkgB2R/9Yvrcgl3H1qM+f/OsHHPWX6DcANZsQGzn//2+zuepfuVYp/aUpMFpdg==
   dependencies:
     jwt-decode "4.0.0"
     tslib "2.8.1"
@@ -1401,10 +1401,10 @@
     "@descope/sdk-helpers" "0.9.0"
     tslib "2.8.1"
 
-"@descope/sdk-mixins@0.25.0":
-  version "0.25.0"
-  resolved "https://registry.yarnpkg.com/@descope/sdk-mixins/-/sdk-mixins-0.25.0.tgz#34432f79a75d8f50fd88e89cf5470b87872229fa"
-  integrity sha512-JU0ZZCkfxtN0BV/imo8D+xoy9aXjMZEcgab64H2H8n3v6m33apOSWUeDTpkykbKmKphq32PNp4LYXRSejbXMMg==
+"@descope/sdk-mixins@0.26.0":
+  version "0.26.0"
+  resolved "https://registry.yarnpkg.com/@descope/sdk-mixins/-/sdk-mixins-0.26.0.tgz#af3b03c619d3e832197c36b4ae89f09d850ec08e"
+  integrity sha512-o7oM/Z59DJjK6Z8V15bzGdyCnSTYvl5ahNxzloenr4B+UYvA/4qJMk8U53HKHt2UZ26KVRrU4qk+Tbz1gNuh6w==
   dependencies:
     "@descope/sdk-component-drivers" "0.15.0"
     "@descope/sdk-helpers" "0.9.0"
@@ -1478,15 +1478,15 @@
     "@fingerprintjs/fingerprintjs-pro" "3.11.6"
     tslib "2.8.1"
 
-"@descope/web-component@4.2.0":
-  version "4.2.0"
-  resolved "https://registry.yarnpkg.com/@descope/web-component/-/web-component-4.2.0.tgz#ad7a98534c470509ec9255808a589d376040e39f"
-  integrity sha512-61J+ly4MOWcWPU33kpPYJz+hsHD3idN8L9SKJFnzBS3+dtp9xpqj91Y2aqlJ051ERgmc2G3+Kfs+3m8r8SRXjg==
+"@descope/web-component@4.3.0":
+  version "4.3.0"
+  resolved "https://registry.yarnpkg.com/@descope/web-component/-/web-component-4.3.0.tgz#b8dc146442dc45da513c0016a89cb270a67211fc"
+  integrity sha512-aRpfSJAvxJUDCKLye19uJblUTZsiOkc8RMZhN8HFECZ7/ACYtvd1umGI9c8B+ypSBP9sfOcxKfHmxa30KP+AKQ==
   dependencies:
     "@descope/escape-markdown" "0.1.6"
     "@descope/sdk-helpers" "0.9.0"
-    "@descope/sdk-mixins" "0.25.0"
-    "@descope/web-js-sdk" "1.51.6"
+    "@descope/sdk-mixins" "0.26.0"
+    "@descope/web-js-sdk" "1.52.0"
     "@fingerprintjs/fingerprintjs-pro" "3.11.6"
     tslib "2.8.1"
 
@@ -1501,12 +1501,12 @@
     jwt-decode "4.0.0"
     tslib "2.8.1"
 
-"@descope/web-js-sdk@1.51.6":
-  version "1.51.6"
-  resolved "https://registry.yarnpkg.com/@descope/web-js-sdk/-/web-js-sdk-1.51.6.tgz#e78c25068885a31d98e30f77ee5054af3d00a02f"
-  integrity sha512-V51EigWFSAeWlZkppR38LQ3LIBsUN8RbCDNcrvn/jJC0rouIiLbk/2nNgsreTDRGBmGmwyk7WVqgjKWVN9jf1g==
+"@descope/web-js-sdk@1.52.0":
+  version "1.52.0"
+  resolved "https://registry.yarnpkg.com/@descope/web-js-sdk/-/web-js-sdk-1.52.0.tgz#75cd7f83a55f213416a7420cc4cc0637313fb16d"
+  integrity sha512-G8VRbJ5/ZPJ2M9Ej8tq/hLY6X3O06U2W7Le7bBveONv2NzOvFfxghEqUxmgtrqdRx3SgNlvh2YmSNNI9LMA36Q==
   dependencies:
-    "@descope/core-js-sdk" "2.69.0"
+    "@descope/core-js-sdk" "2.70.0"
     "@fingerprintjs/fingerprintjs-pro" "3.11.6"
     js-cookie "3.0.8"
     jwt-decode "4.0.0"
