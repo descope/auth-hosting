@@ -1401,10 +1401,10 @@
     "@descope/sdk-helpers" "0.9.0"
     tslib "2.8.1"
 
-"@descope/sdk-mixins@0.26.0":
-  version "0.26.0"
-  resolved "https://registry.yarnpkg.com/@descope/sdk-mixins/-/sdk-mixins-0.26.0.tgz#af3b03c619d3e832197c36b4ae89f09d850ec08e"
-  integrity sha512-o7oM/Z59DJjK6Z8V15bzGdyCnSTYvl5ahNxzloenr4B+UYvA/4qJMk8U53HKHt2UZ26KVRrU4qk+Tbz1gNuh6w==
+"@descope/sdk-mixins@0.26.1":
+  version "0.26.1"
+  resolved "https://registry.yarnpkg.com/@descope/sdk-mixins/-/sdk-mixins-0.26.1.tgz#f93d36eb24125deae2963eb85f6b70c2e2da5d15"
+  integrity sha512-YW4kQxSffKLu7Yj3AAvYD8wMIND8kfDiITTyrpmlFkr7El4ewLlmyXBBSdlk6dXz4r510CQRAqzTgfe4EYlX8A==
   dependencies:
     "@descope/sdk-component-drivers" "0.15.0"
     "@descope/sdk-helpers" "0.9.0"
@@ -1478,14 +1478,14 @@
     "@fingerprintjs/fingerprintjs-pro" "3.11.6"
     tslib "2.8.1"
 
-"@descope/web-component@4.3.0":
-  version "4.3.0"
-  resolved "https://registry.yarnpkg.com/@descope/web-component/-/web-component-4.3.0.tgz#b8dc146442dc45da513c0016a89cb270a67211fc"
-  integrity sha512-aRpfSJAvxJUDCKLye19uJblUTZsiOkc8RMZhN8HFECZ7/ACYtvd1umGI9c8B+ypSBP9sfOcxKfHmxa30KP+AKQ==
+"@descope/web-component@4.3.1":
+  version "4.3.1"
+  resolved "https://registry.yarnpkg.com/@descope/web-component/-/web-component-4.3.1.tgz#0e9b506f76e431da6bb35b605333d70f563fdfff"
+  integrity sha512-0KnjNjLx9uwnDEqTFDzn79RqkywTxjTfy28DpbZdoA+hE47sk7xk+P9RyjN59uOD5FrZE6dgPe4/6oSGjJV8Aw==
   dependencies:
     "@descope/escape-markdown" "0.1.6"
     "@descope/sdk-helpers" "0.9.0"
-    "@descope/sdk-mixins" "0.26.0"
+    "@descope/sdk-mixins" "0.26.1"
     "@descope/web-js-sdk" "1.52.0"
     "@fingerprintjs/fingerprintjs-pro" "3.11.6"
     tslib "2.8.1"
