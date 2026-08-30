@@ -173,6 +173,28 @@ describe('App component', () => {
 		);
 	});
 
+	test('that send_session_token search param enables sendSessionToken', async () => {
+		window.location.pathname = `/${packageJson.homepage}/${validProjectId}`;
+		window.location.search = `?flow=${flowId}&send_session_token=true`;
+		render(<App />);
+		await waitFor(() =>
+			expect(mockDescope).toHaveBeenCalledWith(
+				expect.objectContaining({ flowId, sendSessionToken: true })
+			)
+		);
+	});
+
+	test('that sendSessionToken is off by default', async () => {
+		window.location.pathname = `/${packageJson.homepage}/${validProjectId}`;
+		window.location.search = `?flow=${flowId}`;
+		render(<App />);
+		await waitFor(() =>
+			expect(mockDescope).toHaveBeenCalledWith(
+				expect.objectContaining({ flowId, sendSessionToken: undefined })
+			)
+		);
+	});
+
 	test('sets the document title from the title search param', async () => {
 		window.location.pathname = `/${packageJson.homepage}/${validProjectId}`;
 		window.location.search = `?title=My%20Custom%20Title`;
