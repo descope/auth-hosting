@@ -219,6 +219,14 @@ const App = () => {
 			? false
 			: undefined;
 
+	// opt-in: send the current session JWT on flow start/next requests, exposing
+	// its validated claims to the flow via the sessionJwtClaims context key
+	const sendSessionToken =
+		urlParams.get('send_session_token') === 'true' ||
+		env.DESCOPE_SEND_SESSION_TOKEN === 'true'
+			? true
+			: undefined;
+
 	const theme = (urlParams.get('theme') ||
 		env.DESCOPE_FLOW_THEME) as React.ComponentProps<typeof Descope>['theme'];
 
@@ -289,6 +297,7 @@ const App = () => {
 	const flowProps = {
 		flowId,
 		debug,
+		sendSessionToken,
 		locale,
 		tenant: tenantId,
 		theme,
