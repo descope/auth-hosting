@@ -181,9 +181,9 @@ describe('App component', () => {
 		);
 	});
 
-	test('shows a loading overlay until the flow is ready', async () => {
+	test('shows a loading overlay until the flow is ready when loading=true', async () => {
 		window.location.pathname = `/${packageJson.homepage}/${validProjectId}`;
-		window.location.search = `?flow=${flowId}`;
+		window.location.search = `?flow=${flowId}&loading=true`;
 		render(<App />);
 		expect(screen.getByTestId('flow-loading-overlay')).toBeInTheDocument();
 		await waitFor(() =>
@@ -193,9 +193,9 @@ describe('App component', () => {
 		);
 	});
 
-	test('hides the loading overlay when loading=false', async () => {
+	test('hides the loading overlay by default', async () => {
 		window.location.pathname = `/${packageJson.homepage}/${validProjectId}`;
-		window.location.search = `?flow=${flowId}&loading=false`;
+		window.location.search = `?flow=${flowId}`;
 		render(<App />);
 		await waitFor(() =>
 			expect(mockDescope).toHaveBeenCalledWith(
@@ -209,7 +209,7 @@ describe('App component', () => {
 
 	test('uses loading_color for the spinner when provided', async () => {
 		window.location.pathname = `/${packageJson.homepage}/${validProjectId}`;
-		window.location.search = `?flow=${flowId}&loading_color=ff0000`;
+		window.location.search = `?flow=${flowId}&loading=true&loading_color=ff0000`;
 		render(<App />);
 		const spinner = await screen.findByTestId('flow-loading-spinner');
 		expect(spinner).toHaveStyle({ '--flow-loading-color': '#ff0000' });
@@ -217,7 +217,7 @@ describe('App component', () => {
 
 	test('uses bg color for the spinner when loading_color is not provided', async () => {
 		window.location.pathname = `/${packageJson.homepage}/${validProjectId}`;
-		window.location.search = `?flow=${flowId}&bg=00ff00`;
+		window.location.search = `?flow=${flowId}&loading=true&bg=00ff00`;
 		render(<App />);
 		const spinner = await screen.findByTestId('flow-loading-spinner');
 		expect(spinner).toHaveStyle({ '--flow-loading-color': '#00ff00' });

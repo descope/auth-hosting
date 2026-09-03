@@ -324,7 +324,8 @@ const App = () => {
 
 	const client = useMemo(() => getClientParams(urlParams), [urlParams]);
 
-	const showFlowLoading = urlParams.get('loading') !== 'false';
+	const showFlowLoading =
+		urlParams.get('loading') === 'true' || env.DESCOPE_FLOW_LOADING === 'true';
 
 	const loadingSpinnerColor = useMemo(
 		() =>

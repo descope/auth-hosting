@@ -57,9 +57,9 @@ These are the different query parameters you can use:
    - **Image URL**: You can specify a URL to an image such as `https://example.com/background.png`. This image will be sized to cover the screen.
    - When `bg` is a color, the flow loading spinner uses the same color by default.
 
-6. `loading` query parameter is optional. By default, a loading spinner is shown while the flow initializes and during redirect steps (for example, when the first step is SSO). Set `loading=false` to disable it.
+6. `loading` query parameter is optional. By default, no loading spinner is shown. Set `loading=true` to show a spinner while the flow initializes and during redirect steps (for example, when the first step is SSO).
 
-7. `loading_color` query parameter is optional. Sets the loading spinner color using the same formats as `bg` (including bare hex, e.g. `loading_color=ffffff`). If omitted, the spinner uses `bg` when it is a color; otherwise it defaults to `#0082b5`.
+7. `loading_color` query parameter is optional. Sets the loading spinner color using the same formats as `bg` (including bare hex, e.g. `loading_color=ffffff`). Only applies when `loading=true`. If omitted, the spinner uses `bg` when it is a color; otherwise it defaults to `#0082b5`.
 
 8. `wide` query parameter is optional. If wide mode is nedded use `wide=true`. This will widen the flow component that is rendered, which is used for large forms made with Flow screens.
 
