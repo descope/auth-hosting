@@ -87,6 +87,33 @@ body,
 	display: inline-block;
 }
 
+.flow-loading-overlay {
+	position: fixed;
+	inset: 0;
+	z-index: 1000;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: rgba(255, 255, 255, 0.88);
+	backdrop-filter: blur(2px);
+}
+
+.flow-loading-spinner {
+	width: 44px;
+	height: 44px;
+	border-radius: 50%;
+	border: 3px solid
+		color-mix(in srgb, var(--flow-loading-color, #0082b5) 20%, transparent);
+	border-top-color: var(--flow-loading-color, #0082b5);
+	animation: flow-loading-spin 0.8s linear infinite;
+}
+
+@keyframes flow-loading-spin {
+	to {
+		transform: rotate(360deg);
+	}
+}
+
 h1 {
 	margin: 0px;
 	font-weight: 800;

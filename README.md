@@ -55,20 +55,25 @@ These are the different query parameters you can use:
 5. `bg` query parameter is optional. If you wish to use a different background color or URL, you can use this parameter.
    - **Color name**: You can use a [web color](https://developer.mozilla.org/en-US/docs/Web/CSS/color_value), e.g. `bg=red`, `bg=%23ff0000`. Note that some symbols such as `#` will have to be URL encoded.
    - **Image URL**: You can specify a URL to an image such as `https://example.com/background.png`. This image will be sized to cover the screen.
+   - When `bg` is a color, the flow loading spinner uses the same color by default.
 
-6. `wide` query parameter is optional. If wide mode is nedded use `wide=true`. This will widen the flow component that is rendered, which is used for large forms made with Flow screens.
+6. `loading` query parameter is optional. By default, a loading spinner is shown while the flow initializes and during redirect steps (for example, when the first step is SSO). Set `loading=false` to disable it.
 
-7. `theme` query parameter is optional. The default value is `light`, but otherwise it will override the theme for your flows rendered with the SDK.
+7. `loading_color` query parameter is optional. Sets the loading spinner color using the same formats as `bg` (including bare hex, e.g. `loading_color=ffffff`). If omitted, the spinner uses `bg` when it is a color; otherwise it defaults to `#0082b5`.
 
-8. `style` query parameter is optional. The default style in your project will be used if not defined, but this allows you to override the `style` for the flows rendered with the SDK.
+8. `wide` query parameter is optional. If wide mode is nedded use `wide=true`. This will widen the flow component that is rendered, which is used for large forms made with Flow screens.
 
-9. `store_last_auth_user` query parameter is optional. Pass this parameter to ensure the last authenticated user is not saved when the flow ends. For example, append `store_last_auth_user=false` to the URL to disable saving the last user.
+9. `theme` query parameter is optional. The default value is `light`, but otherwise it will override the theme for your flows rendered with the SDK.
 
-10. Additional query parameters prefixed with `client.` are passed to the `Descope` component as its `client` prop. For example: `client.k1=v1&client.k2=v2` becomes `{ k1: 'v1', k2: 'v2' }`.
+10. `style` query parameter is optional. The default style in your project will be used if not defined, but this allows you to override the `style` for the flows rendered with the SDK.
 
-11. `width` & `height` are optional query parameters, controlling the sizing of the flow screen in either pixels or a percentage of the viewport (e.g. `50%`, `1200px`). Any value larger than the screen is clamped down.
+11. `store_last_auth_user` query parameter is optional. Pass this parameter to ensure the last authenticated user is not saved when the flow ends. For example, append `store_last_auth_user=false` to the URL to disable saving the last user.
 
-12. `title` query parameter is optional. If provided, it sets the browser tab/document title (e.g. `title=Sign%20in`).
+12. Additional query parameters prefixed with `client.` are passed to the `Descope` component as its `client` prop. For example: `client.k1=v1&client.k2=v2` becomes `{ k1: 'v1', k2: 'v2' }`.
+
+13. `width` & `height` are optional query parameters, controlling the sizing of the flow screen in either pixels or a percentage of the viewport (e.g. `50%`, `1200px`). Any value larger than the screen is clamped down.
+
+14. `title` query parameter is optional. If provided, it sets the browser tab/document title (e.g. `title=Sign%20in`).
 
 **Using .env**
 
