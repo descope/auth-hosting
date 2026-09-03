@@ -18,8 +18,16 @@ const mockAuthProvider = jest.fn();
 
 jest.mock('@descope/react-sdk', () => ({
 	...jest.requireActual('@descope/react-sdk'),
-	Descope: ({ onSuccess, ...props }: { onSuccess: () => void }) => {
+	Descope: ({
+		onSuccess,
+		onReady = () => {},
+		...props
+	}: {
+		onSuccess: () => void;
+		onReady: () => void;
+	}) => {
 		mockDescope(props);
+		setTimeout(onReady, 0);
 		return (
 			<button data-testid="descope-button" type="button" onClick={onSuccess}>
 				Descope
@@ -171,6 +179,48 @@ describe('App component', () => {
 				})
 			)
 		);
+	});
+
+	test('shows a loading overlay until the flow is ready when loading=true', async () => {
+		window.location.pathname = `/${packageJson.homepage}/${validProjectId}`;
+		window.location.search = `?flow=${flowId}&loading=true`;
+		render(<App />);
+		expect(screen.getByTestId('flow-loading-overlay')).toBeInTheDocument();
+		await waitFor(() =>
+			expect(
+				screen.queryByTestId('flow-loading-overlay')
+			).not.toBeInTheDocument()
+		);
+	});
+
+	test('hides the loading overlay by default', async () => {
+		window.location.pathname = `/${packageJson.homepage}/${validProjectId}`;
+		window.location.search = `?flow=${flowId}`;
+		render(<App />);
+		await waitFor(() =>
+			expect(mockDescope).toHaveBeenCalledWith(
+				expect.objectContaining({ flowId })
+			)
+		);
+		expect(
+			screen.queryByTestId('flow-loading-overlay')
+		).not.toBeInTheDocument();
+	});
+
+	test('uses loading_color for the spinner when provided', async () => {
+		window.location.pathname = `/${packageJson.homepage}/${validProjectId}`;
+		window.location.search = `?flow=${flowId}&loading=true&loading_color=ff0000`;
+		render(<App />);
+		const spinner = await screen.findByTestId('flow-loading-spinner');
+		expect(spinner).toHaveStyle({ '--flow-loading-color': '#ff0000' });
+	});
+
+	test('uses bg color for the spinner when loading_color is not provided', async () => {
+		window.location.pathname = `/${packageJson.homepage}/${validProjectId}`;
+		window.location.search = `?flow=${flowId}&loading=true&bg=00ff00`;
+		render(<App />);
+		const spinner = await screen.findByTestId('flow-loading-spinner');
+		expect(spinner).toHaveStyle({ '--flow-loading-color': '#00ff00' });
 	});
 
 	test('that send_session_token search param enables sendSessionToken', async () => {

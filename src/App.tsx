@@ -1,11 +1,18 @@
 import { AuthProvider, Descope } from '@descope/react-sdk';
 import { FlowJWTResponse } from '@descope/web-component';
 import clsx from 'clsx';
-import React, { useEffect, useMemo, useCallback, CSSProperties } from 'react';
+import React, {
+	useEffect,
+	useMemo,
+	useCallback,
+	useState,
+	CSSProperties
+} from 'react';
 import './App.css';
 import Done from './components/Done';
 import Welcome from './components/Welcome';
 import FlowGate from './components/FlowGate';
+import FlowLoadingOverlay from './components/FlowLoadingOverlay';
 import useOidcMfa from './hooks/useOidcMfa';
 import { env } from './env';
 import { logger } from './utils/logger';
@@ -23,6 +30,29 @@ const normalizeBackgroundParam = (
 	const trimmed = value.trim();
 	if (BARE_HEX_COLOR.test(trimmed)) return `#${trimmed}`;
 	return value;
+};
+
+const DEFAULT_LOADING_COLOR = '#0082b5';
+
+const isBackgroundImageUrl = (value: string | undefined) =>
+	Boolean(value?.startsWith('https://'));
+
+const getLoadingSpinnerColor = ({
+	loadingColor,
+	background
+}: {
+	loadingColor: string | undefined;
+	background: string | undefined;
+}) => {
+	if (loadingColor && !isBackgroundImageUrl(loadingColor)) {
+		return loadingColor;
+	}
+
+	if (background && !isBackgroundImageUrl(background)) {
+		return background;
+	}
+
+	return DEFAULT_LOADING_COLOR;
 };
 
 const isFaviconUrlSecure = (url: string) => {
@@ -294,18 +324,37 @@ const App = () => {
 
 	const client = useMemo(() => getClientParams(urlParams), [urlParams]);
 
-	const flowProps = {
-		flowId,
-		debug,
-		sendSessionToken,
-		locale,
-		tenant: tenantId,
-		theme,
-		styleId,
-		form,
-		client,
-		onSuccess: (e: CustomEvent<FlowJWTResponse>) => {
+	const showFlowLoading =
+		urlParams.get('loading') === 'true' || env.DESCOPE_FLOW_LOADING === 'true';
+
+	const loadingSpinnerColor = useMemo(
+		() =>
+			getLoadingSpinnerColor({
+				loadingColor: normalizeBackgroundParam(
+					urlParams.get('loading_color') || env.DESCOPE_LOADING_COLOR
+				),
+				background
+			}),
+		[urlParams, background]
+	);
+
+	const showFlow = !done && Boolean(projectId && flowId);
+	const flowSessionKey = `${projectId}:${flowId}`;
+	const [readyFlowKey, setReadyFlowKey] = useState<string | null>(null);
+	const isFlowReady = readyFlowKey === flowSessionKey;
+
+	const handleFlowReady = useCallback(() => {
+		setReadyFlowKey(flowSessionKey);
+	}, [flowSessionKey]);
+
+	const handleFlowError = useCallback(() => {
+		setReadyFlowKey(flowSessionKey);
+	}, [flowSessionKey]);
+
+	const handleFlowSuccess = useCallback(
+		(e: CustomEvent<FlowJWTResponse>) => {
 			if (flowId === 'saml-config' || flowId === 'sso-config') {
+				setReadyFlowKey(null);
 				let search = window?.location.search;
 				if (search) {
 					search = `${search}&done=true`;
@@ -320,10 +369,27 @@ const App = () => {
 				return;
 			}
 			if (e?.detail?.flowOutput?.onSuccessRedirectUrl) {
+				setReadyFlowKey(null);
 				// make sure to validate the URL in the flow against approved domains
 				window?.location.assign(e?.detail?.flowOutput?.onSuccessRedirectUrl);
 			}
 		},
+		[flowId]
+	);
+
+	const flowProps = {
+		flowId,
+		debug,
+		sendSessionToken,
+		locale,
+		tenant: tenantId,
+		theme,
+		styleId,
+		form,
+		client,
+		onReady: handleFlowReady,
+		onError: handleFlowError,
+		onSuccess: handleFlowSuccess,
 		...((flowId === 'saml-config' || flowId === 'sso-config') && {
 			autoFocus: false
 		})
@@ -337,14 +403,17 @@ const App = () => {
 			persistTokens={persistTokens}
 		>
 			<div className="app" style={bodyCss} data-testid="app">
-				{!done && projectId && flowId && (
+				{showFlow && showFlowLoading && !isFlowReady && (
+					<FlowLoadingOverlay color={loadingSpinnerColor} />
+				)}
+				{showFlow && (
 					<div
 						className={containerClasses}
 						style={containerCss}
 						data-testid="descope-component"
 					>
 						<FlowGate baseUrl={baseUrl} projectId={projectId}>
-							<Descope {...flowProps} />
+							<Descope key={flowSessionKey} {...flowProps} />
 						</FlowGate>
 					</div>
 				)}
