@@ -1327,10 +1327,10 @@
     reselect "5.1.1"
     tslib "2.8.1"
 
-"@descope/react-sdk@3.2.1":
-  version "3.2.1"
-  resolved "https://registry.yarnpkg.com/@descope/react-sdk/-/react-sdk-3.2.1.tgz#ffa8b0d592ed5967d01e0821f3ae2df16ca25a3b"
-  integrity sha512-OWdUbcuQLAu1mEkr72b1tm49hQVqY7hm1BYazc7HbBjvEqTfJAF0u1NFUzkMnbHVcu73N1mv0shn/xgvFVC1+Q==
+"@descope/react-sdk@3.3.0":
+  version "3.3.0"
+  resolved "https://registry.yarnpkg.com/@descope/react-sdk/-/react-sdk-3.3.0.tgz#8819633de0961c6de7a5ef33e787d79ba5d6cfa4"
+  integrity sha512-M9d5tWRQy2DbOphWKDPAiKyD8zAldKDzGbwZEls0N7iOOEIGPGh1TVrQQWlwL6RzQg8UHksvyQUz6A/8WZwE7A==
   dependencies:
     "@descope/access-key-management-widget" "0.10.1"
     "@descope/applications-portal-widget" "0.9.1"
@@ -1340,7 +1340,7 @@
     "@descope/role-management-widget" "0.10.1"
     "@descope/sdk-helpers" "0.9.0"
     "@descope/tenant-profile-widget" "0.9.1"
-    "@descope/user-management-widget" "0.18.1"
+    "@descope/user-management-widget" "0.19.0"
     "@descope/user-profile-widget" "0.18.1"
     "@descope/web-component" "4.3.1"
     "@descope/web-js-sdk" "1.52.0"
@@ -1365,6 +1365,14 @@
   version "0.15.0"
   resolved "https://registry.yarnpkg.com/@descope/sdk-component-drivers/-/sdk-component-drivers-0.15.0.tgz#b53812058cb308609fed2e5b0e426b48f993d648"
   integrity sha512-AforBf3EJdpE+RcPRs0jgxzIxDxpThBlhPnII5yHisnAP6EcvG7ejn3ACoCee7z7vj3xwCgHItUc/QNrKyCAEg==
+  dependencies:
+    "@descope/sdk-helpers" "0.9.0"
+    tslib "2.8.1"
+
+"@descope/sdk-component-drivers@0.16.0":
+  version "0.16.0"
+  resolved "https://registry.yarnpkg.com/@descope/sdk-component-drivers/-/sdk-component-drivers-0.16.0.tgz#3062237328245c767e329a86cd55109a8f2a4f1a"
+  integrity sha512-3TOFUd7tVUlenXOnTFx8m9VtuJy1qjnM+9GfbUg08r+ovanY9OI17nhBRVQVb5EKDEAbEQs1bj8E8+TsL0Bvvw==
   dependencies:
     "@descope/sdk-helpers" "0.9.0"
     tslib "2.8.1"
@@ -1404,12 +1412,12 @@
   optionalDependencies:
     "@descope/core-js-sdk" "2.70.0"
 
-"@descope/user-management-widget@0.18.1":
-  version "0.18.1"
-  resolved "https://registry.yarnpkg.com/@descope/user-management-widget/-/user-management-widget-0.18.1.tgz#79ba6b3836fd6b31dff7756cf0807f10ea3005d8"
-  integrity sha512-hl5jOjUHSPqMiAbBQ5CYdo9iOlVl0iOmwLOKiQ01nJe5d2RsvUOCuY4dbIlGUt2wZ2VmPvKtd/xu4ToOmWzL1A==
+"@descope/user-management-widget@0.19.0":
+  version "0.19.0"
+  resolved "https://registry.yarnpkg.com/@descope/user-management-widget/-/user-management-widget-0.19.0.tgz#d764a3fe20822af43877506a7a37d5447e069c09"
+  integrity sha512-aG3s5iwsEArkQnAzNO6qc4e2nigfsxRVJC024oxxKOC0oJTcbx4ZE6QLOBU6U26jfwpZE9nzC/LpgsY6GOJ2GA==
   dependencies:
-    "@descope/sdk-component-drivers" "0.15.0"
+    "@descope/sdk-component-drivers" "0.16.0"
     "@descope/sdk-helpers" "0.9.0"
     "@descope/sdk-mixins" "0.26.1"
     "@descope/web-component" "4.3.1"
