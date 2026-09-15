@@ -1,6 +1,7 @@
 import '@testing-library/jest-dom';
 import React, { PropsWithChildren } from 'react';
 import {
+	act,
 	render,
 	fireEvent,
 	screen,
@@ -15,6 +16,9 @@ import { env } from './env';
 
 const mockDescope = jest.fn();
 const mockAuthProvider = jest.fn();
+const mockDescopeControls = {
+	shouldFireOnReady: true
+};
 
 jest.mock('@descope/react-sdk', () => ({
 	...jest.requireActual('@descope/react-sdk'),
@@ -27,7 +31,9 @@ jest.mock('@descope/react-sdk', () => ({
 		onReady: () => void;
 	}) => {
 		mockDescope(props);
-		setTimeout(onReady, 0);
+		if (mockDescopeControls.shouldFireOnReady) {
+			setTimeout(onReady, 0);
+		}
 		return (
 			<button data-testid="descope-button" type="button" onClick={onSuccess}>
 				Descope
@@ -74,6 +80,7 @@ describe('App component', () => {
 		jest.resetModules();
 		mockFetch.mockReset();
 		mockFetch.mockResolvedValue({ ok: false });
+		mockDescopeControls.shouldFireOnReady = true;
 		delete env.REACT_APP_DESCOPE_BASE_URL;
 		delete env.REACT_APP_USE_ORIGIN_BASE_URL;
 		env.DESCOPE_PROJECT_ID = '';
@@ -211,16 +218,35 @@ describe('App component', () => {
 		window.location.pathname = `/${packageJson.homepage}/${validProjectId}`;
 		window.location.search = `?flow=${flowId}&loading=true&loading_color=ff0000`;
 		render(<App />);
-		const spinner = await screen.findByTestId('flow-loading-spinner');
-		expect(spinner).toHaveStyle({ '--flow-loading-color': '#ff0000' });
+		const overlay = await screen.findByTestId('flow-loading-overlay');
+		expect(overlay).toHaveStyle({ '--flow-loading-color': '#ff0000' });
 	});
 
-	test('uses bg color for the spinner when loading_color is not provided', async () => {
+	test('keeps default spinner color when only bg is provided', async () => {
 		window.location.pathname = `/${packageJson.homepage}/${validProjectId}`;
-		window.location.search = `?flow=${flowId}&loading=true&bg=00ff00`;
+		window.location.search = `?flow=${flowId}&loading=true&bg=ffffff`;
 		render(<App />);
-		const spinner = await screen.findByTestId('flow-loading-spinner');
-		expect(spinner).toHaveStyle({ '--flow-loading-color': '#00ff00' });
+		const overlay = await screen.findByTestId('flow-loading-overlay');
+		expect(overlay).toHaveStyle({ '--flow-loading-color': '#0082b5' });
+		expect(overlay).toHaveStyle({ '--flow-loading-overlay-color': '#ffffff' });
+	});
+
+	test('dismisses the loading overlay after loading_timeout when onReady never fires', async () => {
+		jest.useFakeTimers();
+		mockDescopeControls.shouldFireOnReady = false;
+		window.location.pathname = `/${packageJson.homepage}/${validProjectId}`;
+		window.location.search = `?flow=${flowId}&loading=true&loading_timeout=5`;
+		render(<App />);
+		expect(screen.getByTestId('flow-loading-overlay')).toBeInTheDocument();
+
+		act(() => {
+			jest.advanceTimersByTime(5000);
+		});
+
+		expect(
+			screen.queryByTestId('flow-loading-overlay')
+		).not.toBeInTheDocument();
+		jest.useRealTimers();
 	});
 
 	test('that send_session_token search param enables sendSessionToken', async () => {

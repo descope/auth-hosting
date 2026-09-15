@@ -17,6 +17,11 @@ import useOidcMfa from './hooks/useOidcMfa';
 import { env } from './env';
 import { logger } from './utils/logger';
 import { projectRegex } from './shared/projectRegex';
+import {
+	getLoadingOverlayColor,
+	getLoadingSpinnerColor,
+	getLoadingTimeoutMs
+} from './shared/flowLoading';
 
 const ssoAppRegex = /^[a-zA-Z0-9\-_]{1,30}$/;
 
@@ -30,29 +35,6 @@ const normalizeBackgroundParam = (
 	const trimmed = value.trim();
 	if (BARE_HEX_COLOR.test(trimmed)) return `#${trimmed}`;
 	return value;
-};
-
-const DEFAULT_LOADING_COLOR = '#0082b5';
-
-const isBackgroundImageUrl = (value: string | undefined) =>
-	Boolean(value?.startsWith('https://'));
-
-const getLoadingSpinnerColor = ({
-	loadingColor,
-	background
-}: {
-	loadingColor: string | undefined;
-	background: string | undefined;
-}) => {
-	if (loadingColor && !isBackgroundImageUrl(loadingColor)) {
-		return loadingColor;
-	}
-
-	if (background && !isBackgroundImageUrl(background)) {
-		return background;
-	}
-
-	return DEFAULT_LOADING_COLOR;
 };
 
 const isFaviconUrlSecure = (url: string) => {
@@ -329,13 +311,26 @@ const App = () => {
 
 	const loadingSpinnerColor = useMemo(
 		() =>
-			getLoadingSpinnerColor({
-				loadingColor: normalizeBackgroundParam(
+			getLoadingSpinnerColor(
+				normalizeBackgroundParam(
 					urlParams.get('loading_color') || env.DESCOPE_LOADING_COLOR
-				),
-				background
+				)
+			),
+		[urlParams]
+	);
+
+	const loadingOverlayColor = useMemo(
+		() => getLoadingOverlayColor(background),
+		[background]
+	);
+
+	const loadingTimeoutMs = useMemo(
+		() =>
+			getLoadingTimeoutMs({
+				urlTimeoutSeconds: urlParams.get('loading_timeout'),
+				envTimeoutMs: env.DESCOPE_LOADING_TIMEOUT_MS
 			}),
-		[urlParams, background]
+		[urlParams]
 	);
 
 	const showFlow = !done && Boolean(projectId && flowId);
@@ -343,13 +338,35 @@ const App = () => {
 	const [readyFlowKey, setReadyFlowKey] = useState<string | null>(null);
 	const isFlowReady = readyFlowKey === flowSessionKey;
 
-	const handleFlowReady = useCallback(() => {
+	const dismissFlowLoading = useCallback(() => {
 		setReadyFlowKey(flowSessionKey);
 	}, [flowSessionKey]);
 
+	const handleFlowReady = useCallback(() => {
+		dismissFlowLoading();
+	}, [dismissFlowLoading]);
+
 	const handleFlowError = useCallback(() => {
-		setReadyFlowKey(flowSessionKey);
-	}, [flowSessionKey]);
+		dismissFlowLoading();
+	}, [dismissFlowLoading]);
+
+	useEffect(() => {
+		if (!showFlow || !showFlowLoading || isFlowReady) {
+			return undefined;
+		}
+
+		const timer = window.setTimeout(() => {
+			dismissFlowLoading();
+		}, loadingTimeoutMs);
+
+		return () => window.clearTimeout(timer);
+	}, [
+		showFlow,
+		showFlowLoading,
+		isFlowReady,
+		loadingTimeoutMs,
+		dismissFlowLoading
+	]);
 
 	const handleFlowSuccess = useCallback(
 		(e: CustomEvent<FlowJWTResponse>) => {
@@ -404,7 +421,10 @@ const App = () => {
 		>
 			<div className="app" style={bodyCss} data-testid="app">
 				{showFlow && showFlowLoading && !isFlowReady && (
-					<FlowLoadingOverlay color={loadingSpinnerColor} />
+					<FlowLoadingOverlay
+						color={loadingSpinnerColor}
+						overlayColor={loadingOverlayColor}
+					/>
 				)}
 				{showFlow && (
 					<div

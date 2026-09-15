@@ -94,7 +94,11 @@ body,
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	background: rgba(255, 255, 255, 0.88);
+	background: color-mix(
+		in srgb,
+		var(--flow-loading-overlay-color, #ffffff) 88%,
+		transparent
+	);
 	backdrop-filter: blur(2px);
 }
 
@@ -106,6 +110,12 @@ body,
 		color-mix(in srgb, var(--flow-loading-color, #0082b5) 20%, transparent);
 	border-top-color: var(--flow-loading-color, #0082b5);
 	animation: flow-loading-spin 0.8s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.flow-loading-spinner {
+		animation: none;
+	}
 }
 
 @keyframes flow-loading-spin {
