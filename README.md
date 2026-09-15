@@ -58,7 +58,7 @@ These are the different query parameters you can use:
 
 6. `loading` query parameter is optional. By default, no loading spinner is shown. Set `loading=true` to show a spinner while the flow initializes and during redirect steps (for example, when the first step is SSO). The overlay automatically dismisses after a timeout if the flow never becomes ready (default 15 seconds). The overlay is tinted with `bg` when `bg` is a color, so dark pages do not flash white; when `bg` is an image URL or unset, the overlay falls back to white.
 
-7. `loading_color` query parameter is optional. Sets the loading spinner color using the same formats as `bg` (including bare hex, e.g. `loading_color=ffffff`). Only applies when `loading=true`. If omitted, the spinner defaults to `#0082b5`.
+7. `loading_color` query parameter is optional. Sets the loading spinner color using the same formats as `bg` (including bare hex, e.g. `loading_color=ffffff`). Only applies when `loading=true`. If omitted, or if the value is not a valid CSS color (an image URL, for example), the spinner defaults to `#0082b5`.
 
 8. `loading_timeout` query parameter is optional. Sets how long the loading overlay stays visible before auto-dismiss, in seconds (for example, `loading_timeout=20`). Only applies when `loading=true`.
 

@@ -338,6 +338,16 @@ const App = () => {
 	const [readyFlowKey, setReadyFlowKey] = useState<string | null>(null);
 	const isFlowReady = readyFlowKey === flowSessionKey;
 
+	// The flow is unmounted when the domain gate blocks, so onReady/onError can
+	// never fire to clear the overlay off the error screen. Keyed like
+	// readyFlowKey so a new flow starts unblocked without a reset effect.
+	const [blockedFlowKey, setBlockedFlowKey] = useState<string | null>(null);
+	const flowBlocked = blockedFlowKey === flowSessionKey;
+	const handleFlowBlockedChange = useCallback(
+		(blocked: boolean) => setBlockedFlowKey(blocked ? flowSessionKey : null),
+		[flowSessionKey]
+	);
+
 	const dismissFlowLoading = useCallback(() => {
 		setReadyFlowKey(flowSessionKey);
 	}, [flowSessionKey]);
@@ -351,7 +361,7 @@ const App = () => {
 	}, [dismissFlowLoading]);
 
 	useEffect(() => {
-		if (!showFlow || !showFlowLoading || isFlowReady) {
+		if (!showFlow || !showFlowLoading || isFlowReady || flowBlocked) {
 			return undefined;
 		}
 
@@ -364,6 +374,7 @@ const App = () => {
 		showFlow,
 		showFlowLoading,
 		isFlowReady,
+		flowBlocked,
 		loadingTimeoutMs,
 		dismissFlowLoading
 	]);
@@ -420,7 +431,7 @@ const App = () => {
 			persistTokens={persistTokens}
 		>
 			<div className="app" style={bodyCss} data-testid="app">
-				{showFlow && showFlowLoading && !isFlowReady && (
+				{showFlow && showFlowLoading && !isFlowReady && !flowBlocked && (
 					<FlowLoadingOverlay
 						color={loadingSpinnerColor}
 						overlayColor={loadingOverlayColor}
@@ -432,7 +443,11 @@ const App = () => {
 						style={containerCss}
 						data-testid="descope-component"
 					>
-						<FlowGate baseUrl={baseUrl} projectId={projectId}>
+						<FlowGate
+							baseUrl={baseUrl}
+							projectId={projectId}
+							onBlockedChange={handleFlowBlockedChange}
+						>
 							<Descope key={flowSessionKey} {...flowProps} />
 						</FlowGate>
 					</div>

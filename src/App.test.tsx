@@ -810,5 +810,23 @@ describe('App component', () => {
 			);
 			expect(screen.getByText(/something went wrong/i)).toBeInTheDocument();
 		});
+
+		// The flow normally has not become ready by the time the domain check
+		// resolves, so onReady never fires and cannot clear the overlay for us.
+		it('hides the loading overlay when the domain is not approved', async () => {
+			mockDescopeControls.shouldFireOnReady = false;
+			mockFetch.mockResolvedValue({
+				ok: true,
+				json: async () => ({ success: false })
+			});
+			window.location.search = `?flow=${flowId}&loading=true`;
+			render(<App />);
+			expect(
+				await screen.findByText(/something went wrong/i)
+			).toBeInTheDocument();
+			expect(
+				screen.queryByTestId('flow-loading-overlay')
+			).not.toBeInTheDocument();
+		});
 	});
 });

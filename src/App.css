@@ -94,6 +94,11 @@ body,
 	display: flex;
 	align-items: center;
 	justify-content: center;
+	/* color-mix() is not polyfilled by the build and the browserslist targets
+	   still include pre-16.2 iOS Safari, so keep an opaque fallback first.
+	   Without it an unsupported color-mix() drops the declaration entirely and
+	   leaves an invisible layer that still blocks clicks. */
+	background: var(--flow-loading-overlay-color, #ffffff);
 	background: color-mix(
 		in srgb,
 		var(--flow-loading-overlay-color, #ffffff) 88%,
@@ -106,8 +111,12 @@ body,
 	width: 44px;
 	height: 44px;
 	border-radius: 50%;
-	border: 3px solid
-		color-mix(in srgb, var(--flow-loading-color, #0082b5) 20%, transparent);
+	/* The track is a static color on purpose. Any color-mix() here ends up
+	   inside the border shorthand after minification, and an unsupported
+	   color-mix() then drops border-style to none and hides the spinner
+	   completely. Only the accent arc reads the custom property, so a color
+	   that fails to resolve costs the arc, never the whole indicator. */
+	border: 3px solid rgba(128, 128, 128, 0.25);
 	border-top-color: var(--flow-loading-color, #0082b5);
 	animation: flow-loading-spin 0.8s linear infinite;
 }

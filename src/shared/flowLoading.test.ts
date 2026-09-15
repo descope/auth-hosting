@@ -29,6 +29,40 @@ describe('flowLoading helpers', () => {
 		);
 	});
 
+	it('defaults the spinner color when loading_color is not a color', () => {
+		expect(getLoadingSpinnerColor('http://example.com/bg.png')).toBe(
+			DEFAULT_LOADING_COLOR
+		);
+		expect(getLoadingSpinnerColor('https://example.com/bg.png')).toBe(
+			DEFAULT_LOADING_COLOR
+		);
+	});
+
+	it('defaults the overlay color when bg is an http image URL', () => {
+		expect(getLoadingOverlayColor('http://example.com/bg.png')).toBe(
+			DEFAULT_LOADING_OVERLAY_COLOR
+		);
+	});
+
+	it('honours CSS.supports when the browser provides it', () => {
+		const globalWithCss = global as unknown as { CSS?: unknown };
+		const original = globalWithCss.CSS;
+		globalWithCss.CSS = {
+			supports: (property: string, value: string) =>
+				property === 'color' && ['#ff0000', 'red'].includes(value)
+		};
+
+		try {
+			expect(getLoadingSpinnerColor('red')).toBe('red');
+			expect(getLoadingSpinnerColor('notacolor')).toBe(DEFAULT_LOADING_COLOR);
+			expect(getLoadingOverlayColor('notacolor')).toBe(
+				DEFAULT_LOADING_OVERLAY_COLOR
+			);
+		} finally {
+			globalWithCss.CSS = original;
+		}
+	});
+
 	it('parses loading_timeout from query params in seconds', () => {
 		expect(
 			getLoadingTimeoutMs({
