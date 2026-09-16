@@ -1,6 +1,6 @@
 import { next } from '@vercel/functions';
 import middleware, { config } from '../middleware';
-import { mkCsp, CSP_HEADER_NAME, STATIC_SECURITY_HEADERS } from './shared/csp';
+import { mkCsp, CSP_HEADER_NAME } from './shared/csp';
 
 jest.mock('@vercel/functions', () => ({
 	next: jest.fn()
@@ -20,9 +20,9 @@ afterAll(() => {
 
 const fakeRequest = (url: string): Request => ({ url }) as unknown as Request;
 
-// Every branch carries the report-only policy and the static security headers,
-// so they are asserted here rather than repeated in each expectation. A branch
-// that omits either fails these tests.
+// Every branch carries the report-only policy, so it is asserted here rather
+// than repeated in each expectation. A branch that omits it fails these tests.
+// The static headers are served from vercel.json, not from here.
 const expectHeaders = (
 	expectedHeaders: Record<string, string>,
 	{ allowEmbedding = false }: { allowEmbedding?: boolean } = {}
@@ -30,7 +30,6 @@ const expectHeaders = (
 	expect(mockedNext).toHaveBeenCalledWith({
 		headers: {
 			[CSP_HEADER_NAME]: mkCsp(process.env, { allowEmbedding }),
-			...STATIC_SECURITY_HEADERS,
 			...expectedHeaders
 		}
 	});

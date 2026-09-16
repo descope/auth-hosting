@@ -122,21 +122,17 @@ const mkCsp = (env = process.env, { allowEmbedding = false, nonce } = {}) => {
 // collected from real traffic rather than driven by hand.
 const CSP_HEADER_NAME = 'Content-Security-Policy-Report-Only';
 
-// Static and safe on every response, unlike X-Frame-Options, which the
-// middleware decides per project from allowAuthHostingIframeEmbedding.
-const STATIC_SECURITY_HEADERS = {
-	'X-Content-Type-Options': 'nosniff',
-	'Referrer-Policy': 'strict-origin-when-cross-origin'
-};
-
+// Only the policy. X-Content-Type-Options and Referrer-Policy are static, so
+// they are served from vercel.json on this path and from the Caddyfile on the
+// other: the middleware matcher skips static assets to avoid a project-config
+// fetch per bundle, which would leave every .js and .css without them.
+// X-Frame-Options stays with the caller, which decides it per project.
 const cspHeaders = (options = {}, env = process.env) => ({
-	[CSP_HEADER_NAME]: mkCsp(env, options),
-	...STATIC_SECURITY_HEADERS
+	[CSP_HEADER_NAME]: mkCsp(env, options)
 });
 
 module.exports = {
 	mkCsp,
 	cspHeaders,
-	CSP_HEADER_NAME,
-	STATIC_SECURITY_HEADERS
+	CSP_HEADER_NAME
 };
