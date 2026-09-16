@@ -111,13 +111,10 @@ jobs:
       packages: write
       contents: read
       id-token: write
-    # Two images from one Dockerfile, differing only in whether the CSP is
-    # baked into index.html. ADD_CSP changes what the bundle ships, so the two
-    # cannot share a tag: a given tag must always either enforce or not.
-    #
-    # One FedRAMP image covers every FedRAMP environment - unlike console-app,
-    # nothing environment-specific is baked here, since Caddy templates
-    # /login/env.js at request time - so this needs no per-environment matrix.
+    # Separate images because ADD_CSP changes what index.html ships: a tag must
+    # always either enforce or not. One covers every FedRAMP environment, since
+    # Caddy templates /login/env.js at request time and nothing env-specific is
+    # baked here.
     strategy:
       fail-fast: false
       matrix:

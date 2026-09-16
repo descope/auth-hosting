@@ -20,9 +20,8 @@ afterAll(() => {
 
 const fakeRequest = (url: string): Request => ({ url }) as unknown as Request;
 
-// Every branch carries the report-only policy, so it is asserted here rather
-// than repeated in each expectation. A branch that omits it fails these tests.
-// The static headers are served from vercel.json, not from here.
+// Asserted here so every branch has to carry it. The static headers come from
+// vercel.json, not from the middleware.
 const expectHeaders = (
 	expectedHeaders: Record<string, string>,
 	{ allowEmbedding = false }: { allowEmbedding?: boolean } = {}

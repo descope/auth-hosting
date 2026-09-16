@@ -53,9 +53,7 @@ const getSizingValue = ({
 	envVar: string;
 }) => {
 	const value = urlParams.get(key) ?? env[envVar];
-	// Empty, not just undefined: the Caddyfile renders an unset
-	// REACT_APP_FLOW_WIDTH/_HEIGHT into env.js as '', which is "no size set",
-	// not a value worth reporting as invalid.
+	// env.js renders an unset width/height as '', which is "no size set".
 	if (!value) return undefined;
 
 	const [match, amount, unit] = /^(\d+)(px|%)$/.exec(value ?? '') ?? [];

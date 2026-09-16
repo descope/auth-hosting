@@ -1,25 +1,18 @@
-// Bakes an enforcing Content-Security-Policy into index.html at build time.
+// Bakes the enforcing Content-Security-Policy into index.html at build time.
 //
-// Only runs when ADD_CSP is set, which is the FedRAMP image build. Every other
-// deployment ships without a meta tag and gets the report-only policy from a
-// header instead (the Caddyfile, or middleware.ts on the Vercel path), so this
-// file is inert unless a build explicitly asks for it.
-//
-// Caddy is a static file server and cannot generate a per-request header it
-// does not build, so on that path the policy travels in the document and only
-// the nonce is substituted per request. mkCsp is shared with the header paths
-// deliberately: one policy definition, three delivery mechanisms.
+// Only registered when ADD_CSP is set, which is the FedRAMP image build. Caddy
+// is a static file server and cannot build a per-request header, so there the
+// policy travels in the document and only the nonce is substituted per request.
 
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const { mkCsp } = require('../src/shared/csp');
 
-// Caddy substitutes this at request time from `vars nonce {http.request.uuid}`.
-// A nonce baked into a static file would be identical for every visitor, which
-// is no better than 'unsafe-inline'.
+// Substituted by Caddy from `vars nonce {http.request.uuid}`. A nonce baked
+// into a static file is the same for every visitor, which is worth nothing.
 const CADDY_NONCE_PLACEHOLDER = '{{placeholder "http.vars.nonce"}}';
 
-// frame-ancestors is ignored when delivered in a meta element, and browsers log
-// a console warning for it. The Caddyfile header carries that directive.
+// Ignored in a meta element, and browsers warn about it. The Caddyfile header
+// carries it instead.
 const META_UNSUPPORTED_DIRECTIVES = ['frame-ancestors'];
 
 const forMetaTag = (csp) =>
@@ -33,21 +26,18 @@ const forMetaTag = (csp) =>
 		)
 		.join('; ');
 
-// The bootstrap script publishes the nonce for @descope/web-component, which
-// reads window.DESCOPE_NONCE and puts it on the CDN script it injects and on
-// every style element it creates. Without it those are refused by script-src
-// and style-src, and the flow never renders.
+// The bootstrap script is what lets the web component nonce the CDN script and
+// the style elements it injects; without it neither is admitted and the flow
+// never renders.
+//
+// Runtime origins stay as Caddy placeholders only when Caddy is serving: on a
+// fixed-nonce build nothing would substitute them, and the quotes inside the
+// expression would terminate the content attribute and truncate the policy.
 const injectCsp = (html, nonce, env = process.env) =>
 	html.replace(
 		'<head>',
 		[
 			'<head>',
-			// Runtime origins become Caddy placeholders only when Caddy is the one
-			// serving this: they are not known at build time, since one image
-			// serves every environment. On a fixed-nonce build nothing would
-			// substitute them, and the quotes inside the template expression
-			// would terminate the content attribute and truncate the policy - so
-			// there they are resolved from the env the build was given.
 			`<meta http-equiv="Content-Security-Policy" content="${forMetaTag(
 				mkCsp(env, {
 					nonce,
@@ -58,10 +48,13 @@ const injectCsp = (html, nonce, env = process.env) =>
 		].join('')
 	);
 
+// Fixed nonce for builds served without Caddy: worth less than a per-request
+// one, but it keeps the document self-consistent so the app still boots.
+const mkBuildNonce = () => require('crypto').randomBytes(32).toString('base64');
+
 // Do not set ADD_CSP on the dev server: CRA's devtool runs every module through
-// eval(), which this policy rejects, and the only way past that is
-// 'unsafe-eval' — which relaxes the directive exactly where you are trying to
-// observe it. Verify against a production build instead.
+// eval(), and the only way past that is 'unsafe-eval' - which relaxes the
+// directive exactly where you are trying to observe it.
 class InjectCspPlugin {
 	apply(compiler) {
 		compiler.hooks.compilation.tap('InjectCspPlugin', (compilation) => {
@@ -79,10 +72,5 @@ class InjectCspPlugin {
 		});
 	}
 }
-
-// Only for builds served without Caddy substitution, where a fixed nonce is
-// still better than none: it keeps the document self-consistent so the app
-// boots, while the policy stays enforcing.
-const mkBuildNonce = () => require('crypto').randomBytes(32).toString('base64');
 
 module.exports = { InjectCspPlugin, injectCsp, CADDY_NONCE_PLACEHOLDER };

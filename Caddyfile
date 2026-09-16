@@ -13,42 +13,24 @@ http:// {
 	log
 	encode gzip
 
-	# Per-request nonce for the enforcing policy. config/cspPlugin.js bakes
-	# {{placeholder "http.vars.nonce"}} into index.html when a build sets
-	# ADD_CSP (FedRAMP images), and the templates directive below substitutes
-	# this value on every request. A nonce baked into a static file would be
-	# identical for every visitor, which is no better than 'unsafe-inline'.
+	# Substituted into the nonce config/cspPlugin.js bakes into index.html.
 	vars {
 		nonce {http.request.uuid}
 	}
 
-	# The document carries that nonce, so it must never be reused: file_server
-	# would otherwise serve it with its default ETag/Last-Modified and let a
-	# browser or shared cache hand one visitor's nonce to the next. Static
-	# assets, which carry no nonce, keep their caching.
+	# A cached document would hand one visitor's nonce to the next. Assets carry
+	# no nonce and keep their caching.
 	@document not path *.js *.mjs *.css *.map *.json *.txt *.xml *.ico *.svg *.png *.jpg *.jpeg *.gif *.webp *.avif *.woff *.woff2 *.ttf *.eot *.mp4 *.webm *.wasm
 	header @document Cache-Control "no-store"
 
-	# Framing protection, always enforced. It cannot travel in the meta tag —
-	# browsers ignore frame-ancestors there — so an ADD_CSP build carries its
-	# whole policy in the meta except this one directive, which has to be a
-	# header. Without it a FedRAMP image would have no clickjacking protection
-	# at all, which is also ZAP rule 10020.
+	# frame-ancestors cannot travel in a meta tag, so it is the one directive an
+	# ADD_CSP build still needs here. Keep CSP_HEADER to that alone on such a
+	# build: a second full policy would also have to be satisfied, and it cannot
+	# know the nonce. Override both vars to allow embedding; the defaults refuse.
 	#
-	# Unlike the Vercel path this one cannot read the project's
-	# allowAuthHostingIframeEmbedding setting. A deployment that must allow
-	# embedding overrides both vars together; the defaults refuse it.
-	#
-	# Keep CSP_HEADER to frame-ancestors only on an ADD_CSP build: a second full
-	# policy would also have to be satisfied, and it cannot know the per-request
-	# nonce, so it would block the app's own bootstrap script.
-	# CSP_REPORT_ONLY is for deployments that are measuring rather than
-	# enforcing. Empty by default so it stays out of the way of an ADD_CSP
-	# build, whose meta tag already enforces the full policy with a nonce this
-	# header cannot know — it would report a violation for every element that
-	# nonce admits. A container that is not enforcing sets it to the policy it
-	# wants to measure, adding the backend and content origins for its
-	# environment; mkCsp in src/shared/csp.js builds the same string.
+	# CSP_REPORT_ONLY is for deployments measuring rather than enforcing. Empty
+	# by default, since against an enforcing meta tag it would report a violation
+	# for every element the nonce admits.
 	header {
 		Content-Security-Policy "{$CSP_HEADER:frame-ancestors 'self'}"
 		Content-Security-Policy-Report-Only "{$CSP_REPORT_ONLY:}"
