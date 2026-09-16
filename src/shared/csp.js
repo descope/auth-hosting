@@ -45,8 +45,27 @@ const originOf = (value) => {
 };
 
 /**
+ * Caddy template expressions that resolve an env var to a bare origin at
+ * request time. The containerised policy is baked into index.html at build
+ * time, when the backend and content origins are not known - one image serves
+ * every environment - so they cannot be read from process.env there the way
+ * the header paths do.
+ *
+ * Normalized to scheme/host/port because both values carry paths in real
+ * deployments (REACT_APP_CONTENT_BASE_URL is a .../pages URL), and a CSP source
+ * bearing a path matches only that exact path. Written with urlParse rather
+ * than a capture group because $1 inside a Dockerfile ENV would be eaten by
+ * Docker's own expansion. An unset var contributes nothing rather than a
+ * malformed "://" source.
+ */
+const caddyOriginOf = (name) =>
+	`{{if env "${name}"}}{{(urlParse (env "${name}")).scheme}}://{{(urlParse (env "${name}")).host}}{{end}}`;
+
+const RUNTIME_ORIGIN_PLACEHOLDERS = RUNTIME_ORIGIN_ENV_VARS.map(caddyOriginOf);
+
+/**
  * @param {Record<string, string | undefined>} [env]
- * @param {{ allowEmbedding?: boolean, nonce?: string }} [options]
+ * @param {{ allowEmbedding?: boolean, nonce?: string, caddyRuntimeOrigins?: boolean }} [options]
  *   allowEmbedding mirrors the X-Frame-Options decision the middleware makes
  *   from the project's allowAuthHostingIframeEmbedding setting; a project that
  *   opted into embedding must not then be blocked by frame-ancestors.
@@ -54,9 +73,14 @@ const originOf = (value) => {
  *   @descope/web-component reads window.DESCOPE_NONCE and puts it on both the
  *   CDN script it injects and the style elements it creates, and a nonce
  *   admits an element whatever its origin.
+ *   caddyRuntimeOrigins leaves the runtime origins as Caddy placeholders
+ *   instead of resolving them from env, for the policy baked at build time.
  * @returns {string}
  */
-const mkCsp = (env = process.env, { allowEmbedding = false, nonce } = {}) => {
+const mkCsp = (
+	env = process.env,
+	{ allowEmbedding = false, nonce, caddyRuntimeOrigins = false } = {}
+) => {
 	const nonceSource = nonce ? [`'nonce-${nonce}'`] : [];
 
 	const directives = {
@@ -64,6 +88,14 @@ const mkCsp = (env = process.env, { allowEmbedding = false, nonce } = {}) => {
 		'script-src': [
 			"'self'",
 			...nonceSource,
+			// @descope/web-component nonces the bundle it injects, but that
+			// bundle then lazy-loads ~20 chunks through webpack's runtime, which
+			// creates script elements without one. Naming the origins is what
+			// console-app does; the alternative is __webpack_nonce__ inside the
+			// published package. First CDN, then its two fallbacks.
+			'https://descopecdn.com',
+			'https://static.descope.com',
+			'https://cdn.jsdelivr.net',
 			// Injected by this app rather than by the web component, so it never
 			// carries the nonce and needs its origin named. Only reached by flows
 			// with a Google step.
@@ -76,10 +108,22 @@ const mkCsp = (env = process.env, { allowEmbedding = false, nonce } = {}) => {
 		// enforced only on FedRAMP, where the tenant set is known and bounded,
 		// so the usual argument for opening it up - unknowable tenant logos -
 		// does not apply. An image URL is a one-way GET, but it is still an
-		// exfiltration channel. A deployment that needs another origin names it
-		// through REACT_APP_CONTENT_BASE_URL or a follow-up change here.
+		// exfiltration channel.
+		//
+		// Stock flow templates currently pull a background from
+		// images.ctfassets.net, and that is blocked here on purpose: a private
+		// deployment must not fetch from a third-party CDN. The fix belongs in
+		// the flow template, not in this directive - do not add the origin to
+		// make the console quiet.
 		'img-src': ["'self'", 'data:', 'https://imgs.descope.com'],
-		'font-src': ["'self'", 'data:', 'https://fonts.gstatic.com'],
+		// descopecdn.com because @descope/web-components-ui ships its fonts
+		// alongside the bundle, so they come from wherever the bundle did.
+		'font-src': [
+			"'self'",
+			'data:',
+			'https://fonts.gstatic.com',
+			'https://descopecdn.com'
+		],
 		'connect-src': ["'self'", 'https://fpnpmcdn.net'],
 		'media-src': ["'self'"],
 		'object-src': ["'none'"],
@@ -94,11 +138,17 @@ const mkCsp = (env = process.env, { allowEmbedding = false, nonce } = {}) => {
 		'base-uri': ["'self'"]
 	};
 
-	RUNTIME_ORIGIN_ENV_VARS.forEach((name) => {
-		const origin = originOf(env[name]);
-		if (!origin) {
-			return;
-		}
+	// Resolved from env on the header paths, where the policy is built per
+	// request; left as Caddy placeholders on the baked path, where they are not
+	// known yet. Without this the containerised policy blocks every API and
+	// config fetch and no flow loads at all.
+	const runtimeOrigins = caddyRuntimeOrigins
+		? RUNTIME_ORIGIN_PLACEHOLDERS
+		: RUNTIME_ORIGIN_ENV_VARS.map((name) => originOf(env[name])).filter(
+				Boolean
+			);
+
+	runtimeOrigins.forEach((origin) => {
 		directives['connect-src'].push(origin);
 		directives['img-src'].push(origin);
 		directives['style-src'].push(origin);

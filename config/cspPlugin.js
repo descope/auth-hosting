@@ -42,7 +42,13 @@ const injectCsp = (html, nonce, env = process.env) =>
 		'<head>',
 		[
 			'<head>',
-			`<meta http-equiv="Content-Security-Policy" content="${forMetaTag(mkCsp(env, { nonce }))}">`,
+			// caddyRuntimeOrigins because the backend and content origins are not
+			// known at build time - one image serves every environment - so they
+			// are left as placeholders for Caddy to resolve per request, exactly
+			// like the nonce.
+			`<meta http-equiv="Content-Security-Policy" content="${forMetaTag(
+				mkCsp(env, { nonce, caddyRuntimeOrigins: true })
+			)}">`,
 			`<script nonce="${nonce}">window.DESCOPE_NONCE = '${nonce}';</script>`
 		].join('')
 	);
