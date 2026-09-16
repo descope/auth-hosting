@@ -42,12 +42,17 @@ const injectCsp = (html, nonce, env = process.env) =>
 		'<head>',
 		[
 			'<head>',
-			// caddyRuntimeOrigins because the backend and content origins are not
-			// known at build time - one image serves every environment - so they
-			// are left as placeholders for Caddy to resolve per request, exactly
-			// like the nonce.
+			// Runtime origins become Caddy placeholders only when Caddy is the one
+			// serving this: they are not known at build time, since one image
+			// serves every environment. On a fixed-nonce build nothing would
+			// substitute them, and the quotes inside the template expression
+			// would terminate the content attribute and truncate the policy - so
+			// there they are resolved from the env the build was given.
 			`<meta http-equiv="Content-Security-Policy" content="${forMetaTag(
-				mkCsp(env, { nonce, caddyRuntimeOrigins: true })
+				mkCsp(env, {
+					nonce,
+					caddyRuntimeOrigins: nonce === CADDY_NONCE_PLACEHOLDER
+				})
 			)}">`,
 			`<script nonce="${nonce}">window.DESCOPE_NONCE = '${nonce}';</script>`
 		].join('')

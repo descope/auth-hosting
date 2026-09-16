@@ -92,6 +92,20 @@ describe('injectCsp', () => {
 		expect(csp).toContain("base-uri 'self'");
 	});
 
+	it('resolves runtime origins from env on a fixed-nonce build', () => {
+		// Without Caddy nothing would substitute a template expression, and the
+		// quotes inside one terminate the content attribute, truncating the
+		// policy. A build given the origins must bake those instead.
+		const csp = metaContent(
+			injectCsp(TEMPLATE, 'n0', {
+				REACT_APP_DESCOPE_BASE_URL: 'https://api.example.com/v1'
+			})
+		);
+
+		expect(csp).not.toContain('{{');
+		expect(sourcesOf(csp, 'connect-src')).toContain('https://api.example.com');
+	});
+
 	it('keeps the Caddy placeholder verbatim', () => {
 		// Caddy substitutes this server-side before the browser parses the
 		// document, so the inner quotes never reach an HTML parser. Escaping it
