@@ -1,5 +1,6 @@
 import { next } from '@vercel/functions';
 import middleware, { config } from '../middleware';
+import { mkCsp, CSP_HEADER_NAME, STATIC_SECURITY_HEADERS } from './shared/csp';
 
 jest.mock('@vercel/functions', () => ({
 	next: jest.fn()
@@ -19,9 +20,19 @@ afterAll(() => {
 
 const fakeRequest = (url: string): Request => ({ url }) as unknown as Request;
 
-const expectHeaders = (expectedHeaders: Record<string, string>) => {
+// Every branch carries the report-only policy and the static security headers,
+// so they are asserted here rather than repeated in each expectation. A branch
+// that omits either fails these tests.
+const expectHeaders = (
+	expectedHeaders: Record<string, string>,
+	{ allowEmbedding = false }: { allowEmbedding?: boolean } = {}
+) => {
 	expect(mockedNext).toHaveBeenCalledWith({
-		headers: expectedHeaders
+		headers: {
+			[CSP_HEADER_NAME]: mkCsp(process.env, { allowEmbedding }),
+			...STATIC_SECURITY_HEADERS,
+			...expectedHeaders
+		}
 	});
 };
 
@@ -105,7 +116,10 @@ describe('middleware', () => {
 			expectFetchCalledWith(
 				`${baseUrl}/.well-known/project-configuration/${projectId28}`
 			);
-			expectHeaders({ 'x-descope-middleware': 'iframeEnabled' });
+			expectHeaders(
+				{ 'x-descope-middleware': 'iframeEnabled' },
+				{ allowEmbedding: true }
+			);
 		});
 
 		it('omits X-Frame-Options when embedding is allowed (32-char ID)', async () => {
@@ -117,7 +131,10 @@ describe('middleware', () => {
 			expectFetchCalledWith(
 				`${baseUrl}/.well-known/project-configuration/${projectId32}`
 			);
-			expectHeaders({ 'x-descope-middleware': 'iframeEnabled' });
+			expectHeaders(
+				{ 'x-descope-middleware': 'iframeEnabled' },
+				{ allowEmbedding: true }
+			);
 		});
 
 		it('adds X-Frame-Options when allowAuthHostingIframeEmbedding is false', async () => {
@@ -184,6 +201,72 @@ describe('middleware', () => {
 		});
 	});
 
+	describe('content security policy', () => {
+		const projectId = `P${'a'.repeat(27)}`;
+
+		beforeEach(() => {
+			process.env.MIDDLEWARE_DESCOPE_BASE_URL = 'https://api.descope.com';
+		});
+
+		it('reports rather than blocks', () => {
+			// Enforcing this policy before it has been measured would break tenant
+			// flows. Switching the header name is a deliberate, separate step.
+			expect(CSP_HEADER_NAME).toBe('Content-Security-Policy-Report-Only');
+		});
+
+		it('carries no unsafe keyword', () => {
+			const csp = mkCsp({});
+			expect(csp).not.toContain("'unsafe-inline'");
+			expect(csp).not.toContain("'unsafe-eval'");
+			expect(csp).not.toContain("'unsafe-hashes'");
+		});
+
+		it('omits frame-ancestors only when the project allows embedding', () => {
+			expect(mkCsp({}, { allowEmbedding: true })).not.toContain(
+				'frame-ancestors'
+			);
+			expect(mkCsp({}, { allowEmbedding: false })).toContain(
+				"frame-ancestors 'self'"
+			);
+		});
+
+		it('adds runtime origins as origins, not full URLs', () => {
+			const csp = mkCsp({
+				REACT_APP_DESCOPE_BASE_URL: 'https://api.example.com/v1?x=1',
+				REACT_APP_CONTENT_BASE_URL: 'https://static.example.com/pages'
+			});
+			const connectSrc = csp
+				.split('; ')
+				.find((d) => d.startsWith('connect-src '));
+
+			expect(connectSrc).toContain('https://api.example.com');
+			expect(connectSrc).toContain('https://static.example.com');
+			// A path or query is not a valid CSP source expression.
+			expect(csp).not.toContain('/pages');
+			expect(csp).not.toContain('?x=1');
+		});
+
+		it('skips a malformed env var rather than throwing', () => {
+			const csp = mkCsp({ REACT_APP_CONTENT_BASE_URL: 'not a url' });
+			expect(csp).toContain("connect-src 'self'");
+			expect(csp).not.toContain('not a url');
+		});
+
+		it('is present on the embedding-allowed branch too', async () => {
+			mockFetch.mockResolvedValueOnce({
+				ok: true,
+				json: async () => ({ allowAuthHostingIframeEmbedding: true })
+			});
+			await middleware(fakeRequest(`https://example.com/login/${projectId}`));
+
+			const { headers } = mockedNext.mock.calls[0][0] as {
+				headers: Record<string, string>;
+			};
+			expect(headers[CSP_HEADER_NAME]).toBeDefined();
+			expect(headers[CSP_HEADER_NAME]).not.toContain('frame-ancestors');
+		});
+	});
+
 	describe('env var configuration', () => {
 		const projectId = `P${'a'.repeat(27)}`;
 
@@ -219,7 +302,10 @@ describe('middleware', () => {
 			expectFetchCalledWith(
 				`https://api.descope.com/.well-known/project-configuration/${projectId}`
 			);
-			expectHeaders({ 'x-descope-middleware': 'iframeEnabled' });
+			expectHeaders(
+				{ 'x-descope-middleware': 'iframeEnabled' },
+				{ allowEmbedding: true }
+			);
 		});
 
 		it('works with custom base URL', async () => {
@@ -251,7 +337,10 @@ describe('middleware', () => {
 			expectFetchCalledWith(
 				`https://api.descope.com/.well-known/project-configuration/${projectId}`
 			);
-			expectHeaders({ 'x-descope-middleware': 'iframeEnabled' });
+			expectHeaders(
+				{ 'x-descope-middleware': 'iframeEnabled' },
+				{ allowEmbedding: true }
+			);
 		});
 
 		it('handles multiple trailing slashes in base URL', async () => {

@@ -1,5 +1,6 @@
 import { next } from '@vercel/functions';
 import { projectRegex } from './src/shared/projectRegex';
+import { cspHeaders } from './src/shared/csp';
 
 const FETCH_TIMEOUT_MS = 2000;
 
@@ -11,6 +12,7 @@ const middleware = async (request: Request) => {
 	if (!baseUrl) {
 		return next({
 			headers: {
+				...cspHeaders(),
 				'x-descope-middleware': 'misconfigured',
 				'X-Frame-Options': 'SAMEORIGIN'
 			}
@@ -27,6 +29,7 @@ const middleware = async (request: Request) => {
 	if (!projectId) {
 		return next({
 			headers: {
+				...cspHeaders(),
 				'x-descope-middleware': 'noProject',
 				'X-Frame-Options': 'SAMEORIGIN'
 			}
@@ -44,9 +47,12 @@ const middleware = async (request: Request) => {
 		if (response.ok) {
 			const projectConfig = await response.json();
 			if (projectConfig.allowAuthHostingIframeEmbedding === true) {
-				// Project explicitly allows iframe embedding — omit X-Frame-Options
+				// Project explicitly allows iframe embedding — omit X-Frame-Options,
+				// and frame-ancestors with it, or the policy would re-impose exactly
+				// the restriction the project opted out of.
 				return next({
 					headers: {
+						...cspHeaders({ allowEmbedding: true }),
 						'x-descope-middleware': 'iframeEnabled'
 					}
 				});
@@ -54,6 +60,7 @@ const middleware = async (request: Request) => {
 			// allowAuthHostingIframeEmbedding is false or missing
 			return next({
 				headers: {
+					...cspHeaders(),
 					'x-descope-middleware': 'iframeDisabled',
 					'X-Frame-Options': 'SAMEORIGIN'
 				}
@@ -62,6 +69,7 @@ const middleware = async (request: Request) => {
 		// Response not ok, treat as failed
 		return next({
 			headers: {
+				...cspHeaders(),
 				'x-descope-middleware': 'failed',
 				'X-Frame-Options': 'SAMEORIGIN'
 			}
@@ -70,6 +78,7 @@ const middleware = async (request: Request) => {
 		// On error or timeout, return failed status
 		return next({
 			headers: {
+				...cspHeaders(),
 				'x-descope-middleware': 'failed',
 				'X-Frame-Options': 'SAMEORIGIN'
 			}

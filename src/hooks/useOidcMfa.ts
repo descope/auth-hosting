@@ -1,14 +1,9 @@
 import { useEffect } from 'react';
+import { APPROVED_OIDC_MFA_URLS } from '../shared/oidcMfaUrls';
 
 const OIDC_MFA_URL_STATE_PARAM_NAME = 'oidc_mfa_state';
 const OIDC_MFA_URL_ID_TOKEN_PARAM_NAME = 'oidc_mfa_id_token';
 const OIDC_MFA_URL_REDIRECT_URL_PARAM_NAME = 'oidc_mfa_redirect_url';
-
-const APPROVED_OIDC_MFA_URLS = [
-	'https://login.microsoftonline.com',
-	'https://login.microsoftonline.us',
-	'https://login.partner.microsoftonline.cn'
-];
 
 const createAndAppendInputElement = (
 	form: HTMLFormElement,

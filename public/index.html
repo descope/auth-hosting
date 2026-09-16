@@ -1,12 +1,17 @@
 <!doctype html>
 <html lang="en">
-	<style>
-		@import url('https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;700&family=JetBrains+Mono:wght@300;400;500;700;800&display=swap');
-	</style>
 	<head>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<meta name="theme-color" content="#000000" />
+		<!-- A linked stylesheet rather than an inline <style> with @import: the
+		     CSP allows the fonts.googleapis.com origin, but an inline style
+		     element is rejected by style-src-elem before the origin is ever
+		     consulted, and this needs no nonce. -->
+		<link
+			rel="stylesheet"
+			href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;700&family=JetBrains+Mono:wght@300;400;500;700;800&display=swap"
+		/>
 		<script src="%PUBLIC_URL%/env.js"></script>
 	</head>
 	<body>
