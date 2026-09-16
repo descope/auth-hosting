@@ -101,7 +101,7 @@ jobs:
         run: ./thirdPartyLicenseCollector_linux_amd64 -npm-project .
 
   pack:
-    name: 📦 Pack and Upload
+    name: 📦 Pack and Upload (${{ matrix.image_name }})
     runs-on: ubuntu-latest
     needs:
       - build
@@ -111,8 +111,23 @@ jobs:
       packages: write
       contents: read
       id-token: write
+    # Two images from one Dockerfile, differing only in whether the CSP is
+    # baked into index.html. ADD_CSP changes what the bundle ships, so the two
+    # cannot share a tag: a given tag must always either enforce or not.
+    #
+    # One FedRAMP image covers every FedRAMP environment - unlike console-app,
+    # nothing environment-specific is baked here, since Caddy templates
+    # /login/env.js at request time - so this needs no per-environment matrix.
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - image_name: auth-hosting
+            add_csp: 'false'
+          - image_name: auth-hosting-fedramp
+            add_csp: 'true'
     env:
-      IMAGE_NAME: auth-hosting
+      IMAGE_NAME: ${{ matrix.image_name }}
     steps:
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -152,6 +167,8 @@ jobs:
           build-args: |
             NODE_VERSION=${{ env.NODE_VERSION }}
             NODE_AUTH_TOKEN=${{ secrets.CI_NPM_READ_ORG }}
+            ADD_CSP=${{ matrix.add_csp }}
+            INJECT_CADDY_NONCE=${{ matrix.add_csp }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: |
             ${{ steps.meta.outputs.labels }}
