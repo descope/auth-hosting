@@ -3,7 +3,7 @@
 	"version": "0.1.0",
 	"private": true,
 	"dependencies": {
-		"@descope/react-sdk": "3.3.4",
+		"@descope/react-sdk": "3.3.5",
 		"@descope/web-component": "4.4.1",
 		"@emotion/react": "11.14.0",
 		"@emotion/styled": "11.14.1",
