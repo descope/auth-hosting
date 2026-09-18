@@ -1,9 +1,12 @@
-import React, { PropsWithChildren, useEffect, useState } from 'react';
+import React, { PropsWithChildren, useEffect, useRef, useState } from 'react';
 import ErrorScreen from '../Error';
 
 type FlowGateProps = PropsWithChildren<{
 	baseUrl: string | undefined;
 	projectId: string;
+	// Lets the caller drop UI layered over the flow (such as the loading
+	// overlay) once the flow is replaced by the error screen.
+	onBlockedChange: (blocked: boolean) => void;
 }>;
 
 // Blocks the flow from rendering when the orchestration service reports the
@@ -12,9 +15,16 @@ type FlowGateProps = PropsWithChildren<{
 const FlowGate: React.FC<FlowGateProps> = ({
 	baseUrl,
 	projectId,
+	onBlockedChange,
 	children
 }) => {
 	const [blocked, setBlocked] = useState(false);
+
+	// Held in a ref so an unmemoized callback cannot re-trigger the request.
+	const onBlockedChangeRef = useRef(onBlockedChange);
+	useEffect(() => {
+		onBlockedChangeRef.current = onBlockedChange;
+	}, [onBlockedChange]);
 
 	useEffect(() => {
 		if (!baseUrl || !projectId) {
@@ -32,6 +42,7 @@ const FlowGate: React.FC<FlowGateProps> = ({
 			.then((body) => {
 				if (active && body && body.success !== true) {
 					setBlocked(true);
+					onBlockedChangeRef.current(true);
 				}
 			})
 			.catch(() => {
