@@ -1,15 +1,27 @@
 import { AuthProvider, Descope } from '@descope/react-sdk';
 import { FlowJWTResponse } from '@descope/web-component';
 import clsx from 'clsx';
-import React, { useEffect, useMemo, useCallback, CSSProperties } from 'react';
+import React, {
+	useEffect,
+	useMemo,
+	useCallback,
+	useState,
+	CSSProperties
+} from 'react';
 import './App.css';
 import Done from './components/Done';
 import Welcome from './components/Welcome';
 import FlowGate from './components/FlowGate';
+import FlowLoadingOverlay from './components/FlowLoadingOverlay';
 import useOidcMfa from './hooks/useOidcMfa';
 import { env } from './env';
 import { logger } from './utils/logger';
 import { projectRegex } from './shared/projectRegex';
+import {
+	getLoadingOverlayColor,
+	getLoadingSpinnerColor,
+	getLoadingTimeoutMs
+} from './shared/flowLoading';
 
 const ssoAppRegex = /^[a-zA-Z0-9\-_]{1,30}$/;
 
@@ -294,18 +306,83 @@ const App = () => {
 
 	const client = useMemo(() => getClientParams(urlParams), [urlParams]);
 
-	const flowProps = {
-		flowId,
-		debug,
-		sendSessionToken,
-		locale,
-		tenant: tenantId,
-		theme,
-		styleId,
-		form,
-		client,
-		onSuccess: (e: CustomEvent<FlowJWTResponse>) => {
+	const showFlowLoading =
+		urlParams.get('loading') === 'true' || env.DESCOPE_FLOW_LOADING === 'true';
+
+	const loadingSpinnerColor = useMemo(
+		() =>
+			getLoadingSpinnerColor(
+				normalizeBackgroundParam(
+					urlParams.get('loading_color') || env.DESCOPE_LOADING_COLOR
+				)
+			),
+		[urlParams]
+	);
+
+	const loadingOverlayColor = useMemo(
+		() => getLoadingOverlayColor(background),
+		[background]
+	);
+
+	const loadingTimeoutMs = useMemo(
+		() =>
+			getLoadingTimeoutMs({
+				urlTimeoutSeconds: urlParams.get('loading_timeout'),
+				envTimeoutMs: env.DESCOPE_LOADING_TIMEOUT_MS
+			}),
+		[urlParams]
+	);
+
+	const showFlow = !done && Boolean(projectId && flowId);
+	const flowSessionKey = `${projectId}:${flowId}`;
+	const [readyFlowKey, setReadyFlowKey] = useState<string | null>(null);
+	const isFlowReady = readyFlowKey === flowSessionKey;
+
+	// The flow is unmounted when the domain gate blocks, so onReady/onError can
+	// never fire to clear the overlay off the error screen. Keyed like
+	// readyFlowKey so a new flow starts unblocked without a reset effect.
+	const [blockedFlowKey, setBlockedFlowKey] = useState<string | null>(null);
+	const flowBlocked = blockedFlowKey === flowSessionKey;
+	const handleFlowBlockedChange = useCallback(
+		(blocked: boolean) => setBlockedFlowKey(blocked ? flowSessionKey : null),
+		[flowSessionKey]
+	);
+
+	const dismissFlowLoading = useCallback(() => {
+		setReadyFlowKey(flowSessionKey);
+	}, [flowSessionKey]);
+
+	const handleFlowReady = useCallback(() => {
+		dismissFlowLoading();
+	}, [dismissFlowLoading]);
+
+	const handleFlowError = useCallback(() => {
+		dismissFlowLoading();
+	}, [dismissFlowLoading]);
+
+	useEffect(() => {
+		if (!showFlow || !showFlowLoading || isFlowReady || flowBlocked) {
+			return undefined;
+		}
+
+		const timer = window.setTimeout(() => {
+			dismissFlowLoading();
+		}, loadingTimeoutMs);
+
+		return () => window.clearTimeout(timer);
+	}, [
+		showFlow,
+		showFlowLoading,
+		isFlowReady,
+		flowBlocked,
+		loadingTimeoutMs,
+		dismissFlowLoading
+	]);
+
+	const handleFlowSuccess = useCallback(
+		(e: CustomEvent<FlowJWTResponse>) => {
 			if (flowId === 'saml-config' || flowId === 'sso-config') {
+				setReadyFlowKey(null);
 				let search = window?.location.search;
 				if (search) {
 					search = `${search}&done=true`;
@@ -320,10 +397,27 @@ const App = () => {
 				return;
 			}
 			if (e?.detail?.flowOutput?.onSuccessRedirectUrl) {
+				setReadyFlowKey(null);
 				// make sure to validate the URL in the flow against approved domains
 				window?.location.assign(e?.detail?.flowOutput?.onSuccessRedirectUrl);
 			}
 		},
+		[flowId]
+	);
+
+	const flowProps = {
+		flowId,
+		debug,
+		sendSessionToken,
+		locale,
+		tenant: tenantId,
+		theme,
+		styleId,
+		form,
+		client,
+		onReady: handleFlowReady,
+		onError: handleFlowError,
+		onSuccess: handleFlowSuccess,
 		...((flowId === 'saml-config' || flowId === 'sso-config') && {
 			autoFocus: false
 		})
@@ -337,14 +431,24 @@ const App = () => {
 			persistTokens={persistTokens}
 		>
 			<div className="app" style={bodyCss} data-testid="app">
-				{!done && projectId && flowId && (
+				{showFlow && showFlowLoading && !isFlowReady && !flowBlocked && (
+					<FlowLoadingOverlay
+						color={loadingSpinnerColor}
+						overlayColor={loadingOverlayColor}
+					/>
+				)}
+				{showFlow && (
 					<div
 						className={containerClasses}
 						style={containerCss}
 						data-testid="descope-component"
 					>
-						<FlowGate baseUrl={baseUrl} projectId={projectId}>
-							<Descope {...flowProps} />
+						<FlowGate
+							baseUrl={baseUrl}
+							projectId={projectId}
+							onBlockedChange={handleFlowBlockedChange}
+						>
+							<Descope key={flowSessionKey} {...flowProps} />
 						</FlowGate>
 					</div>
 				)}
