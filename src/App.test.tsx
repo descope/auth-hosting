@@ -1,6 +1,7 @@
 import '@testing-library/jest-dom';
 import React, { PropsWithChildren } from 'react';
 import {
+	act,
 	render,
 	fireEvent,
 	screen,
@@ -15,11 +16,24 @@ import { env } from './env';
 
 const mockDescope = jest.fn();
 const mockAuthProvider = jest.fn();
+const mockDescopeControls = {
+	shouldFireOnReady: true
+};
 
 jest.mock('@descope/react-sdk', () => ({
 	...jest.requireActual('@descope/react-sdk'),
-	Descope: ({ onSuccess, ...props }: { onSuccess: () => void }) => {
+	Descope: ({
+		onSuccess,
+		onReady = () => {},
+		...props
+	}: {
+		onSuccess: () => void;
+		onReady: () => void;
+	}) => {
 		mockDescope(props);
+		if (mockDescopeControls.shouldFireOnReady) {
+			setTimeout(onReady, 0);
+		}
 		return (
 			<button data-testid="descope-button" type="button" onClick={onSuccess}>
 				Descope
@@ -66,6 +80,7 @@ describe('App component', () => {
 		jest.resetModules();
 		mockFetch.mockReset();
 		mockFetch.mockResolvedValue({ ok: false });
+		mockDescopeControls.shouldFireOnReady = true;
 		delete env.REACT_APP_DESCOPE_BASE_URL;
 		delete env.REACT_APP_USE_ORIGIN_BASE_URL;
 		env.DESCOPE_PROJECT_ID = '';
@@ -171,6 +186,67 @@ describe('App component', () => {
 				})
 			)
 		);
+	});
+
+	test('shows a loading overlay until the flow is ready when loading=true', async () => {
+		window.location.pathname = `/${packageJson.homepage}/${validProjectId}`;
+		window.location.search = `?flow=${flowId}&loading=true`;
+		render(<App />);
+		expect(screen.getByTestId('flow-loading-overlay')).toBeInTheDocument();
+		await waitFor(() =>
+			expect(
+				screen.queryByTestId('flow-loading-overlay')
+			).not.toBeInTheDocument()
+		);
+	});
+
+	test('hides the loading overlay by default', async () => {
+		window.location.pathname = `/${packageJson.homepage}/${validProjectId}`;
+		window.location.search = `?flow=${flowId}`;
+		render(<App />);
+		await waitFor(() =>
+			expect(mockDescope).toHaveBeenCalledWith(
+				expect.objectContaining({ flowId })
+			)
+		);
+		expect(
+			screen.queryByTestId('flow-loading-overlay')
+		).not.toBeInTheDocument();
+	});
+
+	test('uses loading_color for the spinner when provided', async () => {
+		window.location.pathname = `/${packageJson.homepage}/${validProjectId}`;
+		window.location.search = `?flow=${flowId}&loading=true&loading_color=ff0000`;
+		render(<App />);
+		const overlay = await screen.findByTestId('flow-loading-overlay');
+		expect(overlay).toHaveStyle({ '--flow-loading-color': '#ff0000' });
+	});
+
+	test('keeps default spinner color when only bg is provided', async () => {
+		window.location.pathname = `/${packageJson.homepage}/${validProjectId}`;
+		window.location.search = `?flow=${flowId}&loading=true&bg=ffffff`;
+		render(<App />);
+		const overlay = await screen.findByTestId('flow-loading-overlay');
+		expect(overlay).toHaveStyle({ '--flow-loading-color': '#0082b5' });
+		expect(overlay).toHaveStyle({ '--flow-loading-overlay-color': '#ffffff' });
+	});
+
+	test('dismisses the loading overlay after loading_timeout when onReady never fires', async () => {
+		jest.useFakeTimers();
+		mockDescopeControls.shouldFireOnReady = false;
+		window.location.pathname = `/${packageJson.homepage}/${validProjectId}`;
+		window.location.search = `?flow=${flowId}&loading=true&loading_timeout=5`;
+		render(<App />);
+		expect(screen.getByTestId('flow-loading-overlay')).toBeInTheDocument();
+
+		act(() => {
+			jest.advanceTimersByTime(5000);
+		});
+
+		expect(
+			screen.queryByTestId('flow-loading-overlay')
+		).not.toBeInTheDocument();
+		jest.useRealTimers();
 	});
 
 	test('that send_session_token search param enables sendSessionToken', async () => {
@@ -733,6 +809,24 @@ describe('App component', () => {
 				expect(screen.queryByTestId('descope-button')).not.toBeInTheDocument()
 			);
 			expect(screen.getByText(/something went wrong/i)).toBeInTheDocument();
+		});
+
+		// The flow normally has not become ready by the time the domain check
+		// resolves, so onReady never fires and cannot clear the overlay for us.
+		it('hides the loading overlay when the domain is not approved', async () => {
+			mockDescopeControls.shouldFireOnReady = false;
+			mockFetch.mockResolvedValue({
+				ok: true,
+				json: async () => ({ success: false })
+			});
+			window.location.search = `?flow=${flowId}&loading=true`;
+			render(<App />);
+			expect(
+				await screen.findByText(/something went wrong/i)
+			).toBeInTheDocument();
+			expect(
+				screen.queryByTestId('flow-loading-overlay')
+			).not.toBeInTheDocument();
 		});
 	});
 });
