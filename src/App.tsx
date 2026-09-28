@@ -246,8 +246,6 @@ const App = () => {
 			// We want url("https://whatever.invalid") with any quotes escaped correctly
 			// so JSON.stringify is a convenient option.
 			css.backgroundImage = `url(${JSON.stringify(url.toString())})`;
-			css.backgroundSize = 'cover';
-			css.backgroundPosition = 'center center';
 			logger.log('Using background url', url);
 		} catch (err) {
 			logger.log('Using background as color', background);

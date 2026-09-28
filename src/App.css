@@ -17,6 +17,8 @@ body {
 	flex-grow: 1;
 	min-height: 100vh;
 	width: 100%;
+	background-size: cover;
+	background-position: center center;
 	flex-direction: column;
 	text-align: center;
 	align-items: center;
