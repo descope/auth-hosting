@@ -247,6 +247,7 @@ const App = () => {
 			// so JSON.stringify is a convenient option.
 			css.backgroundImage = `url(${JSON.stringify(url.toString())})`;
 			css.backgroundSize = 'cover';
+			css.backgroundPosition = 'center center';
 			logger.log('Using background url', url);
 		} catch (err) {
 			logger.log('Using background as color', background);
