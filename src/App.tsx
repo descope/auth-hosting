@@ -82,19 +82,122 @@ const getClientParams = (urlParams: URLSearchParams) => {
 	return Object.keys(clientParams).length > 0 ? clientParams : undefined;
 };
 
-const getFaviconUrl = async (url: string, defaultFaviconUrl: string) => {
-	logger.log('Attempting to fetch favicon from:', url);
+const fetchOk = async (url: string) => {
 	try {
 		const response = await fetch(url);
-		logger.log('Favicon fetch response:', response.status, response.ok);
-		if (response.ok) {
-			return new URL(url).href;
-		}
+		return !!response?.ok;
 	} catch (error) {
 		logger.error('Error fetching favicon:', error);
+		return false;
 	}
-	logger.log('Falling back to default favicon:', defaultFaviconUrl);
-	return new URL(defaultFaviconUrl).href;
+};
+
+const fetchJson = async (url: string): Promise<unknown> => {
+	try {
+		const response = await fetch(url);
+		if (!response?.ok) return undefined;
+		return await response.json();
+	} catch (error) {
+		logger.error('Error fetching style JSON:', error);
+		return undefined;
+	}
+};
+
+// A flow renders in light or dark. Mirror the web-component: an explicit theme wins,
+// otherwise follow the OS preference. Anything else (e.g. "os") resolves the same way.
+const resolveThemeFlavor = (theme?: string | null): 'light' | 'dark' => {
+	if (theme === 'light' || theme === 'dark') return theme;
+	return window.matchMedia?.('(prefers-color-scheme: dark)')?.matches
+		? 'dark'
+		: 'light';
+};
+
+// The flows favicon is stored on the style's logo component, per flavor. The published
+// style JSON keeps it either as a CSS variable inside the rendered component host
+// (`--descope-favicon-url:url(<dataURI>)`) or as the raw logo key; read both so the parse
+// survives either shape. Falls back to the light flavor when the wanted one has no favicon.
+const extractStyleFavicon = (
+	style: unknown,
+	flavor: 'light' | 'dark'
+): string | undefined => {
+	const asFlavor = (name: string) =>
+		(style as Record<string, { components?: Record<string, any> }>)?.[name]
+			?.components;
+	const components = asFlavor(flavor) ?? asFlavor('light');
+	if (!components) return undefined;
+
+	const host = components['descope-logo']?.host;
+	const fromHost =
+		typeof host === 'string'
+			? host
+					.match(/--descope-favicon-url:\s*url\(([^)]+)\)/)?.[1]
+					?.trim()
+					.replace(/^['"]|['"]$/g, '')
+			: undefined;
+	const fromRaw = components.logo?.['--descope-favicon-url'];
+
+	const favicon = fromHost || fromRaw;
+	return typeof favicon === 'string' && favicon.startsWith('data:')
+		? favicon
+		: undefined;
+};
+
+// resolveFaviconUrl picks the favicon a fed-app login shows, in priority order:
+//   1. app           - the app's own favicon object
+//   2. style-json    - the favicon set on the flow style, read per theme flavor
+//                      (light/dark) from the published style JSON. Theme-aware, so a
+//                      style can carry a different favicon for light and dark.
+//   3. project-asset - the project-level default favicon, one object for every fed app
+//                      with none of its own, independent of the flow style
+//   4. default       - the built-in Descope icon
+const resolveFaviconUrl = async ({
+	perAppUrl,
+	projectId,
+	styleId,
+	themeFlavor,
+	faviconUrlTemplate,
+	defaultFaviconUrl
+}: {
+	perAppUrl: string;
+	projectId: string;
+	styleId: string;
+	themeFlavor: 'light' | 'dark';
+	faviconUrlTemplate: string;
+	defaultFaviconUrl: string;
+}): Promise<{ href: string; source: string }> => {
+	if (await fetchOk(perAppUrl)) {
+		return { href: new URL(perAppUrl).href, source: 'app' };
+	}
+
+	// A named style carries its own favicon per flavor. The style JSON sits beside the
+	// per-app favicon: same base, the app segment replaced by "<styleId>.json".
+	if (styleId) {
+		const styleUrl = faviconUrlTemplate
+			.replace('{projectId}', projectId)
+			.replace('{ssoAppId}/assets/favicon.ico', `${styleId}.json`);
+		if (!styleUrl.includes('{') && isFaviconUrlSecure(styleUrl)) {
+			const favicon = extractStyleFavicon(
+				await fetchJson(styleUrl),
+				themeFlavor
+			);
+			if (favicon) return { href: favicon, source: 'style-json' };
+		}
+	}
+
+	// The project-level favicon sits beside the per-app one, without the app segment.
+	const projectUrl = faviconUrlTemplate
+		.replace('{projectId}', projectId)
+		.replace('{ssoAppId}/', '');
+	if (
+		!projectUrl.includes('{') &&
+		projectUrl !== perAppUrl &&
+		isFaviconUrlSecure(projectUrl) &&
+		(await fetchOk(projectUrl))
+	) {
+		return { href: new URL(projectUrl).href, source: 'project-asset' };
+	}
+
+	return { href: new URL(defaultFaviconUrl).href, source: 'default' };
 };
 
 const App = () => {
@@ -160,7 +263,21 @@ const App = () => {
 		let existingFaviconUrl = defaultFaviconUrl;
 		if (ssoAppId) {
 			logger.log('Checking custom favicon for ssoAppId:', ssoAppId);
-			existingFaviconUrl = await getFaviconUrl(faviconUrl, defaultFaviconUrl);
+			const faviconStyleId =
+				urlParams.get('style') || env.DESCOPE_STYLE_ID || '';
+			const themeFlavor = resolveThemeFlavor(
+				urlParams.get('theme') || env.DESCOPE_FLOW_THEME
+			);
+			const resolved = await resolveFaviconUrl({
+				perAppUrl: faviconUrl,
+				projectId,
+				styleId: faviconStyleId,
+				themeFlavor,
+				faviconUrlTemplate,
+				defaultFaviconUrl
+			});
+			existingFaviconUrl = resolved.href;
+			logger.log('Favicon source:', resolved.source);
 		}
 
 		let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
@@ -173,7 +290,7 @@ const App = () => {
 		link.href = existingFaviconUrl;
 
 		logger.log('Favicon updated to:', existingFaviconUrl);
-	}, [projectId, ssoAppId, faviconUrlTemplate, defaultFaviconUrl]);
+	}, [projectId, ssoAppId, faviconUrlTemplate, defaultFaviconUrl, urlParams]);
 
 	// Run immediately and also when dependencies change
 	useEffect(() => {
