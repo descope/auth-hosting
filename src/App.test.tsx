@@ -505,8 +505,8 @@ describe('App component', () => {
 			});
 		});
 
-		// Option B: no per-app favicon, but a ?style= is set -> read the style's favicon
-		// out of its published JSON.
+		// No per-app favicon, but a ?style= is set -> read the style's favicon out of its
+		// published JSON.
 		it('should use the style favicon when the app has none and a style is set', async () => {
 			env.REACT_APP_DEFAULT_FAVICON_URL =
 				'https://example.com/default-favicon.ico';
@@ -547,40 +547,6 @@ describe('App component', () => {
 					"link[rel~='icon']"
 				) as HTMLLinkElement;
 				expect(link?.href).toBe(styleFavicon);
-			});
-		});
-
-		// Option A: no per-app favicon and no ?style= -> fall back to the project-level
-		// favicon object published from the Default style.
-		it('should use the project favicon when the app has none and no style is set', async () => {
-			env.REACT_APP_DEFAULT_FAVICON_URL =
-				'https://example.com/default-favicon.ico';
-			env.REACT_APP_FAVICON_URL_TEMPLATE =
-				'https://example.com/{projectId}/{ssoAppId}/assets/favicon.ico';
-
-			Object.defineProperty(window, 'location', {
-				value: {
-					...window.location,
-					search: '?sso_app_id=testSsoAppId',
-					pathname: '/test'
-				},
-				writable: true
-			});
-
-			mockFetch
-				.mockResolvedValueOnce({ ok: false, status: 404 })
-				.mockResolvedValueOnce({ ok: true, status: 200 });
-
-			render(<App />);
-
-			await waitFor(() => {
-				// eslint-disable-next-line testing-library/no-node-access -- can't query head with screen
-				const link = document.head.querySelector(
-					"link[rel~='icon']"
-				) as HTMLLinkElement;
-				expect(link?.href).toBe(
-					'https://example.com/P1234567890123456789012345678901/assets/favicon.ico'
-				);
 			});
 		});
 	});

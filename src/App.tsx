@@ -149,9 +149,7 @@ const extractStyleFavicon = (
 //   2. style-json    - the favicon set on the flow style, read per theme flavor
 //                      (light/dark) from the published style JSON. Theme-aware, so a
 //                      style can carry a different favicon for light and dark.
-//   3. project-asset - the project-level default favicon, one object for every fed app
-//                      with none of its own, independent of the flow style
-//   4. default       - the built-in Descope icon
+//   3. default       - the built-in Descope icon
 const resolveFaviconUrl = async ({
 	perAppUrl,
 	projectId,
@@ -184,19 +182,6 @@ const resolveFaviconUrl = async ({
 			);
 			if (favicon) return { href: favicon, source: 'style-json' };
 		}
-	}
-
-	// The project-level favicon sits beside the per-app one, without the app segment.
-	const projectUrl = faviconUrlTemplate
-		.replace('{projectId}', projectId)
-		.replace('{ssoAppId}/', '');
-	if (
-		!projectUrl.includes('{') &&
-		projectUrl !== perAppUrl &&
-		isFaviconUrlSecure(projectUrl) &&
-		(await fetchOk(projectUrl))
-	) {
-		return { href: new URL(projectUrl).href, source: 'project-asset' };
 	}
 
 	return { href: new URL(defaultFaviconUrl).href, source: 'default' };
