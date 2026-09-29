@@ -532,7 +532,7 @@ describe('App component', () => {
 						light: {
 							components: {
 								'descope-logo': {
-									host: `--descope-favicon-url:url(${styleFavicon});`
+									host: `--descope-fed-apps-favicon-url:url(${styleFavicon});`
 								}
 							}
 						}

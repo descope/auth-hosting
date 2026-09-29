@@ -112,10 +112,12 @@ const resolveThemeFlavor = (theme?: string | null): 'light' | 'dark' => {
 		: 'light';
 };
 
-// The flows favicon is stored on the style's logo component, per flavor. The published
-// style JSON keeps it either as a CSS variable inside the rendered component host
-// (`--descope-favicon-url:url(<dataURI>)`) or as the raw logo key; read both so the parse
-// survives either shape. Falls back to the light flavor when the wanted one has no favicon.
+// The federated-app favicon is stored on the style's logo component, per flavor. It is a
+// distinct slot from the admin portal favicon (--descope-favicon-url). The published style
+// JSON keeps it either as a CSS variable inside the rendered component host
+// (`--descope-fed-apps-favicon-url:url(<dataURI>)`) or as the raw logo key; read both so
+// the parse survives either shape. Falls back to the light flavor when the wanted one has
+// no favicon.
 const extractStyleFavicon = (
 	style: unknown,
 	flavor: 'light' | 'dark'
@@ -130,11 +132,11 @@ const extractStyleFavicon = (
 	const fromHost =
 		typeof host === 'string'
 			? host
-					.match(/--descope-favicon-url:\s*url\(([^)]+)\)/)?.[1]
+					.match(/--descope-fed-apps-favicon-url:\s*url\(([^)]+)\)/)?.[1]
 					?.trim()
 					.replace(/^['"]|['"]$/g, '')
 			: undefined;
-	const fromRaw = components.logo?.['--descope-favicon-url'];
+	const fromRaw = components.logo?.['--descope-fed-apps-favicon-url'];
 
 	const favicon = fromHost || fromRaw;
 	return typeof favicon === 'string' && favicon.startsWith('data:')
