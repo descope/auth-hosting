@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom';
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
 import FlowGate from './FlowGate';
 
@@ -46,6 +46,17 @@ const respondWith = ({
 	});
 };
 
+// Both fetches are issued synchronously in the effect, so the call count is true
+// immediately and the gate is still 'open'. Asserting the flow renders without
+// letting res.json() and the setState that follows settle would pass even if the
+// gate treated the response as disabled, so every positive case flushes first.
+const settleRequests = async () => {
+	await waitFor(() => expect(mockFetch).toHaveBeenCalledTimes(2));
+	await act(async () => {
+		await Promise.resolve();
+	});
+};
+
 const renderGate = (url: string | undefined, id: string) =>
 	render(
 		<FlowGate baseUrl={url} projectId={id}>
@@ -58,8 +69,9 @@ describe('FlowGate', () => {
 		respondWith({});
 		renderGate(baseUrl, projectId);
 
-		await waitFor(() => expect(mockFetch).toHaveBeenCalledTimes(2));
+		await settleRequests();
 		expect(screen.getByTestId('flow')).toBeInTheDocument();
+		expect(screen.queryByTestId('disabled-component')).not.toBeInTheDocument();
 	});
 
 	it('shows the disabled notice when the project turned hosting off', async () => {
@@ -81,24 +93,27 @@ describe('FlowGate', () => {
 		respondWith({ config: { disableAuthHosting: false } });
 		renderGate(baseUrl, projectId);
 
-		await waitFor(() => expect(mockFetch).toHaveBeenCalledTimes(2));
+		await settleRequests();
 		expect(screen.getByTestId('flow')).toBeInTheDocument();
+		expect(screen.queryByTestId('disabled-component')).not.toBeInTheDocument();
 	});
 
 	it('renders the flow for a project that predates the flag', async () => {
 		respondWith({ config: { allowAuthHostingIframeEmbedding: true } });
 		renderGate(baseUrl, projectId);
 
-		await waitFor(() => expect(mockFetch).toHaveBeenCalledTimes(2));
+		await settleRequests();
 		expect(screen.getByTestId('flow')).toBeInTheDocument();
+		expect(screen.queryByTestId('disabled-component')).not.toBeInTheDocument();
 	});
 
 	it('fails open when the project configuration cannot be read', async () => {
 		respondWith({ configOk: false });
 		renderGate(baseUrl, projectId);
 
-		await waitFor(() => expect(mockFetch).toHaveBeenCalledTimes(2));
+		await settleRequests();
 		expect(screen.getByTestId('flow')).toBeInTheDocument();
+		expect(screen.queryByTestId('disabled-component')).not.toBeInTheDocument();
 	});
 
 	it('fails open when the project configuration request throws', async () => {
@@ -113,8 +128,42 @@ describe('FlowGate', () => {
 		});
 		renderGate(baseUrl, projectId);
 
-		await waitFor(() => expect(mockFetch).toHaveBeenCalledTimes(2));
+		await settleRequests();
 		expect(screen.getByTestId('flow')).toBeInTheDocument();
+		expect(screen.queryByTestId('disabled-component')).not.toBeInTheDocument();
+	});
+
+	// The two requests race. This pins the order that used to lose the notice: the
+	// config answers first and sets 'disabled', then the slower domain check comes
+	// back unapproved and must not overwrite it with the generic error screen.
+	it('keeps the disabled notice when a slower domain check also fails', async () => {
+		let releaseDomainCheck: () => void = () => {};
+		const domainCheckDone = new Promise<void>((resolve) => {
+			releaseDomainCheck = resolve;
+		});
+		mockFetch.mockImplementation((url: string) => {
+			if (url.includes('/v1/flow/validate-domain')) {
+				return domainCheckDone.then(() => ({
+					ok: true,
+					json: async () => ({ success: false })
+				}));
+			}
+			return Promise.resolve({
+				ok: true,
+				json: async () => ({ disableAuthHosting: true })
+			});
+		});
+
+		renderGate(baseUrl, projectId);
+
+		expect(await screen.findByTestId('disabled-component')).toBeInTheDocument();
+
+		releaseDomainCheck();
+		await act(async () => {
+			await Promise.resolve();
+		});
+
+		expect(screen.getByTestId('disabled-component')).toBeInTheDocument();
 	});
 
 	it('still blocks on an unapproved domain', async () => {
