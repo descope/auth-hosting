@@ -144,6 +144,57 @@ describe('middleware', () => {
 			});
 		});
 
+		it('refuses the document when auth hosting is disabled', async () => {
+			mockFetch.mockResolvedValueOnce({
+				ok: true,
+				json: async () => ({ disableAuthHosting: true })
+			});
+			const response = await middleware(
+				fakeRequest(`https://example.com/login/${projectId28}`)
+			);
+			expect(mockedNext).not.toHaveBeenCalled();
+			expect((response as Response).status).toBe(403);
+			expect((response as Response).headers.get('x-descope-middleware')).toBe(
+				'authHostingDisabled'
+			);
+		});
+
+		it('refuses the document even when embedding is allowed', async () => {
+			mockFetch.mockResolvedValueOnce({
+				ok: true,
+				json: async () => ({
+					disableAuthHosting: true,
+					allowAuthHostingIframeEmbedding: true
+				})
+			});
+			const response = await middleware(
+				fakeRequest(`https://example.com/login/${projectId28}`)
+			);
+			expect(mockedNext).not.toHaveBeenCalled();
+			expect((response as Response).status).toBe(403);
+		});
+
+		it('serves the document when disableAuthHosting is false', async () => {
+			mockFetch.mockResolvedValueOnce({
+				ok: true,
+				json: async () => ({ disableAuthHosting: false })
+			});
+			await middleware(fakeRequest(`https://example.com/login/${projectId28}`));
+			expectHeaders({
+				'x-descope-middleware': 'iframeDisabled',
+				'X-Frame-Options': 'SAMEORIGIN'
+			});
+		});
+
+		it('serves the document when the project predates disableAuthHosting', async () => {
+			mockFetch.mockResolvedValueOnce({
+				ok: true,
+				json: async () => ({ allowAuthHostingIframeEmbedding: true })
+			});
+			await middleware(fakeRequest(`https://example.com/login/${projectId28}`));
+			expectHeaders({ 'x-descope-middleware': 'iframeEnabled' });
+		});
+
 		it('adds X-Frame-Options when config fetch response is not ok', async () => {
 			mockFetch.mockResolvedValueOnce({ ok: false });
 			await middleware(fakeRequest(`https://example.com/login/${projectId28}`));

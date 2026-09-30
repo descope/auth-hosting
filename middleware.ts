@@ -43,6 +43,21 @@ const middleware = async (request: Request) => {
 		});
 		if (response.ok) {
 			const projectConfig = await response.json();
+			if (projectConfig.disableAuthHosting === true) {
+				// The project turned the hosted pages off, so never serve the document. The
+				// app checks the same field, but stopping here means the bundle never loads.
+				return new Response(
+					'The Descope-hosted login pages are turned off for this project.',
+					{
+						status: 403,
+						headers: {
+							'content-type': 'text/plain; charset=utf-8',
+							'x-descope-middleware': 'authHostingDisabled',
+							'X-Frame-Options': 'SAMEORIGIN'
+						}
+					}
+				);
+			}
 			if (projectConfig.allowAuthHostingIframeEmbedding === true) {
 				// Project explicitly allows iframe embedding — omit X-Frame-Options
 				return next({
