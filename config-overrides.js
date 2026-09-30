@@ -1,6 +1,7 @@
 // config-overrides.js
 const fs = require('fs');
 const path = require('path');
+const { InjectCspPlugin } = require('./config/cspPlugin');
 const gitSha =
 	process.env.VERCEL_GIT_COMMIT_SHA ??
 	process.env.GITHUB_SHA ??
@@ -11,6 +12,13 @@ module.exports = {
 	webpack: function (config, env) {
 		// New config, e.g. config.plugins.push...
 		delete config.module.rules[1].oneOf[3].include;
+
+		// Enforcing policy baked into index.html, FedRAMP images only. Every
+		// other build ships without a meta tag and reports against a header
+		// instead. See config/cspPlugin.js.
+		if (process.env.ADD_CSP === 'true') {
+			config.plugins.push(new InjectCspPlugin());
+		}
 
 		// Add a hook to write the version file after build
 		config.plugins.push({
