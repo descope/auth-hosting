@@ -155,9 +155,10 @@ describe('middleware', () => {
 			expect(mockedNext).not.toHaveBeenCalled();
 			expect((response as Response).status).toBe(404);
 			expect(await (response as Response).text()).toBe('');
-			expect((response as Response).headers.get('x-descope-middleware')).toBe(
-				'authHostingDisabled'
-			);
+			// no reason header: the response must not volunteer why it refused
+			expect(
+				(response as Response).headers.get('x-descope-middleware')
+			).toBeNull();
 		});
 
 		it('refuses the document even when embedding is allowed', async () => {

@@ -44,16 +44,15 @@ const middleware = async (request: Request) => {
 		if (response.ok) {
 			const projectConfig = await response.json();
 			if (projectConfig.disableAuthHosting === true) {
-				// Never serve the document, so the flow bundle never loads. The response says
-				// nothing about why or about the project: 404 rather than 403, and no body,
-				// so probing this URL cannot tell a project that disabled hosting apart from
-				// one that never existed.
+				// Never serve the document, so the flow bundle never loads. The response
+				// carries no body, no project details and no reason header, and answers 404
+				// rather than 403 so it does not confirm that anything is here to refuse.
+				// It is not indistinguishable from an unknown project -- that one still gets
+				// the app with a 200, and the well-known endpoint publishes the flag to
+				// anyone who asks -- but nothing about this response volunteers the reason.
 				return new Response(null, {
 					status: 404,
-					headers: {
-						'x-descope-middleware': 'authHostingDisabled',
-						'X-Frame-Options': 'SAMEORIGIN'
-					}
+					headers: { 'X-Frame-Options': 'SAMEORIGIN' }
 				});
 			}
 			if (projectConfig.allowAuthHostingIframeEmbedding === true) {
