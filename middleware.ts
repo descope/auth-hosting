@@ -44,19 +44,17 @@ const middleware = async (request: Request) => {
 		if (response.ok) {
 			const projectConfig = await response.json();
 			if (projectConfig.disableAuthHosting === true) {
-				// The project turned the hosted pages off, so never serve the document. The
-				// app checks the same field, but stopping here means the bundle never loads.
-				return new Response(
-					'The Descope-hosted login pages are turned off for this project.',
-					{
-						status: 403,
-						headers: {
-							'content-type': 'text/plain; charset=utf-8',
-							'x-descope-middleware': 'authHostingDisabled',
-							'X-Frame-Options': 'SAMEORIGIN'
-						}
+				// Never serve the document, so the flow bundle never loads. The response says
+				// nothing about why or about the project: 404 rather than 403, and no body,
+				// so probing this URL cannot tell a project that disabled hosting apart from
+				// one that never existed.
+				return new Response(null, {
+					status: 404,
+					headers: {
+						'x-descope-middleware': 'authHostingDisabled',
+						'X-Frame-Options': 'SAMEORIGIN'
 					}
-				);
+				});
 			}
 			if (projectConfig.allowAuthHostingIframeEmbedding === true) {
 				// Project explicitly allows iframe embedding — omit X-Frame-Options

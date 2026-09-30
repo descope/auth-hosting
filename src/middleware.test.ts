@@ -153,7 +153,8 @@ describe('middleware', () => {
 				fakeRequest(`https://example.com/login/${projectId28}`)
 			);
 			expect(mockedNext).not.toHaveBeenCalled();
-			expect((response as Response).status).toBe(403);
+			expect((response as Response).status).toBe(404);
+			expect(await (response as Response).text()).toBe('');
 			expect((response as Response).headers.get('x-descope-middleware')).toBe(
 				'authHostingDisabled'
 			);
@@ -171,7 +172,7 @@ describe('middleware', () => {
 				fakeRequest(`https://example.com/login/${projectId28}`)
 			);
 			expect(mockedNext).not.toHaveBeenCalled();
-			expect((response as Response).status).toBe(403);
+			expect((response as Response).status).toBe(404);
 		});
 
 		it('serves the document when disableAuthHosting is false', async () => {

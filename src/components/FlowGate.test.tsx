@@ -71,22 +71,22 @@ describe('FlowGate', () => {
 
 		await settleRequests();
 		expect(screen.getByTestId('flow')).toBeInTheDocument();
-		expect(screen.queryByTestId('disabled-component')).not.toBeInTheDocument();
+		expect(screen.queryByTestId('notfound-component')).not.toBeInTheDocument();
 	});
 
-	it('shows the disabled notice when the project turned hosting off', async () => {
+	it('shows the not-found screen when the project turned hosting off', async () => {
 		respondWith({ config: { disableAuthHosting: true } });
 		renderGate(baseUrl, projectId);
 
-		expect(await screen.findByTestId('disabled-component')).toBeInTheDocument();
+		expect(await screen.findByTestId('notfound-component')).toBeInTheDocument();
 		expect(screen.queryByTestId('flow')).not.toBeInTheDocument();
 	});
 
-	it('shows the disabled notice even while the domain check still passes', async () => {
+	it('shows the not-found screen even while the domain check still passes', async () => {
 		respondWith({ domainOk: true, config: { disableAuthHosting: true } });
 		renderGate(baseUrl, projectId);
 
-		expect(await screen.findByTestId('disabled-component')).toBeInTheDocument();
+		expect(await screen.findByTestId('notfound-component')).toBeInTheDocument();
 	});
 
 	it('renders the flow when the flag is explicitly false', async () => {
@@ -95,7 +95,7 @@ describe('FlowGate', () => {
 
 		await settleRequests();
 		expect(screen.getByTestId('flow')).toBeInTheDocument();
-		expect(screen.queryByTestId('disabled-component')).not.toBeInTheDocument();
+		expect(screen.queryByTestId('notfound-component')).not.toBeInTheDocument();
 	});
 
 	it('renders the flow for a project that predates the flag', async () => {
@@ -104,7 +104,7 @@ describe('FlowGate', () => {
 
 		await settleRequests();
 		expect(screen.getByTestId('flow')).toBeInTheDocument();
-		expect(screen.queryByTestId('disabled-component')).not.toBeInTheDocument();
+		expect(screen.queryByTestId('notfound-component')).not.toBeInTheDocument();
 	});
 
 	it('fails open when the project configuration cannot be read', async () => {
@@ -113,7 +113,7 @@ describe('FlowGate', () => {
 
 		await settleRequests();
 		expect(screen.getByTestId('flow')).toBeInTheDocument();
-		expect(screen.queryByTestId('disabled-component')).not.toBeInTheDocument();
+		expect(screen.queryByTestId('notfound-component')).not.toBeInTheDocument();
 	});
 
 	it('fails open when the project configuration request throws', async () => {
@@ -130,13 +130,13 @@ describe('FlowGate', () => {
 
 		await settleRequests();
 		expect(screen.getByTestId('flow')).toBeInTheDocument();
-		expect(screen.queryByTestId('disabled-component')).not.toBeInTheDocument();
+		expect(screen.queryByTestId('notfound-component')).not.toBeInTheDocument();
 	});
 
 	// The two requests race. This pins the order that used to lose the notice: the
 	// config answers first and sets 'disabled', then the slower domain check comes
 	// back unapproved and must not overwrite it with the generic error screen.
-	it('keeps the disabled notice when a slower domain check also fails', async () => {
+	it('keeps the not-found screen when a slower domain check also fails', async () => {
 		let releaseDomainCheck: () => void = () => {};
 		const domainCheckDone = new Promise<void>((resolve) => {
 			releaseDomainCheck = resolve;
@@ -156,14 +156,14 @@ describe('FlowGate', () => {
 
 		renderGate(baseUrl, projectId);
 
-		expect(await screen.findByTestId('disabled-component')).toBeInTheDocument();
+		expect(await screen.findByTestId('notfound-component')).toBeInTheDocument();
 
 		releaseDomainCheck();
 		await act(async () => {
 			await Promise.resolve();
 		});
 
-		expect(screen.getByTestId('disabled-component')).toBeInTheDocument();
+		expect(screen.getByTestId('notfound-component')).toBeInTheDocument();
 	});
 
 	it('still blocks on an unapproved domain', async () => {
@@ -173,7 +173,7 @@ describe('FlowGate', () => {
 		await waitFor(() =>
 			expect(screen.queryByTestId('flow')).not.toBeInTheDocument()
 		);
-		expect(screen.queryByTestId('disabled-component')).not.toBeInTheDocument();
+		expect(screen.queryByTestId('notfound-component')).not.toBeInTheDocument();
 	});
 
 	it('makes no request without a base URL', async () => {

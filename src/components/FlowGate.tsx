@@ -1,6 +1,6 @@
 import React, { PropsWithChildren, useEffect, useState } from 'react';
 import ErrorScreen from '../Error';
-import Disabled from './Disabled';
+import NotFound from './NotFound';
 
 type FlowGateProps = PropsWithChildren<{
 	baseUrl: string | undefined;
@@ -46,9 +46,9 @@ const FlowGate: React.FC<FlowGateProps> = ({
 			.then((res) => (res.ok ? res.json() : undefined))
 			.then((body) => {
 				if (active && body && body.success !== true) {
-					// The two requests race, and the hosting notice is the more specific
+					// The two requests race, and the not-found screen is the more specific
 					// answer, so it is never overwritten by the generic domain error.
-					// The two requests race, and the hosting notice is the more specific
+					// The two requests race, and the not-found screen is the more specific
 					// answer, so it is never overwritten by the generic domain error.
 					setState((prev) => (prev === 'disabled' ? prev : 'blocked'));
 				}
@@ -76,7 +76,7 @@ const FlowGate: React.FC<FlowGateProps> = ({
 	}, [baseUrl, projectId]);
 
 	if (state === 'disabled') {
-		return <Disabled />;
+		return <NotFound />;
 	}
 
 	if (state === 'blocked') {
