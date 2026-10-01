@@ -504,6 +504,51 @@ describe('App component', () => {
 				expect(link).not.toBeInTheDocument();
 			});
 		});
+
+		// No per-app favicon, but a ?style= is set -> read the style's favicon out of its
+		// published JSON.
+		it('should use the style favicon when the app has none and a style is set', async () => {
+			env.REACT_APP_DEFAULT_FAVICON_URL =
+				'https://example.com/default-favicon.ico';
+			env.REACT_APP_FAVICON_URL_TEMPLATE =
+				'https://example.com/{projectId}/{ssoAppId}/assets/favicon.ico';
+
+			Object.defineProperty(window, 'location', {
+				value: {
+					...window.location,
+					search: '?sso_app_id=testSsoAppId&style=ap',
+					pathname: '/test'
+				},
+				writable: true
+			});
+
+			const styleFavicon = 'data:image/png;base64,AAAA';
+			mockFetch
+				.mockResolvedValueOnce({ ok: false, status: 404 })
+				.mockResolvedValueOnce({
+					ok: true,
+					status: 200,
+					json: async () => ({
+						light: {
+							components: {
+								'descope-logo': {
+									host: `--descope-fed-apps-favicon-url:url(${styleFavicon});`
+								}
+							}
+						}
+					})
+				});
+
+			render(<App />);
+
+			await waitFor(() => {
+				// eslint-disable-next-line testing-library/no-node-access -- can't query head with screen
+				const link = document.head.querySelector(
+					"link[rel~='icon']"
+				) as HTMLLinkElement;
+				expect(link?.href).toBe(styleFavicon);
+			});
+		});
 	});
 
 	describe('bg', () => {
