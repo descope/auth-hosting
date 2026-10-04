@@ -1453,6 +1453,18 @@
     "@fingerprintjs/fingerprintjs-pro" "3.11.6"
     tslib "2.8.1"
 
+"@descope/web-component@4.4.7":
+  version "4.4.7"
+  resolved "https://registry.yarnpkg.com/@descope/web-component/-/web-component-4.4.7.tgz#8817b7167b40c76d86625252b14890652f838677"
+  integrity sha512-IMElyPStm75JBhlL1OnazyXr0SrYZgtSZwv4IZ9QxBNauUi3HOtNH4zLbL4Akn0fv/tnuI+w9dxWCgmuLEysHg==
+  dependencies:
+    "@descope/escape-markdown" "0.1.6"
+    "@descope/sdk-helpers" "0.10.1"
+    "@descope/sdk-mixins" "0.27.2"
+    "@descope/web-js-sdk" "1.54.0"
+    "@fingerprintjs/fingerprintjs-pro" "3.11.6"
+    tslib "2.8.1"
+
 "@descope/web-js-sdk@1.54.0":
   version "1.54.0"
   resolved "https://registry.yarnpkg.com/@descope/web-js-sdk/-/web-js-sdk-1.54.0.tgz#7bbf2833444bdd83bb49bc4cc82b2cb1e2391bfe"
