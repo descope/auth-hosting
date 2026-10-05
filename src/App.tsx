@@ -145,8 +145,9 @@ const extractStyleFavicon = (
 };
 
 // resolveFaviconUrl picks the favicon a fed-app login shows, in priority order:
-//   1. app           - the app's own favicon object
-//   2. style-json    - the favicon set on the flow style, read per theme flavor
+//   1. app           - the app's own favicon object. In dark theme its dark variant
+//                      (favicon-dark.ico) wins; a light theme never shows the dark one.
+//   2. style-json   - the favicon set on the flow style, read per theme flavor
 //                      (light/dark) from the published style JSON. Theme-aware, so a
 //                      style can carry a different favicon for light and dark.
 //   3. default       - the built-in Descope icon
@@ -165,6 +166,15 @@ const resolveFaviconUrl = async ({
 	faviconUrlTemplate: string;
 	defaultFaviconUrl: string;
 }): Promise<{ href: string; source: string }> => {
+	const darkAppUrl = perAppUrl.replace(/favicon\.ico$/, 'favicon-dark.ico');
+	if (
+		themeFlavor === 'dark' &&
+		darkAppUrl !== perAppUrl &&
+		(await fetchOk(darkAppUrl))
+	) {
+		return { href: new URL(darkAppUrl).href, source: 'app-dark' };
+	}
+
 	if (await fetchOk(perAppUrl)) {
 		return { href: new URL(perAppUrl).href, source: 'app' };
 	}

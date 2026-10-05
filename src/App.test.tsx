@@ -549,6 +549,59 @@ describe('App component', () => {
 				expect(link?.href).toBe(styleFavicon);
 			});
 		});
+
+		describe('per-app favicon by theme', () => {
+			const appFavicon =
+				'https://example.com/P1234567890123456789012345678901/testSsoAppId/assets/favicon.ico';
+			const appDarkFavicon =
+				'https://example.com/P1234567890123456789012345678901/testSsoAppId/assets/favicon-dark.ico';
+
+			const renderWithTheme = (theme: string, existing: string[]) => {
+				env.REACT_APP_DEFAULT_FAVICON_URL =
+					'https://example.com/default-favicon.ico';
+				env.REACT_APP_FAVICON_URL_TEMPLATE =
+					'https://example.com/{projectId}/{ssoAppId}/assets/favicon.ico';
+				Object.defineProperty(window, 'location', {
+					value: {
+						...window.location,
+						search: `?sso_app_id=testSsoAppId&theme=${theme}`,
+						pathname: '/test'
+					},
+					writable: true
+				});
+				mockFetch.mockImplementation(async (url: string) => ({
+					ok: existing.includes(url),
+					status: existing.includes(url) ? 200 : 404
+				}));
+				render(<App />);
+			};
+
+			const expectFavicon = async (href: string) => {
+				await waitFor(() => {
+					// eslint-disable-next-line testing-library/no-node-access -- can't query head with screen
+					const link = document.head.querySelector(
+						"link[rel~='icon']"
+					) as HTMLLinkElement;
+					expect(link?.href).toBe(href);
+				});
+			};
+
+			it('should use the dark app favicon in dark theme', async () => {
+				renderWithTheme('dark', [appFavicon, appDarkFavicon]);
+				await expectFavicon(appDarkFavicon);
+			});
+
+			it('should fall back to the light app favicon in dark theme when there is no dark one', async () => {
+				renderWithTheme('dark', [appFavicon]);
+				await expectFavicon(appFavicon);
+			});
+
+			it('should never use the dark app favicon in light theme', async () => {
+				renderWithTheme('light', [appDarkFavicon]);
+				await expectFavicon('https://example.com/default-favicon.ico');
+				expect(mockFetch).not.toHaveBeenCalledWith(appDarkFavicon);
+			});
+		});
 	});
 
 	describe('bg', () => {
