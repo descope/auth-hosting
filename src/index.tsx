@@ -1,7 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
-import AgentLogin, { agentLoginProjectId } from './components/AgentLogin';
 import { env } from './env';
 import Error from './Error';
 
@@ -23,7 +22,7 @@ const routerSwitch = (page: string) => {
 		case '/login/error':
 			return <Error />;
 		default:
-			return agentLoginProjectId(page) ? <AgentLogin /> : <App />;
+			return <App />;
 	}
 };
 
