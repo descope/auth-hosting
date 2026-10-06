@@ -112,6 +112,33 @@ To run the POC project locally with the function:
 
 POC limitations: the function does not authenticate or rate limit its caller. Anyone can start an approval email to any address as a configured agent, and anyone holding an `auth_req_id` can collect the token once it is approved. The `agent` value comes from the URL, and no `binding_message` is sent. The callback carries no `state` tied to the shop session that started the redirect, so any page can auto-POST a token for the attacker's own account to `callbackUrl` and sign the victim's browser in to that account (login CSRF). The fix is a shop-issued `state` that is also set as a SameSite cookie and required back on the callback. `bc-authorize` sends the approval email before it responds and the function gives up after 5 seconds, so a slow send shows an error even though the email went out, and a retry sends a second one. A single failed poll ends the wait and the customer has to start over.
 
+**Agent approval service (POC)**
+
+When a shop detects an AI agent trying an action that needs the customer's approval (for example checkout), it redirects the agent to `/approve/<PROJECT_ID>`. The `api/agent-approval` function (routed by the rewrites in `vercel.json`) asks for the customer's email, starts CIBA, waits for the customer to approve the emailed request, and hands the access token back to the shop. Server-rendered HTML and form posts only, no SPA.
+
+- `GET /approve/<PROJECT_ID>?client_id=<APP_CLIENT_ID>&ref=<REF>&summary=<TEXT>&return_to=<SHOP_CALLBACK_URL>`: shows "`<app name>` wants to: `<summary>`" and an email field.
+- `POST /approve/<PROJECT_ID>`: calls `bc-authorize` with the binding message `<summary>. Approve only if you asked for this. Code: <4 digits>` (printable ASCII, URLs removed, at most 256 characters), keeps the pending request in an HttpOnly `agent_approval` cookie scoped to `/approve/<PROJECT_ID>`, and redirects to `/wait`.
+- `GET /approve/<PROJECT_ID>/wait`: polls the CIBA token endpoint once per load and reloads at the interval Descope returns, showing the same code as the email. On approval it auto-submits a `POST` with `token` and `ref` to `return_to`, with a visible "Continue" button as fallback. A denial, an expiry or any other token endpoint answer clears the pending cookie; a 5xx or an unreachable endpoint shows a retryable error and keeps it.
+
+Everything is configured in Descope, and every request is checked before an app secret is read: the project ID must be in `AGENT_APPROVAL_MANAGEMENT_KEYS` (else 404), `client_id` must belong to an app with CIBA enabled whose `cibaSettings.loginPageURL` (written by the console Agent Login section) points at this host, and `return_to` must be one of the app's approved callback URLs. The scope sent is the app's permission scopes plus its scope claim mapping scopes.
+
+Server-side environment variables:
+
+- `DESCOPE_BASE_URL`: Descope API base URL, default `https://api.descope.com`.
+- `AGENT_APPROVAL_MANAGEMENT_KEYS`: JSON `{ "<PROJECT_ID>": "<MANAGEMENT_KEY>" }`. The key is used for two calls only: loading the project's apps (`POST /v2/mgmt/thirdparty/apps/load`, cached 60 seconds) and reading an app's client secret (`GET /v1/mgmt/thirdparty/app/secret`, cached 5 minutes). It never writes an app.
+
+The handler uses only `req.method`, `req.url`, `req.headers`, `req.body`, `res.statusCode`, `res.setHeader` and `res.end`, and imports nothing local, so a plain Node `http` server can host it for local runs (read the urlencoded body into `req.body` as a string). The deployment notes for `api/agent-ciba` above apply here too.
+
+A failed Descope call logs its method, path (without the query), HTTP status, `errorCode` and OAuth `error` fields with `console.error`, and a thrown failure logs the error name and cause code. Bodies, keys, secrets, tokens and the login ID are never logged.
+
+Known limits:
+
+- An approval is not bound to a specific `ref`. An agent holding two pending refs can spend the approval of a cheap basket on the expensive one. The shop's single-use token and ref checks stop replay and cross-agent use, not this. Closing it needs RAR (`authorization_details`) or a signed action request.
+- The summary passes through the agent's browser, so the agent can change the text the customer sees. The shop must place only the basket it stored for the `ref`.
+- A project-wide management key sits in a public-facing function. This is the production blocker, and it stays one per-customer env var until registered apps can authenticate with `private_key_jwt`.
+- The function does not authenticate or rate limit its caller, so anyone who reaches the page can send approval emails to any address as a configured agent. The pending cookie is not signed; its client ID and return URL are checked again on every poll.
+- `bc-authorize` sends the email before it responds, so a call that times out after 10 seconds can show an error even though the email went out.
+
 **Using .env**
 
 In case you don't want to provide the project ID as part of the URL, you can specify it as an environment variable `DESCOPE_PROJECT_ID`.  

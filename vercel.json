@@ -3,6 +3,14 @@
 		{
 			"source": "/login/:path*",
 			"destination": "/:path*"
+		},
+		{
+			"source": "/approve/:pid",
+			"destination": "/api/agent-approval?path=/approve/:pid"
+		},
+		{
+			"source": "/approve/:pid/wait",
+			"destination": "/api/agent-approval?path=/approve/:pid/wait"
 		}
 	]
 }

@@ -6,6 +6,14 @@ const FETCH_TIMEOUT_MS = 2000;
 const middleware = async (request: Request) => {
 	const url = new URL(request.url);
 
+	// /approve/<PID> ends in a project ID, but the agent approval function sets
+	// its own headers and needs no project config fetch
+	if (url.pathname.startsWith('/approve/')) {
+		return next({
+			headers: { 'x-descope-middleware': 'agentApproval' }
+		});
+	}
+
 	// Check base URL environment variable is set
 	const baseUrl = process.env.MIDDLEWARE_DESCOPE_BASE_URL;
 	if (!baseUrl) {
