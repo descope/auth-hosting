@@ -78,11 +78,11 @@ These are the different query parameters you can use:
 2. The `api/agent-ciba` Vercel function calls `bc-authorize` with that agent's inbound app credentials. The email is trimmed and lower-cased and sent as `login_hint`. Descope emails the customer an approval link.
 3. The page polls the function at the interval Descope returns. On approval it auto-submits a `POST` form with `token` (the access token) and `returnTo` to the project's `callbackUrl`. `returnTo` must be a relative path without whitespace or backslashes, anything else becomes `/`.
 
-This needs the Vercel deployment. The Docker/Caddy image serves static files only and has no `api/` functions.
+Where it runs: the function needs a Vercel deployment. The Docker image serves static files only and cannot run `api/`. Deploy the POC as its own Vercel project and point the shop's redirect (or the customer's CNAME) at that project's domain. Never add `AGENT_CIBA_CONFIG` to a shared production deployment, since it holds per-customer inbound app secrets. Without `AGENT_CIBA_CONFIG` the function answers `500 misconfigured`.
 
 Server-side environment variables (never exposed to the browser):
 
-- `DESCOPE_BASE_URL`: Descope API base URL, default `https://api.descope.com`. The access token `iss` uses this host, so the shop validates `iss` against it.
+- `DESCOPE_BASE_URL`: Descope API base URL, default `https://api.descope.com`. The shop must require the access token `iss` to equal `https://<DESCOPE_BASE_URL host>/v1/apps/<PROJECT_ID>` exactly (`https://<host>/v1/apps/agentic/<PROJECT_ID>/<MCP_SERVER_ID>` if the inbound app is linked to an MCP server). A host-only check accepts tokens from any project on the shared host. The shop also checks `exp` and maps `azp` to a known agent client.
 - `AGENT_CIBA_CONFIG`: JSON keyed by project ID. `callbackUrl` must be `https` (`http` is allowed for localhost only). `scope` is optional.
 
 ```json
@@ -102,15 +102,15 @@ Server-side environment variables (never exposed to the browser):
 
 The page calls `/login/api/agent-ciba` on its own origin only. The function sends no CORS headers.
 
-To run locally with the function:
+To run the POC project locally with the function:
 
-- `vercel link`
+- `vercel link` (to the separate POC project, never the shared production one)
 - `vercel env add AGENT_CIBA_CONFIG development` (and `DESCOPE_BASE_URL` if needed)
 - `vercel pull`
 - `vercel dev`
 - Go to `http://localhost:3000/login/agent/<PROJECT_ID>?agent=grok&returnTo=/cart`
 
-POC limitations: the function does not authenticate or rate limit its caller. Anyone can start an approval email to any address as a configured agent, and anyone holding an `auth_req_id` can collect the token once it is approved. The `agent` value comes from the URL, and no `binding_message` is sent.
+POC limitations: the function does not authenticate or rate limit its caller. Anyone can start an approval email to any address as a configured agent, and anyone holding an `auth_req_id` can collect the token once it is approved. The `agent` value comes from the URL, and no `binding_message` is sent. The callback carries no `state` tied to the shop session that started the redirect, so any page can auto-POST a token for the attacker's own account to `callbackUrl` and sign the victim's browser in to that account (login CSRF). The fix is a shop-issued `state` that is also set as a SameSite cookie and required back on the callback. `bc-authorize` sends the approval email before it responds and the function gives up after 5 seconds, so a slow send shows an error even though the email went out, and a retry sends a second one. A single failed poll ends the wait and the customer has to start over.
 
 **Using .env**
 
