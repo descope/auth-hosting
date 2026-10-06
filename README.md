@@ -70,6 +70,48 @@ These are the different query parameters you can use:
 
 12. `title` query parameter is optional. If provided, it sets the browser tab/document title (e.g. `title=Sign%20in`).
 
+**Agent sign-in with CIBA (POC)**
+
+`/login/agent/<PROJECT_ID>?agent=<AGENT_NAME>&returnTo=<PATH>` lets a known AI agent sign in to a customer account through CIBA:
+
+1. The page shows which agent is asking and collects the customer's email.
+2. The `api/agent-ciba` Vercel function calls `bc-authorize` with that agent's inbound app credentials. The email is trimmed and lower-cased and sent as `login_hint`. Descope emails the customer an approval link.
+3. The page polls the function at the interval Descope returns. On approval it auto-submits a `POST` form with `token` (the access token) and `returnTo` to the project's `callbackUrl`. `returnTo` must be a relative path without whitespace or backslashes, anything else becomes `/`.
+
+This needs the Vercel deployment. The Docker/Caddy image serves static files only and has no `api/` functions.
+
+Server-side environment variables (never exposed to the browser):
+
+- `DESCOPE_BASE_URL`: Descope API base URL, default `https://api.descope.com`. The access token `iss` uses this host, so the shop validates `iss` against it.
+- `AGENT_CIBA_CONFIG`: JSON keyed by project ID. `callbackUrl` must be `https` (`http` is allowed for localhost only). `scope` is optional.
+
+```json
+{
+	"<PROJECT_ID>": {
+		"callbackUrl": "https://shop.example.com/agent/callback",
+		"agents": {
+			"grok": {
+				"clientId": "<INBOUND_APP_CLIENT_ID>",
+				"clientSecret": "<INBOUND_APP_CLIENT_SECRET>",
+				"scope": "email"
+			}
+		}
+	}
+}
+```
+
+The page calls `/login/api/agent-ciba` on its own origin only. The function sends no CORS headers.
+
+To run locally with the function:
+
+- `vercel link`
+- `vercel env add AGENT_CIBA_CONFIG development` (and `DESCOPE_BASE_URL` if needed)
+- `vercel pull`
+- `vercel dev`
+- Go to `http://localhost:3000/login/agent/<PROJECT_ID>?agent=grok&returnTo=/cart`
+
+POC limitations: the function does not authenticate or rate limit its caller. Anyone can start an approval email to any address as a configured agent, and anyone holding an `auth_req_id` can collect the token once it is approved. The `agent` value comes from the URL, and no `binding_message` is sent.
+
 **Using .env**
 
 In case you don't want to provide the project ID as part of the URL, you can specify it as an environment variable `DESCOPE_PROJECT_ID`.  

@@ -147,3 +147,18 @@ p {
 		min-width: 350px;
 	}
 }
+
+.agent-login-form {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	min-width: 320px;
+	margin-top: 24px;
+}
+
+.agent-login-form label {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	text-align: left;
+}
