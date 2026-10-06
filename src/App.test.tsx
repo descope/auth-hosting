@@ -550,6 +550,53 @@ describe('App component', () => {
 			});
 		});
 
+		it('should fall back to the light style favicon in dark theme and encode the style id', async () => {
+			env.REACT_APP_DEFAULT_FAVICON_URL =
+				'https://example.com/default-favicon.ico';
+			env.REACT_APP_FAVICON_URL_TEMPLATE =
+				'https://example.com/{projectId}/{ssoAppId}/assets/favicon.ico';
+
+			Object.defineProperty(window, 'location', {
+				value: {
+					...window.location,
+					search: '?sso_app_id=testSsoAppId&theme=dark&style=../x',
+					pathname: '/test'
+				},
+				writable: true
+			});
+
+			const styleFavicon = 'data:image/png;base64,AAAA';
+			mockFetch.mockImplementation(async (url: string) =>
+				url.endsWith('.json')
+					? {
+							ok: true,
+							status: 200,
+							json: async () => ({
+								light: {
+									components: {
+										logo: { '--descope-fed-apps-favicon-url': styleFavicon }
+									}
+								},
+								dark: { components: { logo: {} } }
+							})
+						}
+					: { ok: false, status: 404 }
+			);
+
+			render(<App />);
+
+			await waitFor(() => {
+				// eslint-disable-next-line testing-library/no-node-access -- can't query head with screen
+				const link = document.head.querySelector(
+					"link[rel~='icon']"
+				) as HTMLLinkElement;
+				expect(link?.href).toBe(styleFavicon);
+			});
+			expect(mockFetch).toHaveBeenCalledWith(
+				expect.stringMatching(/\/\.\.%2Fx\.json$/)
+			);
+		});
+
 		describe('per-app favicon by theme', () => {
 			const appFavicon =
 				'https://example.com/P1234567890123456789012345678901/testSsoAppId/assets/favicon.ico';

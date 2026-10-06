@@ -122,26 +122,28 @@ const extractStyleFavicon = (
 	style: unknown,
 	flavor: 'light' | 'dark'
 ): string | undefined => {
-	const asFlavor = (name: string) =>
-		(style as Record<string, { components?: Record<string, any> }>)?.[name]
-			?.components;
-	const components = asFlavor(flavor) ?? asFlavor('light');
-	if (!components) return undefined;
+	const faviconForFlavor = (name: 'light' | 'dark') => {
+		const components = (
+			style as Record<string, { components?: Record<string, any> }>
+		)?.[name]?.components;
+		if (!components) return undefined;
 
-	const host = components['descope-logo']?.host;
-	const fromHost =
-		typeof host === 'string'
-			? host
-					.match(/--descope-fed-apps-favicon-url:\s*url\(([^)]+)\)/)?.[1]
-					?.trim()
-					.replace(/^['"]|['"]$/g, '')
+		const host = components['descope-logo']?.host;
+		const fromHost =
+			typeof host === 'string'
+				? host
+						.match(/--descope-fed-apps-favicon-url:\s*url\(([^)]+)\)/)?.[1]
+						?.trim()
+						.replace(/^['"]|['"]$/g, '')
+				: undefined;
+		const fromRaw = components.logo?.['--descope-fed-apps-favicon-url'];
+
+		const favicon = fromHost || fromRaw;
+		return typeof favicon === 'string' && favicon.startsWith('data:')
+			? favicon
 			: undefined;
-	const fromRaw = components.logo?.['--descope-fed-apps-favicon-url'];
-
-	const favicon = fromHost || fromRaw;
-	return typeof favicon === 'string' && favicon.startsWith('data:')
-		? favicon
-		: undefined;
+	};
+	return faviconForFlavor(flavor) ?? faviconForFlavor('light');
 };
 
 // resolveFaviconUrl picks the favicon a fed-app login shows, in priority order:
@@ -184,7 +186,10 @@ const resolveFaviconUrl = async ({
 	if (styleId) {
 		const styleUrl = faviconUrlTemplate
 			.replace('{projectId}', projectId)
-			.replace('{ssoAppId}/assets/favicon.ico', `${styleId}.json`);
+			.replace(
+				'{ssoAppId}/assets/favicon.ico',
+				`${encodeURIComponent(styleId)}.json`
+			);
 		if (!styleUrl.includes('{') && isFaviconUrlSecure(styleUrl)) {
 			const favicon = extractStyleFavicon(
 				await fetchJson(styleUrl),
