@@ -31,6 +31,7 @@ const otherPid = 'P3Sn0gttY5sY4Zu6WDGAAEJ4VTrv';
 const clientId = 'test-grok-client-id';
 const scope = 'orders:write email';
 const returnTo = 'https://shop.example.com/descope/agent-callback';
+const resource = 'https://shop.example.com';
 const ref = 'test_ref-0123456789abcdefghijklmnopqrstuv';
 const summary = 'Order 2x Trail Runner at Acme Shop. Total $129.00';
 const loginId = 'alice@example.com';
@@ -173,6 +174,8 @@ const getStart = (overrides: Record<string, string> = {}) =>
 	call({ url: `/approve/${pid}?${startQuery(overrides)}` });
 
 const getJwks = () => call({ url: '/approve/jwks.json' });
+
+const resourceOfLength = (length: number) => `${resource}/`.padEnd(length, 'a');
 
 const startBody = (overrides: Record<string, unknown> = {}) => ({
 	client_id: clientId,
@@ -931,7 +934,13 @@ describe('agent-approval function', () => {
 			['a scope with a tab', { scope: 'email\tprofile' }],
 			['a scope with non-ASCII', { scope: 'emaïl' }],
 			['11 scope tokens', { scope: 'a b c d e f g h i j k' }],
-			['a 301 character scope', { scope: 'a'.repeat(301) }]
+			['a 301 character scope', { scope: 'a'.repeat(301) }],
+			['an empty resource', { resource: '' }],
+			['a relative resource', { resource: '/orders' }],
+			['a host-only resource', { resource: 'shop.example.com' }],
+			['an ftp resource', { resource: 'ftp://shop.example.com/orders' }],
+			['a javascript resource', { resource: ['javascript', 'x'].join(':') }],
+			['a 2049 character resource', { resource: resourceOfLength(2049) }]
 		])('returns 400 for %s', async (_, overrides) => {
 			const res = await getStart(overrides);
 
@@ -958,6 +967,44 @@ describe('agent-approval function', () => {
 			});
 
 			expect(res.statusCode).toBe(400);
+		});
+
+		it('returns 400 for a repeated resource', async () => {
+			const res = await call({
+				url: `/approve/${pid}?${startQuery({ resource })}&resource=${encodeURIComponent(resource)}`
+			});
+
+			expect(res.statusCode).toBe(400);
+			expect(res.body).toContain('Invalid approval request');
+			expect(mockFetch).not.toHaveBeenCalled();
+		});
+
+		it('echoes the resource verbatim and escaped after the other fields', async () => {
+			const value = `${resource}/api?a=1&b=2`;
+
+			const res = await getStart({ resource: value });
+
+			expect(res.statusCode).toBe(200);
+			expect(res.body).toContain(
+				`<input type="hidden" name="return_to" value="${returnTo}">` +
+					`<input type="hidden" name="resource" value="${resource}/api?a=1&amp;b=2">`
+			);
+		});
+
+		it('accepts a 2048 character resource', async () => {
+			const value = resourceOfLength(2048);
+
+			const res = await getStart({ resource: value });
+
+			expect(res.statusCode).toBe(200);
+			expect(res.body).toContain(`name="resource" value="${value}"`);
+		});
+
+		it('renders no resource input when none is sent', async () => {
+			const res = await getStart();
+
+			expect(res.statusCode).toBe(200);
+			expect(res.body).not.toContain('name="resource"');
 		});
 	});
 
@@ -1004,6 +1051,41 @@ describe('agent-approval function', () => {
 				scope,
 				binding_message: buildBindingMessage(summary, pending.code)
 			});
+		});
+
+		it('forwards the resource to bc-authorize unchanged', async () => {
+			const res = await postStart({ resource });
+
+			expect(res.statusCode).toBe(303);
+			const pending = decodeCookie(res);
+			expect(sentForm('bcAuthorize')).toEqual({
+				client_id: clientId,
+				client_assertion_type:
+					'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
+				client_assertion: expect.any(String),
+				login_hint: loginId,
+				scope,
+				binding_message: buildBindingMessage(summary, pending.code),
+				resource
+			});
+			expect(pending).not.toHaveProperty('resource');
+		});
+
+		it('sends no resource to bc-authorize when none is given', async () => {
+			await postStart();
+
+			expect(sentForm('bcAuthorize')).not.toHaveProperty('resource');
+		});
+
+		it('does not send the resource on the token poll', async () => {
+			const started = await postStart({ resource });
+
+			await getWait(cookiePair(started));
+
+			expect(sentForm('token')).not.toHaveProperty('resource');
+			expect(JSON.stringify(callsTo('token'))).not.toContain(
+				encodeURIComponent(resource)
+			);
 		});
 
 		it.each([
@@ -1056,7 +1138,8 @@ describe('agent-approval function', () => {
 
 		it.each([
 			['a bad ref', { ref: 'short' }],
-			['a bad scope', { scope: 'a  b' }]
+			['a bad scope', { scope: 'a  b' }],
+			['a bad resource', { resource: '/orders' }]
 		])('returns 400 for %s', async (_, overrides) => {
 			const res = await postStart(overrides);
 
@@ -1078,7 +1161,13 @@ describe('agent-approval function', () => {
 		it.each([
 			['a missing body', undefined],
 			['a JSON array', [startBody()]],
-			['a repeated field', startBody({ ref: [ref, ref] })]
+			['a repeated field', startBody({ ref: [ref, ref] })],
+			['a repeated resource', startBody({ resource: [resource, resource] })],
+			['a non-string resource', startBody({ resource: 1 })],
+			[
+				'a repeated resource in a raw string',
+				`${new URLSearchParams(startBody({ resource }))}&resource=${resource}`
+			]
 		])('returns 400 for %s', async (_, body) => {
 			const res = await call({ method: 'POST', url: `/approve/${pid}`, body });
 

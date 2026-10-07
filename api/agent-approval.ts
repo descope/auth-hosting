@@ -36,6 +36,7 @@ const REF_REGEX = /^[A-Za-z0-9_-]{16,128}$/;
 const SCOPE_TOKEN_REGEX = /^[\x21\x23-\x5B\x5D-\x7E]+$/;
 const MAX_SCOPE_TOKENS = 10;
 const MAX_SCOPE_LENGTH = 300;
+const MAX_RESOURCE_LENGTH = 2048;
 const CODE_REGEX = /^\d{4}$/;
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MAX_EMAIL_LENGTH = 254;
@@ -73,7 +74,8 @@ type SigningKey = { privateKey: KeyObject; jwk: PublicJwk; kid: string };
 
 type Context = { pid: string; signingKey: SigningKey; secure: boolean };
 
-type Fields = (name: string) => string | undefined;
+// undefined: absent; null: repeated or not a string
+type Fields = (name: string) => string | null | undefined;
 
 type ApprovalRequest = {
 	clientId: string;
@@ -81,6 +83,7 @@ type ApprovalRequest = {
 	ref: string;
 	summary: string;
 	returnTo: string;
+	resource?: string;
 };
 
 type Pending = {
@@ -366,14 +369,16 @@ const paramsFields =
 	(params: URLSearchParams): Fields =>
 	(name) => {
 		const values = params.getAll(name);
-		return values.length === 1 ? values[0] : undefined;
+		if (values.length === 0) return undefined;
+		return values.length === 1 ? values[0] : null;
 	};
 
 const recordFields =
 	(record: Record<string, unknown>): Fields =>
 	(name) => {
-		const value = hasOwn(record, name) ? record[name] : undefined;
-		return typeof value === 'string' ? value : undefined;
+		if (!hasOwn(record, name)) return undefined;
+		const value = record[name];
+		return typeof value === 'string' ? value : null;
 	};
 
 const bodyFields = (req: ApiRequest): Fields | undefined => {
@@ -392,8 +397,8 @@ const bodyFields = (req: ApiRequest): Fields | undefined => {
 	}
 };
 
-const isValidScope = (scope: string | undefined): scope is string => {
-	if (scope === undefined || scope.length > MAX_SCOPE_LENGTH) return false;
+const isValidScope = (scope: string | null | undefined): scope is string => {
+	if (!scope || scope.length > MAX_SCOPE_LENGTH) return false;
 	const tokens = scope.split(' ');
 	return (
 		tokens.length <= MAX_SCOPE_TOKENS &&
@@ -401,20 +406,35 @@ const isValidScope = (scope: string | undefined): scope is string => {
 	);
 };
 
+// Validated as a URL but kept verbatim: Descope matches it to a Resource URI
+const isValidResource = (resource: string | null): resource is string =>
+	resource !== null &&
+	resource.length <= MAX_RESOURCE_LENGTH &&
+	httpUrl(resource) !== undefined;
+
 const readApprovalRequest = (fields: Fields): ApprovalRequest | undefined => {
 	const clientId = fields('client_id');
 	const scope = fields('scope');
 	const ref = fields('ref');
 	const returnTo = fields('return_to');
+	const resource = fields('resource');
 	if (!nonEmptyString(clientId) || !nonEmptyString(returnTo)) {
 		return undefined;
 	}
 	if (!isValidScope(scope)) return undefined;
-	if (ref === undefined || !REF_REGEX.test(ref)) return undefined;
-	return { clientId, scope, ref, returnTo, summary: fields('summary') ?? '' };
+	if (!ref || !REF_REGEX.test(ref)) return undefined;
+	if (resource !== undefined && !isValidResource(resource)) return undefined;
+	return {
+		clientId,
+		scope,
+		ref,
+		returnTo,
+		summary: fields('summary') ?? '',
+		resource
+	};
 };
 
-const normalizeLoginId = (value: string | undefined) => {
+const normalizeLoginId = (value: string | null | undefined) => {
 	const loginId = (value ?? '').trim().toLowerCase();
 	return loginId.length <= MAX_EMAIL_LENGTH && EMAIL_REGEX.test(loginId)
 		? loginId
@@ -697,6 +717,9 @@ const startPage = (ctx: Context, request: ApprovalRequest) =>
 			hiddenInput('ref', request.ref),
 			hiddenInput('summary', request.summary),
 			hiddenInput('return_to', request.returnTo),
+			...(request.resource === undefined
+				? []
+				: [hiddenInput('resource', request.resource)]),
 			'<p><label for="login_id">Customer email</label><br>',
 			'<input id="login_id" name="login_id" type="email" required',
 			' autocomplete="email"></p>',
@@ -789,7 +812,8 @@ const startApproval = async (
 		...clientAuth(ctx, request.clientId),
 		login_hint: loginId,
 		scope: request.scope,
-		binding_message: buildBindingMessage(request.summary, code)
+		binding_message: buildBindingMessage(request.summary, code),
+		...(request.resource === undefined ? {} : { resource: request.resource })
 	});
 	const authReqId = started.body.auth_req_id;
 	if (
