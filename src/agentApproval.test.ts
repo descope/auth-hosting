@@ -940,7 +940,7 @@ describe('agent-approval function', () => {
 			['a host-only resource', { resource: 'shop.example.com' }],
 			['an ftp resource', { resource: 'ftp://shop.example.com/orders' }],
 			['a javascript resource', { resource: ['javascript', 'x'].join(':') }],
-			['a 2049 character resource', { resource: resourceOfLength(2049) }]
+			['a 1001 character resource', { resource: resourceOfLength(1001) }]
 		])('returns 400 for %s', async (_, overrides) => {
 			const res = await getStart(overrides);
 
@@ -991,8 +991,8 @@ describe('agent-approval function', () => {
 			);
 		});
 
-		it('accepts a 2048 character resource', async () => {
-			const value = resourceOfLength(2048);
+		it('accepts a 1000 character resource', async () => {
+			const value = resourceOfLength(1000);
 
 			const res = await getStart({ resource: value });
 

@@ -36,7 +36,8 @@ const REF_REGEX = /^[A-Za-z0-9_-]{16,128}$/;
 const SCOPE_TOKEN_REGEX = /^[\x21\x23-\x5B\x5D-\x7E]+$/;
 const MAX_SCOPE_TOKENS = 10;
 const MAX_SCOPE_LENGTH = 300;
-const MAX_RESOURCE_LENGTH = 2048;
+// Descope's bc-authorize limit
+const MAX_RESOURCE_LENGTH = 1000;
 const CODE_REGEX = /^\d{4}$/;
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MAX_EMAIL_LENGTH = 254;
