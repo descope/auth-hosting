@@ -1,14 +1,41 @@
-import { randomInt } from 'crypto';
+import {
+	createHash,
+	createPrivateKey,
+	createPublicKey,
+	KeyObject,
+	randomBytes,
+	randomInt,
+	sign
+} from 'crypto';
 
 const DEFAULT_BASE_URL = 'https://api.descope.com';
 const FETCH_TIMEOUT_MS = 10000;
-const APPS_CACHE_MS = 60 * 1000;
-const SECRET_CACHE_MS = 5 * 60 * 1000;
+const VERDICT_CACHE_MS = 60 * 1000;
+const MAX_CACHED_VERDICTS = 1000;
+const ASSERTION_TTL_SEC = 60;
 const CIBA_GRANT_TYPE = 'urn:openid:params:grant-type:ciba';
+const CLIENT_ASSERTION_TYPE =
+	'urn:ietf:params:oauth:client-assertion-type:jwt-bearer';
+// RFC 7636 appendix B; the check never redeems a code, so the verifier is moot
+const CALLBACK_CHECK_CODE_CHALLENGE =
+	'E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM';
+// RFC 2606 reserves .invalid, so no approved callback URL list names it
+const OPEN_CHECK_URL_PREFIX = 'https://agent-approval.invalid/';
+// Rate limits and timeouts say nothing about the redirect URI
+const RETRYABLE_STATUSES = [408, 429];
+const UNKNOWN_CLIENT_ERROR_CODE = 'E063308';
+const INVALID_CLIENT_ERROR_CODE = 'E066009';
+// Descope appends error to whatever redirect it sends, even the unvalidated
+// redirect_uri, and to the fragment when it cannot parse that URL
+const ERROR_PARAM_REGEX = /[?&#]error=/;
 const COOKIE_NAME = 'agent_approval';
 const FUNCTION_PATH = '/api/agent-approval';
-const ROUTE_REGEX = /^\/approve\/([A-Za-z0-9]+)(\/wait)?\/?$/;
+const JWKS_PATH = '/approve/jwks.json';
+const ROUTE_REGEX = /^\/approve\/(P[A-Za-z0-9]{20,40})(\/wait)?\/?$/;
 const REF_REGEX = /^[A-Za-z0-9_-]{16,128}$/;
+const SCOPE_TOKEN_REGEX = /^[\x21\x23-\x5B\x5D-\x7E]+$/;
+const MAX_SCOPE_TOKENS = 10;
+const MAX_SCOPE_LENGTH = 300;
 const CODE_REGEX = /^\d{4}$/;
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MAX_EMAIL_LENGTH = 254;
@@ -37,24 +64,20 @@ type DescopeResult = {
 	ok: boolean;
 	status: number;
 	body: Record<string, unknown>;
+	location: string;
 };
 
-type AgentApp = {
-	id: string;
-	name: string;
-	clientId: string;
-	cibaEnabled: boolean;
-	loginPageURL: string;
-	approvedCallbackUrls: string[];
-	scope: string;
-};
+type PublicJwk = { kty: string; crv: string; x: string; y: string };
 
-type Context = { pid: string; key: string; host: string; secure: boolean };
+type SigningKey = { privateKey: KeyObject; jwk: PublicJwk; kid: string };
+
+type Context = { pid: string; signingKey: SigningKey; secure: boolean };
 
 type Fields = (name: string) => string | undefined;
 
 type ApprovalRequest = {
 	clientId: string;
+	scope: string;
 	ref: string;
 	summary: string;
 	returnTo: string;
@@ -70,11 +93,12 @@ type Pending = {
 	expiresAt: number;
 };
 
-type GateResult =
-	{ app: AgentApp; returnTo: string } | { status: number; message: string };
+type GateResult = { returnTo: string } | { status: number; message: string };
 
-const appsCache = new Map<string, { expiresAt: number; apps: AgentApp[] }>();
-const secretCache = new Map<string, { expiresAt: number; secret: string }>();
+const verdictCache = new Map<
+	string,
+	{ expiresAt: number; verdict: GateResult }
+>();
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
 	typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -118,21 +142,56 @@ const buildBindingMessage = (summary: string, code: string) => {
 const descopeBaseUrl = () =>
 	(process.env.DESCOPE_BASE_URL || DEFAULT_BASE_URL).replace(/\/+$/, '');
 
-// Undefined for an unknown project; throws when the env var itself is broken.
-const managementKey = (pid: string) => {
-	const misconfigured = new Error('AGENT_APPROVAL_MANAGEMENT_KEYS is invalid');
-	let keys: unknown;
+const loadSigningKey = (): SigningKey | undefined => {
+	let privateKey: KeyObject;
 	try {
-		keys = JSON.parse(process.env.AGENT_APPROVAL_MANAGEMENT_KEYS ?? '');
+		privateKey = createPrivateKey(process.env.AGENT_APPROVAL_SIGNING_KEY ?? '');
 	} catch {
-		throw misconfigured;
+		return undefined;
 	}
-	if (!isRecord(keys)) throw misconfigured;
-	if (!hasOwn(keys, pid)) return undefined;
-	const key = keys[pid];
-	if (!nonEmptyString(key)) throw misconfigured;
-	return key;
+	if (
+		privateKey.asymmetricKeyType !== 'ec' ||
+		privateKey.asymmetricKeyDetails?.namedCurve !== 'prime256v1'
+	) {
+		return undefined;
+	}
+	const { crv, x, y } = createPublicKey(privateKey).export({
+		format: 'jwk'
+	}) as PublicJwk;
+	// RFC 7638: the required members in lexicographic order
+	const kid = createHash('sha256')
+		.update(JSON.stringify({ crv, kty: 'EC', x, y }))
+		.digest('base64url');
+	return { privateKey, jwk: { kty: 'EC', crv, x, y }, kid };
 };
+
+const base64urlJson = (value: object) =>
+	Buffer.from(JSON.stringify(value)).toString('base64url');
+
+const clientAssertion = (ctx: Context, clientId: string) => {
+	const iat = Math.floor(Date.now() / 1000);
+	const header = { alg: 'ES256', typ: 'JWT', kid: ctx.signingKey.kid };
+	const claims = {
+		iss: clientId,
+		sub: clientId,
+		aud: `${descopeBaseUrl()}/oauth2/v1/apps/${ctx.pid}/token`,
+		jti: randomBytes(16).toString('base64url'),
+		iat,
+		exp: iat + ASSERTION_TTL_SEC
+	};
+	const input = `${base64urlJson(header)}.${base64urlJson(claims)}`;
+	const signature = sign('sha256', Buffer.from(input), {
+		key: ctx.signingKey.privateKey,
+		dsaEncoding: 'ieee-p1363'
+	});
+	return `${input}.${signature.toString('base64url')}`;
+};
+
+const clientAuth = (ctx: Context, clientId: string) => ({
+	client_id: clientId,
+	client_assertion_type: CLIENT_ASSERTION_TYPE,
+	client_assertion: clientAssertion(ctx, clientId)
+});
 
 // Fixed fields only: bodies and error messages can carry secrets or the login ID
 const logFailure = (message: string, details: Record<string, unknown>) => {
@@ -143,9 +202,13 @@ const logFailure = (message: string, details: Record<string, unknown>) => {
 const stringField = (value: unknown) =>
 	typeof value === 'string' ? value : undefined;
 
+const isRejection = (status: number) =>
+	status >= 400 && status < 500 && !RETRYABLE_STATUSES.includes(status);
+
 const callDescope = async (
 	path: string,
-	init: RequestInit
+	init: RequestInit,
+	expectRejection = false
 ): Promise<DescopeResult> => {
 	const controller = new AbortController();
 	const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
@@ -158,10 +221,15 @@ const callDescope = async (
 		const result = {
 			ok: response.ok,
 			status: response.status,
-			body: isRecord(body) ? body : {}
+			body: isRecord(body) ? body : {},
+			location: response.headers.get('location') ?? ''
 		};
 		const error = stringField(result.body.error);
-		if (!result.ok && !(error && POLLING_ERRORS.includes(error))) {
+		if (
+			result.status >= 400 &&
+			!(expectRejection && isRejection(result.status)) &&
+			!(error && POLLING_ERRORS.includes(error))
+		) {
 			logFailure('Descope call failed', {
 				method: init.method,
 				path: path.split('?')[0],
@@ -186,81 +254,6 @@ const postForm = (path: string, form: Record<string, string>) =>
 		body: new URLSearchParams(form).toString()
 	});
 
-const managementHeaders = (ctx: Context) => ({
-	Authorization: `Bearer ${ctx.pid}:${ctx.key}`,
-	Accept: 'application/json'
-});
-
-const stringList = (value: unknown, field?: string) => {
-	if (!Array.isArray(value)) return [];
-	return value
-		.map((item: unknown) => {
-			if (!field) return item;
-			return isRecord(item) ? item[field] : undefined;
-		})
-		.filter(nonEmptyString);
-};
-
-const toAgentApp = (raw: unknown): AgentApp | undefined => {
-	if (!isRecord(raw) || !nonEmptyString(raw.id)) return undefined;
-	if (!nonEmptyString(raw.clientId)) return undefined;
-	const ciba = isRecord(raw.cibaSettings) ? raw.cibaSettings : {};
-	const scopes = stringList(raw.permissionsScopes, 'name').concat(
-		stringList(raw.scopeClaimMapping, 'scope')
-	);
-	return {
-		id: raw.id,
-		name: typeof raw.name === 'string' ? raw.name : '',
-		clientId: raw.clientId,
-		cibaEnabled: ciba.enabled === true,
-		loginPageURL:
-			typeof ciba.loginPageURL === 'string' ? ciba.loginPageURL : '',
-		approvedCallbackUrls: stringList(raw.approvedCallbackUrls),
-		scope: Array.from(new Set(scopes)).join(' ')
-	};
-};
-
-const loadApps = async (ctx: Context) => {
-	const cached = appsCache.get(ctx.pid);
-	if (cached && cached.expiresAt > Date.now()) return cached.apps;
-
-	const { ok, body } = await callDescope('/v2/mgmt/thirdparty/apps/load', {
-		method: 'POST',
-		headers: {
-			...managementHeaders(ctx),
-			'Content-Type': 'application/json'
-		},
-		body: '{}'
-	});
-	if (!ok || !Array.isArray(body.apps)) {
-		throw new Error('Failed to load third party apps');
-	}
-	const apps = body.apps
-		.map(toAgentApp)
-		.filter((app): app is AgentApp => app !== undefined);
-	appsCache.set(ctx.pid, { expiresAt: Date.now() + APPS_CACHE_MS, apps });
-	return apps;
-};
-
-const loadSecret = async (ctx: Context, appId: string) => {
-	const cacheKey = `${ctx.pid}:${appId}`;
-	const cached = secretCache.get(cacheKey);
-	if (cached && cached.expiresAt > Date.now()) return cached.secret;
-
-	const { ok, body } = await callDescope(
-		`/v1/mgmt/thirdparty/app/secret?id=${encodeURIComponent(appId)}`,
-		{ method: 'GET', headers: managementHeaders(ctx) }
-	);
-	if (!ok || !nonEmptyString(body.cleartext)) {
-		throw new Error('Failed to load the app secret');
-	}
-	secretCache.set(cacheKey, {
-		expiresAt: Date.now() + SECRET_CACHE_MS,
-		secret: body.cleartext
-	});
-	return body.cleartext;
-};
-
 const httpUrl = (value: string) => {
 	try {
 		const url = new URL(value);
@@ -272,12 +265,81 @@ const httpUrl = (value: string) => {
 	}
 };
 
-const urlHost = (value: string) => {
-	try {
-		return new URL(value).host;
-	} catch {
-		return undefined;
+const UNKNOWN_AGENT: GateResult = { status: 400, message: 'Unknown agent' };
+
+const RETURN_URL_NOT_ALLOWED: GateResult = {
+	status: 400,
+	message: 'This return URL is not allowed'
+};
+
+const AGENT_NOT_SET_UP: GateResult = {
+	status: 400,
+	message: 'This agent is not set up for approvals'
+};
+
+// Descope's public authorize endpoint checks redirect_uri against the app's
+// approved callback URLs and needs no credential
+const askAuthorize = async (
+	ctx: Context,
+	clientId: string,
+	redirectUri: string,
+	expectRejection = false
+): Promise<GateResult> => {
+	const path = `/oauth2/v1/apps/${ctx.pid}/authorize`;
+	const query = new URLSearchParams({
+		response_type: 'code',
+		client_id: clientId,
+		redirect_uri: redirectUri,
+		scope: 'openid',
+		state: randomBytes(16).toString('base64url'),
+		code_challenge: CALLBACK_CHECK_CODE_CHALLENGE,
+		code_challenge_method: 'S256'
+	});
+	const { status, body, location } = await callDescope(
+		`${path}?${query.toString()}`,
+		{
+			method: 'GET',
+			headers: { Accept: 'application/json' },
+			redirect: 'manual'
+		},
+		expectRejection
+	);
+	if (status >= 300 && status < 400 && location) {
+		if (!ERROR_PARAM_REGEX.test(location)) return { returnTo: redirectUri };
+		if (location.includes(UNKNOWN_CLIENT_ERROR_CODE)) return UNKNOWN_AGENT;
 	}
+	if (isRejection(status)) {
+		return body.errorCode === UNKNOWN_CLIENT_ERROR_CODE
+			? UNKNOWN_AGENT
+			: RETURN_URL_NOT_ALLOWED;
+	}
+	// callDescope logged the failed calls already; the Location can carry anything
+	if (status < 400) {
+		logFailure('Callback URL check gave no verdict', {
+			path,
+			status,
+			hasLocation: Boolean(location)
+		});
+	}
+	throw new Error('The authorize endpoint gave no verdict');
+};
+
+// Descope skips the redirect URI check for an app with no approved callback
+// URLs, so a URL that no list names tells such an app apart
+const checkCallback = async (
+	ctx: Context,
+	clientId: string,
+	returnTo: string
+): Promise<GateResult> => {
+	const verdict = await askAuthorize(ctx, clientId, returnTo);
+	if (!('returnTo' in verdict)) return verdict;
+	const openCheck = await askAuthorize(
+		ctx,
+		clientId,
+		`${OPEN_CHECK_URL_PREFIX}${randomBytes(16).toString('base64url')}`,
+		true
+	);
+	return 'returnTo' in openCheck ? AGENT_NOT_SET_UP : verdict;
 };
 
 const gate = async (
@@ -285,20 +347,19 @@ const gate = async (
 	clientId: string,
 	returnTo: string
 ): Promise<GateResult> => {
-	const apps = await loadApps(ctx);
-	const app = apps.find((candidate) => candidate.clientId === clientId);
-	const loginHost = app && urlHost(app.loginPageURL);
-	if (!app || !app.cibaEnabled || !loginHost || loginHost !== ctx.host) {
-		return { status: 400, message: 'Unknown agent' };
-	}
 	const target = httpUrl(returnTo);
-	const allowed = app.approvedCallbackUrls.some(
-		(url) => httpUrl(url) === target
-	);
-	if (!target || !allowed) {
-		return { status: 400, message: 'This return URL is not allowed' };
-	}
-	return { app, returnTo: target };
+	if (!target) return RETURN_URL_NOT_ALLOWED;
+	const cacheKey = JSON.stringify([ctx.pid, clientId, target]);
+	const cached = verdictCache.get(cacheKey);
+	if (cached && cached.expiresAt > Date.now()) return cached.verdict;
+
+	const verdict = await checkCallback(ctx, clientId, target);
+	if (verdictCache.size >= MAX_CACHED_VERDICTS) verdictCache.clear();
+	verdictCache.set(cacheKey, {
+		expiresAt: Date.now() + VERDICT_CACHE_MS,
+		verdict
+	});
+	return verdict;
 };
 
 const paramsFields =
@@ -331,15 +392,26 @@ const bodyFields = (req: ApiRequest): Fields | undefined => {
 	}
 };
 
+const isValidScope = (scope: string | undefined): scope is string => {
+	if (scope === undefined || scope.length > MAX_SCOPE_LENGTH) return false;
+	const tokens = scope.split(' ');
+	return (
+		tokens.length <= MAX_SCOPE_TOKENS &&
+		tokens.every((token) => SCOPE_TOKEN_REGEX.test(token))
+	);
+};
+
 const readApprovalRequest = (fields: Fields): ApprovalRequest | undefined => {
 	const clientId = fields('client_id');
+	const scope = fields('scope');
 	const ref = fields('ref');
 	const returnTo = fields('return_to');
 	if (!nonEmptyString(clientId) || !nonEmptyString(returnTo)) {
 		return undefined;
 	}
+	if (!isValidScope(scope)) return undefined;
 	if (ref === undefined || !REF_REGEX.test(ref)) return undefined;
-	return { clientId, ref, returnTo, summary: fields('summary') ?? '' };
+	return { clientId, scope, ref, returnTo, summary: fields('summary') ?? '' };
 };
 
 const normalizeLoginId = (value: string | undefined) => {
@@ -424,15 +496,33 @@ const layout = (title: string, content: string, head = '') =>
 		`</head><body>${content}</body></html>`
 	].join('');
 
-const send = (res: ApiResponse, status: number, html: string) => {
+const respond = (
+	res: ApiResponse,
+	status: number,
+	contentType: string,
+	cacheControl: string,
+	body: string
+) => {
 	res.statusCode = status;
-	res.setHeader('Content-Type', 'text/html; charset=utf-8');
-	res.setHeader('Cache-Control', 'no-store');
+	res.setHeader('Content-Type', contentType);
+	res.setHeader('Cache-Control', cacheControl);
 	res.setHeader('Referrer-Policy', 'no-referrer');
 	res.setHeader('X-Content-Type-Options', 'nosniff');
 	res.setHeader('X-Frame-Options', 'DENY');
-	res.end(html);
+	res.end(body);
 };
+
+const send = (res: ApiResponse, status: number, html: string) =>
+	respond(res, status, 'text/html; charset=utf-8', 'no-store', html);
+
+const sendJwks = (res: ApiResponse, { jwk, kid }: SigningKey) =>
+	respond(
+		res,
+		200,
+		'application/json',
+		'public, max-age=300',
+		JSON.stringify({ keys: [{ ...jwk, kid, alg: 'ES256', use: 'sig' }] })
+	);
 
 const sendError = (res: ApiResponse, status: number, message: string) =>
 	send(res, status, layout(message, `<h1>${escapeHtml(message)}</h1>`));
@@ -440,15 +530,15 @@ const sendError = (res: ApiResponse, status: number, message: string) =>
 const hiddenInput = (name: string, value: string) =>
 	`<input type="hidden" name="${name}" value="${escapeHtml(value)}">`;
 
-const startPage = (ctx: Context, app: AgentApp, request: ApprovalRequest) =>
+const startPage = (ctx: Context, request: ApprovalRequest) =>
 	layout(
 		'Approve an agent action',
 		[
 			'<h1>Approve an agent action</h1>',
-			`<p><strong>${escapeHtml(app.name || 'An AI agent')}</strong>`,
-			` wants to: ${escapeHtml(request.summary)}</p>`,
+			`<p>An AI agent wants to: ${escapeHtml(request.summary)}</p>`,
 			`<form method="post" action="/approve/${escapeHtml(ctx.pid)}">`,
 			hiddenInput('client_id', request.clientId),
+			hiddenInput('scope', request.scope),
 			hiddenInput('ref', request.ref),
 			hiddenInput('summary', request.summary),
 			hiddenInput('return_to', request.returnTo),
@@ -501,11 +591,11 @@ const showStart = async (
 		return;
 	}
 	const result = await gate(ctx, request.clientId, request.returnTo);
-	if (!('app' in result)) {
+	if (!('returnTo' in result)) {
 		sendError(res, result.status, result.message);
 		return;
 	}
-	send(res, 200, startPage(ctx, result.app, request));
+	send(res, 200, startPage(ctx, request));
 };
 
 const startApproval = async (
@@ -525,24 +615,27 @@ const startApproval = async (
 		return;
 	}
 	const result = await gate(ctx, request.clientId, request.returnTo);
-	if (!('app' in result)) {
+	if (!('returnTo' in result)) {
 		sendError(res, result.status, result.message);
 		return;
 	}
 
-	const { app, returnTo } = result;
-	const clientSecret = await loadSecret(ctx, app.id);
 	const code = String(randomInt(1000, 10000));
-	const form: Record<string, string> = {
-		client_id: app.clientId,
-		client_secret: clientSecret,
+	const started = await postForm('/oauth2/v1/apps/bc-authorize', {
+		...clientAuth(ctx, request.clientId),
 		login_hint: loginId,
+		scope: request.scope,
 		binding_message: buildBindingMessage(request.summary, code)
-	};
-	if (app.scope) form.scope = app.scope;
-
-	const started = await postForm('/oauth2/v1/apps/bc-authorize', form);
+	});
 	const authReqId = started.body.auth_req_id;
+	if (
+		!started.ok &&
+		(started.body.error === 'invalid_client' ||
+			started.body.errorCode === INVALID_CLIENT_ERROR_CODE)
+	) {
+		sendError(res, 400, 'This agent is not set up for approvals');
+		return;
+	}
 	if (
 		!started.ok ||
 		!nonEmptyString(authReqId) ||
@@ -559,9 +652,9 @@ const startApproval = async (
 	setPendingCookie(res, ctx, {
 		authReqId,
 		code,
-		clientId: app.clientId,
+		clientId: request.clientId,
 		ref: request.ref,
-		returnTo,
+		returnTo: result.returnTo,
 		interval: positiveInt(started.body.interval, DEFAULT_INTERVAL_SEC),
 		expiresAt: Date.now() + expiresIn * 1000
 	});
@@ -580,21 +673,23 @@ const waitForApproval = async (
 		return;
 	}
 	const result = await gate(ctx, pending.clientId, pending.returnTo);
-	if (!('app' in result)) {
+	if (!('returnTo' in result)) {
 		sendError(res, result.status, result.message);
 		return;
 	}
 
-	const { app, returnTo } = result;
 	const { ok, status, body } = await postForm('/oauth2/v1/apps/token', {
 		grant_type: CIBA_GRANT_TYPE,
-		client_id: app.clientId,
-		client_secret: await loadSecret(ctx, app.id),
+		...clientAuth(ctx, pending.clientId),
 		auth_req_id: pending.authReqId
 	});
 	if (ok && nonEmptyString(body.access_token)) {
 		clearPendingCookie(res, ctx);
-		send(res, 200, handbackPage(returnTo, pending.ref, body.access_token));
+		send(
+			res,
+			200,
+			handbackPage(result.returnTo, pending.ref, body.access_token)
+		);
 		return;
 	}
 	// A gateway failure is not an answer; keep the approval the customer may still give
@@ -628,9 +723,17 @@ const parseRoute = (rawUrl: string | undefined) => {
 		url.pathname === FUNCTION_PATH
 			? (url.searchParams.get('path') ?? '')
 			: url.pathname;
+	if (path === JWKS_PATH) {
+		return { jwks: true, pid: '', wait: false, query: url.searchParams };
+	}
 	const match = ROUTE_REGEX.exec(path);
 	if (!match) return undefined;
-	return { pid: match[1], wait: Boolean(match[2]), query: url.searchParams };
+	return {
+		jwks: false,
+		pid: match[1],
+		wait: Boolean(match[2]),
+		query: url.searchParams
+	};
 };
 
 const methodNotAllowed = (res: ApiResponse, allow: string) => {
@@ -644,24 +747,21 @@ const handler = async (req: ApiRequest, res: ApiResponse) => {
 		sendError(res, 404, 'Not found');
 		return;
 	}
-	let key: string | undefined;
-	try {
-		key = managementKey(route.pid);
-	} catch {
+	const signingKey = loadSigningKey();
+	if (!signingKey) {
 		sendError(res, 500, 'This service is not configured');
 		return;
 	}
-	if (!key) {
-		sendError(res, 404, 'Not found');
+	if (route.jwks) {
+		if (req.method === 'GET') {
+			sendJwks(res, signingKey);
+		} else {
+			methodNotAllowed(res, 'GET');
+		}
 		return;
 	}
 
-	const ctx: Context = {
-		pid: route.pid,
-		key,
-		host: headerValue(req, 'host').toLowerCase(),
-		secure: isHttps(req)
-	};
+	const ctx: Context = { pid: route.pid, signingKey, secure: isHttps(req) };
 	try {
 		if (route.wait && req.method === 'GET') {
 			await waitForApproval(req, res, ctx);

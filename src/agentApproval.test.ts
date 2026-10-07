@@ -22,21 +22,61 @@ type FakeRequest = {
 	body?: unknown;
 };
 
-type Reply = { status: number; body: unknown };
+type Reply = { status: number; body: unknown; location?: string };
 
-type Endpoint = 'apps' | 'secret' | 'bcAuthorize' | 'token';
+type Endpoint = 'authorize' | 'openCheck' | 'bcAuthorize' | 'token';
 
 const pid = 'P2Sn0gttY5sY4Zu6WDGAAEJ4VTrv';
-const host = 'approve.example.com';
-const managementKey = 'test-management-key';
-const appId = 'TPA2Sn0gttY5sY4Zu6WDGAAEJ4VTrv';
+const otherPid = 'P3Sn0gttY5sY4Zu6WDGAAEJ4VTrv';
 const clientId = 'test-grok-client-id';
-const clientSecret = 'test-grok-client-secret';
+const scope = 'orders:write email';
 const returnTo = 'https://shop.example.com/descope/agent-callback';
 const ref = 'test_ref-0123456789abcdefghijklmnopqrstuv';
 const summary = 'Order 2x Trail Runner at Acme Shop. Total $129.00';
 const loginId = 'alice@example.com';
 const accessToken = 'test-access-token';
+const codeChallenge = 'E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM';
+const openCheckUrlPrefix = 'https://agent-approval.invalid/';
+
+// Shapes captured from live calls against a local Descope stack (2026-10-07)
+const approvedLocation =
+	`https://approve.example.com/login/${pid}?flow=inbound-apps-user-consent` +
+	`&oidc_error_redirect_uri=${encodeURIComponent(returnTo)}` +
+	'&third_party_app_id=TPA2Sn0gttY5sY4Zu6WDGAAEJ4VTrv' +
+	'&third_party_app_state_id=s-test-state-id';
+const unknownClientLocation =
+	'https://descope.example.com/login/error?error=invalid_request%3A+%5BE063308%5D' +
+	'+Requested+application+not+found%3A+Third+party+application+not+found' +
+	'&error_description=%5BE063308%5D+Requested+application+not+found%3A' +
+	'+Third+party+application+not+found';
+const notApprovedReply: Reply = {
+	status: 401,
+	body: {
+		errorCode: 'E061004',
+		errorDescription: 'Unauthorized request',
+		errorMessage:
+			'Redirect URL does not match the approved redirect urls for this third party application',
+		message:
+			'Redirect URL does not match the approved redirect urls for this third party application'
+	}
+};
+const untrustedKeyReply: Reply = {
+	status: 400,
+	body: {
+		errorCode: 'E066009',
+		errorDescription: 'invalid_client',
+		errorMessage: 'Failed to find trusted issuer (provider) for JWT assertion',
+		message: 'Failed to find trusted issuer (provider) for JWT assertion'
+	}
+};
+
+const { privateKey, publicKey } = crypto.generateKeyPairSync('ec', {
+	namedCurve: 'P-256'
+});
+const signingPem = privateKey
+	.export({ type: 'pkcs8', format: 'pem' })
+	.toString();
+const publicJwk = publicKey.export({ format: 'jwk' });
 
 const mockFetch = jest.fn() as jest.Mock & typeof fetch;
 const originalFetch = global.fetch;
@@ -45,33 +85,58 @@ let handler: Handler;
 let replies: Record<Endpoint, Reply>;
 let consoleError: jest.SpyInstance;
 
-const agentApp = (overrides: Record<string, unknown> = {}) => ({
-	id: appId,
-	name: 'Grok <Agent>',
-	clientId,
-	approvedCallbackUrls: [returnTo],
-	permissionsScopes: [{ name: 'orders:write' }, { name: 'email' }],
-	scopeClaimMapping: [{ scope: 'email' }, { scope: 'profile' }],
-	cibaSettings: {
-		enabled: true,
-		loginPageURL: `https://${host}/approve/${pid}`
-	},
-	...overrides
-});
-
 const endpointOf = (url: string): Endpoint | undefined => {
-	if (url.endsWith('/v2/mgmt/thirdparty/apps/load')) return 'apps';
-	if (url.includes('/v1/mgmt/thirdparty/app/secret?')) return 'secret';
+	if (/\/oauth2\/v1\/apps\/P[A-Za-z0-9]+\/authorize\?/.test(url)) {
+		const redirectUri = new URL(url).searchParams.get('redirect_uri') ?? '';
+		return redirectUri.startsWith(openCheckUrlPrefix)
+			? 'openCheck'
+			: 'authorize';
+	}
 	if (url.endsWith('/oauth2/v1/apps/bc-authorize')) return 'bcAuthorize';
 	if (url.endsWith('/oauth2/v1/apps/token')) return 'token';
 	return undefined;
 };
+
+const fakeFetchResponse = ({ status, body, location }: Reply) => ({
+	ok: status >= 200 && status < 300,
+	status,
+	headers: {
+		get: (name: string) =>
+			name.toLowerCase() === 'location' ? (location ?? null) : null
+	},
+	json: async () => body
+});
 
 const callsTo = (endpoint: Endpoint) =>
 	mockFetch.mock.calls.filter(([url]) => endpointOf(String(url)) === endpoint);
 
 const sentForm = (endpoint: Endpoint, index = 0) =>
 	Object.fromEntries(new URLSearchParams(callsTo(endpoint)[index][1].body));
+
+const authorizeQuery = (index = 0) =>
+	Object.fromEntries(new URL(callsTo('authorize')[index][0]).searchParams);
+
+const decodeAssertion = (assertion: string) => {
+	const [header, claims, signature] = assertion.split('.');
+	const json = (part: string) =>
+		JSON.parse(Buffer.from(part, 'base64url').toString('utf8'));
+	return {
+		header: json(header),
+		claims: json(claims),
+		signingInput: `${header}.${claims}`,
+		signature: Buffer.from(signature, 'base64url')
+	};
+};
+
+const verifies = (assertion: string, key: crypto.KeyObject = publicKey) => {
+	const { signingInput, signature } = decodeAssertion(assertion);
+	return crypto.verify(
+		'sha256',
+		Buffer.from(signingInput),
+		{ key, dsaEncoding: 'ieee-p1363' },
+		signature
+	);
+};
 
 const fakeResponse = (): FakeResponse => {
 	const res: FakeResponse = {
@@ -88,15 +153,16 @@ const fakeResponse = (): FakeResponse => {
 	return res;
 };
 
-const call = async ({ headers, ...req }: FakeRequest) => {
+const call = async ({ headers = {}, ...req }: FakeRequest) => {
 	const res = fakeResponse();
-	await handler({ method: 'GET', ...req, headers: { host, ...headers } }, res);
+	await handler({ method: 'GET', ...req, headers }, res);
 	return res;
 };
 
 const startQuery = (overrides: Record<string, string> = {}) =>
 	new URLSearchParams({
 		client_id: clientId,
+		scope,
 		ref,
 		summary,
 		return_to: returnTo,
@@ -106,8 +172,11 @@ const startQuery = (overrides: Record<string, string> = {}) =>
 const getStart = (overrides: Record<string, string> = {}) =>
 	call({ url: `/approve/${pid}?${startQuery(overrides)}` });
 
+const getJwks = () => call({ url: '/approve/jwks.json' });
+
 const startBody = (overrides: Record<string, unknown> = {}) => ({
 	client_id: clientId,
+	scope,
 	ref,
 	summary,
 	return_to: returnTo,
@@ -170,9 +239,12 @@ const expectSecurityHeaders = (res: FakeResponse) => {
 	);
 };
 
-const expectNoSecretRequest = () => {
-	expect(callsTo('secret')).toHaveLength(0);
-	expect(callsTo('bcAuthorize')).toHaveLength(0);
+const failFetchFor = (endpoint: Endpoint, error: Error) => {
+	const implementation = mockFetch.getMockImplementation();
+	mockFetch.mockImplementation(async (url: string, init: RequestInit) => {
+		if (endpointOf(url) === endpoint) throw error;
+		return implementation?.(url, init);
+	});
 };
 
 describe('agent-approval function', () => {
@@ -189,13 +261,11 @@ describe('agent-approval function', () => {
 	beforeEach(async () => {
 		jest.resetModules();
 		({ default: handler } = await import('../api/agent-approval'));
-		process.env.AGENT_APPROVAL_MANAGEMENT_KEYS = JSON.stringify({
-			[pid]: managementKey
-		});
+		process.env.AGENT_APPROVAL_SIGNING_KEY = signingPem;
 		process.env.DESCOPE_BASE_URL = 'https://descope.example.com/';
 		replies = {
-			apps: { status: 200, body: { apps: [agentApp()], total: 1 } },
-			secret: { status: 200, body: { cleartext: clientSecret } },
+			authorize: { status: 303, body: {}, location: approvedLocation },
+			openCheck: notApprovedReply,
 			bcAuthorize: {
 				status: 200,
 				body: { auth_req_id: 'test-auth-req-id', interval: 7, expires_in: 120 }
@@ -208,12 +278,7 @@ describe('agent-approval function', () => {
 		mockFetch.mockImplementation(async (url: string) => {
 			const endpoint = endpointOf(url);
 			if (!endpoint) throw new Error(`Unexpected fetch to ${url}`);
-			const { status, body } = replies[endpoint];
-			return {
-				ok: status >= 200 && status < 300,
-				status,
-				json: async () => body
-			};
+			return fakeFetchResponse(replies[endpoint]);
 		});
 	});
 
@@ -224,24 +289,27 @@ describe('agent-approval function', () => {
 	});
 
 	describe('routing', () => {
-		it.each(['P2Sn0gttY5sY4Zu6WDGAAEJ4VTrX', 'constructor', 'toString'])(
-			'returns 404 for the unknown project %s',
-			async (unknownPid) => {
-				const res = await call({
-					url: `/approve/${unknownPid}?${startQuery()}`
-				});
+		it.each([
+			'constructor',
+			'toString',
+			`P${'a'.repeat(19)}`,
+			`P${'a'.repeat(41)}`,
+			`p${'a'.repeat(27)}`,
+			`P${'a'.repeat(26)}-`
+		])('returns 404 for the malformed project ID %s', async (badPid) => {
+			const res = await call({ url: `/approve/${badPid}?${startQuery()}` });
 
-				expect(res.statusCode).toBe(404);
-				expectSecurityHeaders(res);
-				expect(mockFetch).not.toHaveBeenCalled();
-			}
-		);
+			expect(res.statusCode).toBe(404);
+			expectSecurityHeaders(res);
+			expect(mockFetch).not.toHaveBeenCalled();
+		});
 
 		it.each([
 			'/',
 			'/approve',
 			`/approve/${pid}/other`,
 			`/approve/__proto__`,
+			'/approve/jwks.json/wait',
 			'/api/agent-approval',
 			'/api/agent-approval?path=/login',
 			'//['
@@ -251,6 +319,22 @@ describe('agent-approval function', () => {
 			expect(res.statusCode).toBe(404);
 			expect(mockFetch).not.toHaveBeenCalled();
 		});
+
+		it.each([
+			['20', `P${'a'.repeat(20)}`],
+			['40', `P${'a'.repeat(40)}`],
+			['27', otherPid]
+		])(
+			'serves any project with %s characters after the P',
+			async (_, anyPid) => {
+				const res = await call({ url: `/approve/${anyPid}?${startQuery()}` });
+
+				expect(res.statusCode).toBe(200);
+				expect(callsTo('authorize')[0][0]).toContain(
+					`/oauth2/v1/apps/${anyPid}/authorize?`
+				);
+			}
+		);
 
 		it('serves the start page on the rewritten function URL', async () => {
 			const path = encodeURIComponent(`/approve/${pid}`);
@@ -296,21 +380,60 @@ describe('agent-approval function', () => {
 			}
 		);
 
+		it('routes the vercel.json rewrite for the key set before /approve/:pid', async () => {
+			const sources = vercelConfig.rewrites.map(({ source }) => source);
+			const rewrite = vercelConfig.rewrites.find(
+				(candidate) => candidate.source === '/approve/jwks.json'
+			);
+
+			const res = await call({ url: rewrite?.destination ?? '' });
+
+			expect(sources.indexOf('/approve/jwks.json')).toBeLessThan(
+				sources.indexOf('/approve/:pid')
+			);
+			expect(res.statusCode).toBe(200);
+			expect(res.headers['Content-Type']).toBe('application/json');
+		});
+
 		it.each([
-			['missing', undefined],
-			['not JSON', '{nope'],
-			['not an object', '[]'],
-			['a non-string key', JSON.stringify({ [pid]: 42 })]
-		])('returns 500 when the keys env var is %s', async (_, value) => {
-			if (value === undefined) {
-				delete process.env.AGENT_APPROVAL_MANAGEMENT_KEYS;
+			['missing', () => undefined],
+			['not a PEM', () => 'not a key'],
+			[
+				'an RSA key',
+				() =>
+					crypto
+						.generateKeyPairSync('rsa', { modulusLength: 1024 })
+						.privateKey.export({ type: 'pkcs8', format: 'pem' })
+						.toString()
+			],
+			[
+				'a P-384 key',
+				() =>
+					crypto
+						.generateKeyPairSync('ec', { namedCurve: 'P-384' })
+						.privateKey.export({ type: 'pkcs8', format: 'pem' })
+						.toString()
+			],
+			[
+				'a public key',
+				() => publicKey.export({ type: 'spki', format: 'pem' }).toString()
+			]
+		])('returns 500 when the signing key is %s', async (_, makeKey) => {
+			const key = makeKey();
+			if (key === undefined) {
+				delete process.env.AGENT_APPROVAL_SIGNING_KEY;
 			} else {
-				process.env.AGENT_APPROVAL_MANAGEMENT_KEYS = value;
+				process.env.AGENT_APPROVAL_SIGNING_KEY = key;
 			}
 
-			const res = await getStart();
+			const start = await getStart();
+			const jwks = await getJwks();
 
-			expect(res.statusCode).toBe(500);
+			expect(start.statusCode).toBe(500);
+			expect(start.body).toContain('This service is not configured');
+			expectSecurityHeaders(start);
+			expect(jwks.statusCode).toBe(500);
+			expect(jwks.body).toContain('This service is not configured');
 			expect(mockFetch).not.toHaveBeenCalled();
 		});
 
@@ -328,160 +451,367 @@ describe('agent-approval function', () => {
 			expect(res.statusCode).toBe(405);
 			expect(res.headers.Allow).toBe('GET');
 		});
+
+		it('returns 405 for a POST to the key set', async () => {
+			const res = await call({ method: 'POST', url: '/approve/jwks.json' });
+
+			expect(res.statusCode).toBe(405);
+			expect(res.headers.Allow).toBe('GET');
+		});
 	});
 
-	describe('gate', () => {
-		it('loads the apps with the project management key', async () => {
-			await getStart();
+	describe('key set', () => {
+		it('publishes the public key with its RFC 7638 thumbprint as kid', async () => {
+			const res = await getJwks();
 
-			const [[url, init]] = callsTo('apps');
-			expect(url).toBe(
-				'https://descope.example.com/v2/mgmt/thirdparty/apps/load'
+			const thumbprint = crypto
+				.createHash('sha256')
+				.update(
+					`{"crv":"P-256","kty":"EC","x":"${publicJwk.x}","y":"${publicJwk.y}"}`
+				)
+				.digest('base64url');
+			expect(res.statusCode).toBe(200);
+			expect(res.headers).toEqual({
+				'Content-Type': 'application/json',
+				'Cache-Control': 'public, max-age=300',
+				'Referrer-Policy': 'no-referrer',
+				'X-Content-Type-Options': 'nosniff',
+				'X-Frame-Options': 'DENY'
+			});
+			expect(JSON.parse(res.body)).toEqual({
+				keys: [
+					{
+						kty: 'EC',
+						crv: 'P-256',
+						x: publicJwk.x,
+						y: publicJwk.y,
+						kid: thumbprint,
+						alg: 'ES256',
+						use: 'sig'
+					}
+				]
+			});
+			expect(res.body).not.toContain('"d"');
+			expect(mockFetch).not.toHaveBeenCalled();
+		});
+
+		it('publishes a key that verifies the assertions the service sends', async () => {
+			const res = await getJwks();
+			await postStart();
+
+			const [jwk] = JSON.parse(res.body).keys;
+			const key = crypto.createPublicKey({ key: jwk, format: 'jwk' });
+			const assertion = sentForm('bcAuthorize').client_assertion;
+			expect(decodeAssertion(assertion).header.kid).toBe(jwk.kid);
+			expect(verifies(assertion, key)).toBe(true);
+		});
+	});
+
+	describe('client assertion', () => {
+		it('signs an ES256 assertion for bc-authorize', async () => {
+			const before = Math.floor(Date.now() / 1000);
+
+			await postStart();
+			const after = Math.floor(Date.now() / 1000);
+
+			const form = sentForm('bcAuthorize');
+			expect(form.client_assertion_type).toBe(
+				'urn:ietf:params:oauth:client-assertion-type:jwt-bearer'
 			);
-			expect(init.method).toBe('POST');
-			expect(init.body).toBe('{}');
-			expect(init.headers.Authorization).toBe(`Bearer ${pid}:${managementKey}`);
-		});
-
-		it.each([
-			['the client ID is not found', agentApp({ clientId: 'other-client' })],
-			[
-				'CIBA is disabled',
-				agentApp({
-					cibaSettings: {
-						enabled: false,
-						loginPageURL: `https://${host}/approve/${pid}`
-					}
-				})
-			],
-			['CIBA settings are missing', agentApp({ cibaSettings: undefined })],
-			[
-				'the login page host differs',
-				agentApp({
-					cibaSettings: {
-						enabled: true,
-						loginPageURL: `https://other.example.com/approve/${pid}`
-					}
-				})
-			],
-			[
-				'the login page port differs',
-				agentApp({
-					cibaSettings: {
-						enabled: true,
-						loginPageURL: `https://${host}:8443/approve/${pid}`
-					}
-				})
-			],
-			[
-				'the login page URL does not parse',
-				agentApp({ cibaSettings: { enabled: true, loginPageURL: 'nope' } })
-			]
-		])('rejects before any secret request when %s', async (_, app) => {
-			replies.apps = { status: 200, body: { apps: [app] } };
-
-			const res = await postStart();
-
-			expect(res.statusCode).toBe(400);
-			expect(res.body).toContain('Unknown agent');
-			expect(res.headers['Set-Cookie']).toBeUndefined();
-			expectNoSecretRequest();
-		});
-
-		it('gates the start page too', async () => {
-			const res = await getStart({ client_id: 'other-client' });
-
-			expect(res.statusCode).toBe(400);
-			expect(res.body).toContain('Unknown agent');
-			expect(res.body).not.toContain('<form');
-		});
-
-		it('rejects a request without a Host header', async () => {
-			const res = fakeResponse();
-
-			await handler(
-				{
-					method: 'POST',
-					url: `/approve/${pid}`,
-					headers: {},
-					body: startBody()
-				},
-				res
+			const { header, claims, signature } = decodeAssertion(
+				form.client_assertion
 			);
-
-			expect(res.statusCode).toBe(400);
-			expectNoSecretRequest();
+			const { keys } = JSON.parse((await getJwks()).body);
+			expect(header).toEqual({ alg: 'ES256', typ: 'JWT', kid: keys[0].kid });
+			expect(claims).toEqual({
+				iss: clientId,
+				sub: clientId,
+				aud: `https://descope.example.com/oauth2/v1/apps/${pid}/token`,
+				jti: expect.stringMatching(/^[A-Za-z0-9_-]{22}$/),
+				iat: expect.any(Number),
+				exp: claims.iat + 60
+			});
+			expect(claims.iat).toBeGreaterThanOrEqual(before);
+			expect(claims.iat).toBeLessThanOrEqual(after);
+			expect(signature).toHaveLength(64);
+			expect(verifies(form.client_assertion)).toBe(true);
 		});
 
-		it('compares the Host header case-insensitively', async () => {
-			const res = await call({
-				url: `/approve/${pid}?${startQuery()}`,
-				headers: { host: 'Approve.Example.COM' }
+		it('names the project of the request in the audience', async () => {
+			await call({
+				method: 'POST',
+				url: `/approve/${otherPid}`,
+				body: startBody()
 			});
 
+			const { claims } = decodeAssertion(
+				sentForm('bcAuthorize').client_assertion
+			);
+			expect(claims.aud).toBe(
+				`https://descope.example.com/oauth2/v1/apps/${otherPid}/token`
+			);
+		});
+
+		it('signs a fresh assertion for every token poll', async () => {
+			await getWait(pendingCookie());
+			await getWait(pendingCookie());
+
+			const assertions = [0, 1].map(
+				(index) => sentForm('token', index).client_assertion
+			);
+			const jtis = assertions.map(
+				(assertion) => decodeAssertion(assertion).claims.jti
+			);
+			expect(jtis[0]).not.toBe(jtis[1]);
+			assertions.forEach((assertion) => {
+				expect(verifies(assertion)).toBe(true);
+				expect(decodeAssertion(assertion).claims.sub).toBe(clientId);
+			});
+		});
+
+		it('never sends a client secret', async () => {
+			await getStart();
+			await postStart();
+			replies.token = { status: 200, body: { access_token: accessToken } };
+			await getWait(pendingCookie());
+
+			expect(callsTo('authorize')).toHaveLength(1);
+			expect(callsTo('bcAuthorize')).toHaveLength(1);
+			expect(callsTo('token')).toHaveLength(1);
+			expect(JSON.stringify(mockFetch.mock.calls)).not.toContain(
+				'client_secret'
+			);
+			mockFetch.mock.calls.forEach(([, init]) => {
+				expect(init.headers).not.toHaveProperty('Authorization');
+			});
+		});
+	});
+
+	describe('callback URL check', () => {
+		it('asks the public authorize endpoint without a credential', async () => {
+			await getStart();
+
+			const [[url, init]] = callsTo('authorize');
+			expect(url.split('?')[0]).toBe(
+				`https://descope.example.com/oauth2/v1/apps/${pid}/authorize`
+			);
+			expect(authorizeQuery()).toEqual({
+				response_type: 'code',
+				client_id: clientId,
+				redirect_uri: returnTo,
+				scope: 'openid',
+				state: expect.stringMatching(/^[A-Za-z0-9_-]{22}$/),
+				code_challenge: codeChallenge,
+				code_challenge_method: 'S256'
+			});
+			expect(init).toEqual(
+				expect.objectContaining({
+					method: 'GET',
+					headers: { Accept: 'application/json' },
+					redirect: 'manual'
+				})
+			);
+		});
+
+		it('approves a return URL that redirects to the consent flow', async () => {
+			const res = await getStart();
+
 			expect(res.statusCode).toBe(200);
+			expect(res.body).toContain('<form');
+		});
+
+		it('asks again with a return URL no app approves', async () => {
+			await getStart();
+
+			const [[url]] = callsTo('openCheck');
+			expect(url.split('?')[0]).toBe(
+				`https://descope.example.com/oauth2/v1/apps/${pid}/authorize`
+			);
+			expect(Object.fromEntries(new URL(url).searchParams)).toEqual({
+				...authorizeQuery(),
+				redirect_uri: expect.stringMatching(
+					/^https:\/\/agent-approval\.invalid\/[A-Za-z0-9_-]{22}$/
+				),
+				state: expect.stringMatching(/^[A-Za-z0-9_-]{22}$/)
+			});
+		});
+
+		it('rejects and caches an agent app that approves any return URL', async () => {
+			replies.openCheck = { status: 303, body: {}, location: approvedLocation };
+
+			const res = await getStart();
+			const again = await postStart();
+
+			expect(res.statusCode).toBe(400);
+			expect(res.body).toContain('This agent is not set up for approvals');
+			expect(res.body).not.toContain('<form');
+			expect(again.statusCode).toBe(400);
+			expect(callsTo('bcAuthorize')).toHaveLength(0);
+			expect(callsTo('authorize')).toHaveLength(1);
+			expect(callsTo('openCheck')).toHaveLength(1);
+		});
+
+		it('does not hand back to an agent app that approves any return URL', async () => {
+			replies.openCheck = { status: 303, body: {}, location: approvedLocation };
+			replies.token = { status: 200, body: { access_token: accessToken } };
+
+			const res = await getWait(pendingCookie());
+
+			expect(res.statusCode).toBe(400);
+			expect(res.body).not.toContain(accessToken);
+			expect(callsTo('token')).toHaveLength(0);
 		});
 
 		it.each([
-			['a URL not in approvedCallbackUrls', 'https://evil.example.com/cb'],
-			['a URL that does not parse', 'not a url']
-		])('returns 400 for %s', async (_, value) => {
+			['a 5xx', { status: 503, body: {} }],
+			['a 429', { status: 429, body: {} }],
+			['a redirect without a Location', { status: 303, body: {} }]
+		])(
+			'returns 502 and does not cache %s to the open callback check',
+			async (_, reply) => {
+				replies.openCheck = reply;
+
+				const res = await getStart();
+				replies.openCheck = notApprovedReply;
+				const retry = await getStart();
+
+				expect(res.statusCode).toBe(502);
+				expect(retry.statusCode).toBe(200);
+				expect(callsTo('openCheck')).toHaveLength(2);
+			}
+		);
+
+		it.each([
+			['the captured redirect mismatch', notApprovedReply],
+			[
+				'another 4xx',
+				{ status: 400, body: { errorCode: 'E011002', message: 'Bad request' } }
+			]
+		])('rejects the return URL on %s', async (_, reply) => {
+			replies.authorize = reply;
+
+			const res = await getStart();
+
+			expect(res.statusCode).toBe(400);
+			expect(res.body).toContain('This return URL is not allowed');
+			expect(res.body).not.toContain('<form');
+			expect(callsTo('openCheck')).toHaveLength(0);
+		});
+
+		it.each([
+			[
+				'the captured error redirect',
+				{ status: 303, body: {}, location: unknownClientLocation }
+			],
+			[
+				'an error redirect to the unvalidated return URL',
+				{
+					status: 303,
+					body: {},
+					location: `${returnTo}?error=invalid_request&error_description=%5BE063308%5D+Requested+application+not+found`
+				}
+			],
+			['a 4xx', { status: 400, body: { errorCode: 'E063308' } }]
+		])(
+			'answers Unknown agent for an unknown client on %s',
+			async (_, reply) => {
+				replies.authorize = reply;
+
+				const res = await getStart();
+
+				expect(res.statusCode).toBe(400);
+				expect(res.body).toContain('Unknown agent');
+				expect(res.body).not.toContain('<form');
+			}
+		);
+
+		it.each([
+			[
+				'an error redirect to the unvalidated return URL',
+				{
+					status: 303,
+					body: {},
+					location: `${returnTo}?error=invalid_request&state=x`
+				}
+			],
+			[
+				'an error hidden in the fragment',
+				{
+					status: 303,
+					body: {},
+					location: 'https://evil.example.com/%zz#x?error=invalid_request'
+				}
+			],
+			[
+				'an error after another query parameter',
+				{
+					status: 303,
+					body: {},
+					location: `${returnTo}?state=x&error=invalid_request`
+				}
+			],
+			[
+				'an error in the fragment',
+				{
+					status: 303,
+					body: {},
+					location: 'https://approve.example.com/consent#error=invalid_request'
+				}
+			],
+			['a redirect without a Location', { status: 303, body: {} }],
+			['a 200', { status: 200, body: {} }],
+			['a 408', { status: 408, body: {} }],
+			['a 429', { status: 429, body: {} }],
+			['a 5xx', { status: 503, body: {} }]
+		])('returns 502 and does not cache %s', async (_, reply) => {
+			replies.authorize = reply;
+
+			const res = await getStart();
+			replies.authorize = {
+				status: 303,
+				body: {},
+				location: approvedLocation
+			};
+			const retry = await getStart();
+
+			expect(res.statusCode).toBe(502);
+			expect(res.body).toContain('Could not reach Descope');
+			expectSecurityHeaders(res);
+			expect(retry.statusCode).toBe(200);
+			expect(callsTo('authorize')).toHaveLength(2);
+		});
+
+		it.each([
+			['a URL that does not parse', 'not a url'],
+			['a non-http URL', ['javascript', 'alert(1)'].join(':')]
+		])('rejects %s without asking Descope', async (_, value) => {
 			const res = await postStart({ return_to: value });
 
 			expect(res.statusCode).toBe(400);
 			expect(res.body).toContain('This return URL is not allowed');
-			expectNoSecretRequest();
+			expect(mockFetch).not.toHaveBeenCalled();
 		});
 
-		it('rejects a non-http return URL even when it is approved', async () => {
-			const scriptUrl = ['javascript', 'alert(1)'].join(':');
-			replies.apps = {
-				status: 200,
-				body: { apps: [agentApp({ approvedCallbackUrls: [scriptUrl] })] }
-			};
+		it('checks and stores the normalized return URL', async () => {
+			const res = await postStart({
+				return_to: 'HTTPS://Shop.Example.com:443/descope/agent-callback'
+			});
 
-			const res = await postStart({ return_to: scriptUrl });
+			expect(authorizeQuery().redirect_uri).toBe(returnTo);
+			expect(decodeCookie(res).returnTo).toBe(returnTo);
+		});
+
+		it('checks again before bc-authorize', async () => {
+			replies.authorize = notApprovedReply;
+
+			const res = await postStart();
 
 			expect(res.statusCode).toBe(400);
-			expectNoSecretRequest();
+			expect(res.headers['Set-Cookie']).toBeUndefined();
+			expect(callsTo('bcAuthorize')).toHaveLength(0);
 		});
 
-		it('matches return URLs after normalizing both sides', async () => {
-			replies.apps = {
-				status: 200,
-				body: {
-					apps: [
-						agentApp({
-							approvedCallbackUrls: [
-								'HTTPS://Shop.Example.com:443/descope/agent-callback'
-							]
-						})
-					]
-				}
-			};
-
-			const res = await getStart();
-
-			expect(res.statusCode).toBe(200);
-		});
-
-		it.each([
-			['an error status', { status: 401, body: { errorCode: 'E011003' } }],
-			['a body without apps', { status: 200, body: {} }]
-		])('returns 502 and does not cache %s', async (_, reply) => {
-			replies.apps = reply;
-
-			const res = await getStart();
-			replies.apps = { status: 200, body: { apps: [agentApp()] } };
-			const retry = await getStart();
-
-			expect(res.statusCode).toBe(502);
-			expectSecurityHeaders(res);
-			expect(retry.statusCode).toBe(200);
-			expect(callsTo('apps')).toHaveLength(2);
-		});
-
-		it('caches the apps for 60 seconds per project', async () => {
+		it('caches the verdict for 60 seconds', async () => {
 			jest.useFakeTimers();
 
 			await getStart();
@@ -489,68 +819,40 @@ describe('agent-approval function', () => {
 			jest.advanceTimersByTime(60001);
 			await getStart();
 
-			expect(callsTo('apps')).toHaveLength(2);
+			expect(callsTo('authorize')).toHaveLength(2);
 		});
 
-		describe('with two projects', () => {
-			const otherPid = 'P3Sn0gttY5sY4Zu6WDGAAEJ4VTrv';
-			const otherKey = 'test-other-management-key';
-			const otherClientId = 'test-other-client-id';
-			const otherSecret = 'test-other-client-secret';
+		it('caches a rejection too', async () => {
+			replies.authorize = notApprovedReply;
 
-			beforeEach(() => {
-				process.env.AGENT_APPROVAL_MANAGEMENT_KEYS = JSON.stringify({
-					[pid]: managementKey,
-					[otherPid]: otherKey
-				});
-				const implementation = mockFetch.getMockImplementation();
-				mockFetch.mockImplementation(async (url: string, init: RequestInit) => {
-					const headers = (init.headers ?? {}) as Record<string, string>;
-					if (headers.Authorization !== `Bearer ${otherPid}:${otherKey}`) {
-						return implementation?.(url, init);
-					}
-					const body =
-						endpointOf(url) === 'apps'
-							? { apps: [agentApp({ clientId: otherClientId })] }
-							: { cleartext: otherSecret };
-					return { ok: true, status: 200, json: async () => body };
-				});
-			});
+			await getStart();
+			const res = await getStart();
 
-			it('loads and caches the apps per project', async () => {
-				const first = await getStart();
-				const crossed = await call({
-					url: `/approve/${otherPid}?${startQuery()}`
-				});
-				const own = await call({
-					url: `/approve/${otherPid}?${startQuery({ client_id: otherClientId })}`
-				});
+			expect(res.statusCode).toBe(400);
+			expect(callsTo('authorize')).toHaveLength(1);
+		});
 
-				expect(first.statusCode).toBe(200);
-				expect(crossed.statusCode).toBe(400);
-				expect(crossed.body).toContain('Unknown agent');
-				expect(own.statusCode).toBe(200);
-				expect(
-					callsTo('apps').map(([, init]) => init.headers.Authorization)
-				).toEqual([
-					`Bearer ${pid}:${managementKey}`,
-					`Bearer ${otherPid}:${otherKey}`
-				]);
-			});
+		it('caches per project, client ID and return URL', async () => {
+			await getStart();
+			await call({ url: `/approve/${otherPid}?${startQuery()}` });
+			await getStart({ client_id: 'other-client' });
+			await getStart({ return_to: 'https://shop.example.com/other' });
+			await getStart();
 
-			it('caches the app secret per project', async () => {
-				await postStart();
-				const res = await call({
-					method: 'POST',
-					url: `/approve/${otherPid}`,
-					body: startBody({ client_id: otherClientId })
-				});
+			expect(callsTo('authorize')).toHaveLength(4);
+		});
 
-				expect(res.statusCode).toBe(303);
-				expect(callsTo('secret')).toHaveLength(2);
-				expect(sentForm('bcAuthorize', 0).client_secret).toBe(clientSecret);
-				expect(sentForm('bcAuthorize', 1).client_secret).toBe(otherSecret);
-			});
+		it('starts over when 1000 verdicts are cached', async () => {
+			const getFor = (index: number) =>
+				getStart({ return_to: `https://shop.example.com/cb/${index}` });
+
+			await Promise.all(
+				Array.from({ length: 1000 }, (_, index) => getFor(index))
+			);
+			await getFor(1000);
+			await getFor(0);
+
+			expect(callsTo('authorize')).toHaveLength(1002);
 		});
 	});
 
@@ -562,7 +864,7 @@ describe('agent-approval function', () => {
 			expectSecurityHeaders(res);
 			expect(res.body).toContain('<h1>Approve an agent action</h1>');
 			expect(res.body).toContain(
-				'<strong>Grok &lt;Agent&gt;</strong> wants to: &lt;script&gt;alert(1)&lt;/script&gt;'
+				'<p>An AI agent wants to: &lt;script&gt;alert(1)&lt;/script&gt;</p>'
 			);
 			expect(res.body).not.toContain('<script>alert');
 			expect(res.body).toContain(
@@ -570,6 +872,9 @@ describe('agent-approval function', () => {
 			);
 			expect(res.body).toContain(
 				`<input type="hidden" name="client_id" value="${clientId}">`
+			);
+			expect(res.body).toContain(
+				`<input type="hidden" name="scope" value="${scope}">`
 			);
 			expect(res.body).toContain(
 				`<input type="hidden" name="ref" value="${ref}">`
@@ -586,7 +891,7 @@ describe('agent-approval function', () => {
 			expect(res.body).toContain(
 				'<button type="submit">Send approval request</button>'
 			);
-			expectNoSecretRequest();
+			expect(callsTo('bcAuthorize')).toHaveLength(0);
 		});
 
 		it.each([
@@ -616,17 +921,40 @@ describe('agent-approval function', () => {
 			['a long ref', { ref: 'a'.repeat(129) }],
 			['a ref with bad characters', { ref: `${'a'.repeat(20)}.=` }],
 			['a missing client ID', { client_id: '' }],
-			['a missing return URL', { return_to: '' }]
+			['a missing return URL', { return_to: '' }],
+			['an empty scope', { scope: '' }],
+			['a scope with a double space', { scope: 'orders:write  email' }],
+			['a scope with a leading space', { scope: ' email' }],
+			['a scope with a trailing space', { scope: 'email ' }],
+			['a scope with a double quote', { scope: 'email "x"' }],
+			['a scope with a backslash', { scope: 'email a\\b' }],
+			['a scope with a tab', { scope: 'email\tprofile' }],
+			['a scope with non-ASCII', { scope: 'emaïl' }],
+			['11 scope tokens', { scope: 'a b c d e f g h i j k' }],
+			['a 301 character scope', { scope: 'a'.repeat(301) }]
 		])('returns 400 for %s', async (_, overrides) => {
 			const res = await getStart(overrides);
 
 			expect(res.statusCode).toBe(400);
+			expect(res.body).toContain('Invalid approval request');
 			expect(mockFetch).not.toHaveBeenCalled();
 		});
 
-		it('returns 400 for a repeated ref', async () => {
+		it.each([
+			['10 scope tokens', 'a b c d e f g h i j'],
+			['a 300 character scope', 'a'.repeat(300)],
+			['every scope-token character', '!#[]~ openid']
+		])('accepts %s', async (_, value) => {
+			const res = await getStart({ scope: value });
+
+			expect(res.statusCode).toBe(200);
+		});
+
+		it.each(['ref', 'scope'])('returns 400 for a repeated %s', async (name) => {
 			const res = await call({
-				url: `/approve/${pid}?${startQuery()}&ref=${ref}`
+				url: `/approve/${pid}?${startQuery()}&${name}=${encodeURIComponent(
+					name === 'ref' ? ref : scope
+				)}`
 			});
 
 			expect(res.statusCode).toBe(400);
@@ -663,19 +991,17 @@ describe('agent-approval function', () => {
 				'SameSite=Lax'
 			]);
 
-			const [[secretUrl, secretInit]] = callsTo('secret');
-			expect(secretUrl).toBe(
-				`https://descope.example.com/v1/mgmt/thirdparty/app/secret?id=${appId}`
-			);
-			expect(secretInit.method).toBe('GET');
-			expect(secretInit.headers.Authorization).toBe(
-				`Bearer ${pid}:${managementKey}`
+			const [[url]] = callsTo('bcAuthorize');
+			expect(url).toBe(
+				'https://descope.example.com/oauth2/v1/apps/bc-authorize'
 			);
 			expect(sentForm('bcAuthorize')).toEqual({
 				client_id: clientId,
-				client_secret: clientSecret,
+				client_assertion_type:
+					'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
+				client_assertion: expect.any(String),
 				login_hint: loginId,
-				scope: 'orders:write email profile',
+				scope,
 				binding_message: buildBindingMessage(summary, pending.code)
 			});
 		});
@@ -706,15 +1032,7 @@ describe('agent-approval function', () => {
 			);
 		});
 
-		it('omits the scope when the app has none and defaults the timing', async () => {
-			replies.apps = {
-				status: 200,
-				body: {
-					apps: [
-						agentApp({ permissionsScopes: [], scopeClaimMapping: undefined })
-					]
-				}
-			};
+		it('defaults the timing when bc-authorize omits it', async () => {
 			replies.bcAuthorize = {
 				status: 200,
 				body: { auth_req_id: 'test-auth-req-id' }
@@ -722,7 +1040,6 @@ describe('agent-approval function', () => {
 
 			const res = await postStart();
 
-			expect(sentForm('bcAuthorize')).not.toHaveProperty('scope');
 			expect(decodeCookie(res).interval).toBe(5);
 			expect(cookieAttributes(res)).toContain('Max-Age=300');
 		});
@@ -733,15 +1050,18 @@ describe('agent-approval function', () => {
 				const res = await postStart({ login_id: value });
 
 				expect(res.statusCode).toBe(400);
-				expectNoSecretRequest();
+				expect(mockFetch).not.toHaveBeenCalled();
 			}
 		);
 
-		it('returns 400 for a bad ref', async () => {
-			const res = await postStart({ ref: 'short' });
+		it.each([
+			['a bad ref', { ref: 'short' }],
+			['a bad scope', { scope: 'a  b' }]
+		])('returns 400 for %s', async (_, overrides) => {
+			const res = await postStart(overrides);
 
 			expect(res.statusCode).toBe(400);
-			expectNoSecretRequest();
+			expect(mockFetch).not.toHaveBeenCalled();
 		});
 
 		it.each([
@@ -752,6 +1072,7 @@ describe('agent-approval function', () => {
 
 			expect(res.statusCode).toBe(303);
 			expect(sentForm('bcAuthorize').login_hint).toBe(loginId);
+			expect(sentForm('bcAuthorize').scope).toBe(scope);
 		});
 
 		it.each([
@@ -762,7 +1083,7 @@ describe('agent-approval function', () => {
 			const res = await call({ method: 'POST', url: `/approve/${pid}`, body });
 
 			expect(res.statusCode).toBe(400);
-			expectNoSecretRequest();
+			expect(mockFetch).not.toHaveBeenCalled();
 		});
 
 		it('returns 400 when reading the body throws', async () => {
@@ -770,7 +1091,7 @@ describe('agent-approval function', () => {
 			const req = {
 				method: 'POST',
 				url: `/approve/${pid}`,
-				headers: { host },
+				headers: {},
 				get body(): unknown {
 					throw new Error('Invalid body');
 				}
@@ -782,8 +1103,31 @@ describe('agent-approval function', () => {
 		});
 
 		it.each([
+			['the captured untrusted key answer', untrustedKeyReply],
+			[
+				'an OAuth invalid_client error',
+				{ status: 401, body: { error: 'invalid_client' } }
+			]
+		])(
+			'returns 400 when the agent does not trust the key: %s',
+			async (_, reply) => {
+				replies.bcAuthorize = reply;
+
+				const res = await postStart();
+
+				expect(res.statusCode).toBe(400);
+				expect(res.body).toContain('This agent is not set up for approvals');
+				expect(res.headers['Set-Cookie']).toBeUndefined();
+			}
+		);
+
+		it.each([
 			['an error status', { status: 400, body: { error: 'invalid_request' } }],
 			['a reply without auth_req_id', { status: 200, body: {} }],
+			[
+				'an invalid_client code on a success status',
+				{ status: 200, body: { errorCode: 'E066009' } }
+			],
 			[
 				'an oversized auth_req_id',
 				{ status: 200, body: { auth_req_id: 'x'.repeat(1001) } }
@@ -799,42 +1143,12 @@ describe('agent-approval function', () => {
 		});
 
 		it('returns 502 when bc-authorize is unreachable', async () => {
-			const implementation = mockFetch.getMockImplementation();
-			mockFetch.mockImplementation(async (url: string, init: RequestInit) => {
-				if (endpointOf(url) === 'bcAuthorize')
-					throw new TypeError('fetch failed');
-				return implementation?.(url, init);
-			});
+			failFetchFor('bcAuthorize', new TypeError('fetch failed'));
 
 			const res = await postStart();
 
 			expect(res.statusCode).toBe(502);
 			expect(res.body).toContain('Could not send the approval request');
-		});
-
-		it('returns 502 without calling bc-authorize when the secret load fails', async () => {
-			replies.secret = { status: 404, body: { errorCode: 'E000000' } };
-
-			const res = await postStart();
-
-			expect(res.statusCode).toBe(502);
-			expect(res.body).toContain('Could not send the approval request');
-			expect(callsTo('bcAuthorize')).toHaveLength(0);
-		});
-
-		it('caches the app secret for 5 minutes', async () => {
-			jest.useFakeTimers();
-
-			await postStart();
-			await postStart();
-			expect(callsTo('secret')).toHaveLength(1);
-			expect(callsTo('bcAuthorize')).toHaveLength(2);
-			expect(callsTo('apps')).toHaveLength(1);
-
-			jest.advanceTimersByTime(5 * 60 * 1000 + 1);
-			await postStart();
-
-			expect(callsTo('secret')).toHaveLength(2);
 		});
 
 		it('aborts a Descope call after 10 seconds', async () => {
@@ -881,14 +1195,36 @@ describe('agent-approval function', () => {
 		});
 
 		it.each([
-			['client ID', { clientId: 'other-client' }, 'Unknown agent'],
-			['return URL', { returnTo: 'https://evil.example.com/cb' }, 'not allowed']
-		])('gates the cookie %s again', async (_, overrides, message) => {
+			[
+				'client ID',
+				{ clientId: 'other-client' },
+				{ status: 303, body: {}, location: unknownClientLocation },
+				'Unknown agent'
+			],
+			[
+				'return URL',
+				{ returnTo: 'https://evil.example.com/cb' },
+				notApprovedReply,
+				'not allowed'
+			]
+		])('checks the cookie %s again', async (_, overrides, reply, message) => {
+			replies.authorize = reply;
+			const cookie: Record<string, unknown> = {
+				clientId,
+				returnTo,
+				...overrides
+			};
+
 			const res = await getWait(pendingCookie(overrides));
 
 			expect(res.statusCode).toBe(400);
 			expect(res.body).toContain(message);
-			expect(callsTo('secret')).toHaveLength(0);
+			expect(authorizeQuery()).toEqual(
+				expect.objectContaining({
+					client_id: cookie.clientId,
+					redirect_uri: cookie.returnTo
+				})
+			);
 			expect(callsTo('token')).toHaveLength(0);
 		});
 
@@ -900,7 +1236,9 @@ describe('agent-approval function', () => {
 			expect(sentForm('token')).toEqual({
 				grant_type: 'urn:openid:params:grant-type:ciba',
 				client_id: clientId,
-				client_secret: clientSecret,
+				client_assertion_type:
+					'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
+				client_assertion: expect.any(String),
 				auth_req_id: 'test-auth-req-id'
 			});
 			expect(res.body).toContain('Waiting for the customer to approve.');
@@ -932,6 +1270,7 @@ describe('agent-approval function', () => {
 			['access_denied', { error: 'access_denied' }],
 			['expired_token', { error: 'expired_token' }],
 			['invalid_grant', { error: 'invalid_grant' }],
+			['invalid_client', { error: 'invalid_client' }],
 			['an unknown answer', {}]
 		])('clears the cookie and returns 400 for %s', async (_, body) => {
 			replies.token = { status: 400, body };
@@ -973,10 +1312,6 @@ describe('agent-approval function', () => {
 
 		it('escapes the return URL in the hand-back form', async () => {
 			const queryUrl = 'https://shop.example.com/cb?a=1&b="2"';
-			replies.apps = {
-				status: 200,
-				body: { apps: [agentApp({ approvedCallbackUrls: [queryUrl] })] }
-			};
 			replies.token = { status: 200, body: { access_token: accessToken } };
 
 			const res = await getWait(
@@ -1001,11 +1336,7 @@ describe('agent-approval function', () => {
 		});
 
 		it('keeps the cookie when the token endpoint is unreachable', async () => {
-			const implementation = mockFetch.getMockImplementation();
-			mockFetch.mockImplementation(async (url: string, init: RequestInit) => {
-				if (endpointOf(url) === 'token') throw new TypeError('fetch failed');
-				return implementation?.(url, init);
-			});
+			failFetchFor('token', new TypeError('fetch failed'));
 
 			const res = await getWait(pendingCookie());
 
@@ -1018,8 +1349,7 @@ describe('agent-approval function', () => {
 			mockFetch.mockImplementation(async (url: string, init: RequestInit) => {
 				if (endpointOf(url) !== 'token') return implementation?.(url, init);
 				return {
-					ok: false,
-					status: 503,
+					...fakeFetchResponse({ status: 503, body: {} }),
 					json: async () => {
 						throw new SyntaxError('Unexpected token <');
 					}
@@ -1055,7 +1385,7 @@ describe('agent-approval function', () => {
 			expect(res.body).toContain(
 				`<strong id="approval-code">${decodeCookie(started).code}</strong>`
 			);
-			expect(callsTo('secret')).toHaveLength(1);
+			expect(sentForm('token').auth_req_id).toBe('test-auth-req-id');
 		});
 	});
 
@@ -1065,38 +1395,70 @@ describe('agent-approval function', () => {
 				.filter(([first]) => first === message)
 				.map(([, details]) => JSON.parse(details));
 
-		it('logs a failed Descope call with fixed fields only', async () => {
-			replies.apps = {
-				status: 401,
-				body: { errorCode: 'E011003', errorDescription: 'Invalid key' }
-			};
+		it('logs a rejected callback check with fixed fields only', async () => {
+			replies.authorize = notApprovedReply;
 
 			await getStart();
 
 			expect(logged('Descope call failed')).toEqual([
 				{
-					method: 'POST',
-					path: '/v2/mgmt/thirdparty/apps/load',
+					method: 'GET',
+					path: `/oauth2/v1/apps/${pid}/authorize`,
 					status: 401,
-					errorCode: 'E011003'
+					errorCode: 'E061004'
 				}
 			]);
-			expect(logged('Agent approval request failed')).toEqual([
-				{ method: 'GET', wait: false, error: 'Error' }
-			]);
+			expect(logged('Agent approval request failed')).toEqual([]);
 		});
 
-		it('logs the secret path without its query', async () => {
-			replies.secret = { status: 404, body: { errorCode: 'E000000' } };
+		it('does not log an approved callback check', async () => {
+			await getStart();
 
-			await postStart();
+			expect(consoleError).not.toHaveBeenCalled();
+		});
+
+		it.each([
+			[
+				'an error redirect',
+				`${returnTo}?error=server_error&error_description=test-location-detail`,
+				true
+			],
+			['a redirect without a Location', undefined, false]
+		])(
+			'logs %s from the callback URL check with fixed fields only',
+			async (_, location, hasLocation) => {
+				replies.authorize = { status: 303, body: {}, location };
+
+				await getStart();
+
+				const output = JSON.stringify(consoleError.mock.calls);
+				expect(logged('Callback URL check gave no verdict')).toEqual([
+					{ path: `/oauth2/v1/apps/${pid}/authorize`, status: 303, hasLocation }
+				]);
+				expect(output).not.toContain('server_error');
+				expect(output).not.toContain('test-location-detail');
+			}
+		);
+
+		it('does not log a failed callback check call twice', async () => {
+			replies.authorize = { status: 503, body: {} };
+
+			await getStart();
+
+			expect(logged('Descope call failed')).toHaveLength(1);
+			expect(logged('Callback URL check gave no verdict')).toEqual([]);
+		});
+
+		it('logs an open callback check answer that is not a rejection', async () => {
+			replies.openCheck = { status: 429, body: {} };
+
+			await getStart();
 
 			expect(logged('Descope call failed')).toEqual([
 				{
 					method: 'GET',
-					path: '/v1/mgmt/thirdparty/app/secret',
-					status: 404,
-					errorCode: 'E000000'
+					path: `/oauth2/v1/apps/${pid}/authorize`,
+					status: 429
 				}
 			]);
 		});
@@ -1129,14 +1491,10 @@ describe('agent-approval function', () => {
 		);
 
 		it('logs the error name and cause code of an unreachable call', async () => {
-			const implementation = mockFetch.getMockImplementation();
-			mockFetch.mockImplementation(async (url: string, init: RequestInit) => {
-				if (endpointOf(url) !== 'bcAuthorize')
-					return implementation?.(url, init);
-				throw new TypeError('fetch failed', {
-					cause: { code: 'ECONNREFUSED' }
-				});
-			});
+			failFetchFor(
+				'bcAuthorize',
+				new TypeError('fetch failed', { cause: { code: 'ECONNREFUSED' } })
+			);
 
 			const res = await postStart();
 
@@ -1152,37 +1510,42 @@ describe('agent-approval function', () => {
 			]);
 		});
 
-		it('never logs keys, secrets, tokens or the login ID', async () => {
+		it('never logs the signing key, assertions, tokens or the login ID', async () => {
+			await postStart();
 			const leaks = [
-				managementKey,
-				clientSecret,
+				signingPem,
+				sentForm('bcAuthorize').client_assertion,
 				accessToken,
 				loginId,
 				'test-auth-req-id'
 			];
-			const implementation = mockFetch.getMockImplementation();
+			const leakText = leaks.join(' ');
 			mockFetch.mockImplementationOnce(async () => {
-				throw new TypeError(`Invalid header value Bearer ${managementKey}`);
+				throw new TypeError(`Invalid header value ${leakText}`);
 			});
-			await getStart();
-			mockFetch.mockImplementation(implementation);
+			await getStart({ return_to: 'https://shop.example.com/a' });
+			replies.authorize = {
+				status: 401,
+				body: { errorCode: 'E061004', errorDescription: leakText }
+			};
+			await getStart({ return_to: 'https://shop.example.com/b' });
 			replies.bcAuthorize = {
 				status: 400,
 				body: {
 					error: 'invalid_request',
-					error_description: leaks.join(' '),
-					errorDescription: leaks.join(' ')
+					error_description: leakText,
+					errorDescription: leakText
 				}
 			};
 			await postStart();
 			replies.token = {
 				status: 500,
-				body: { error_description: leaks.join(' '), access_token: accessToken }
+				body: { error_description: leakText, access_token: accessToken }
 			};
 			await getWait(pendingCookie());
 
 			const output = JSON.stringify(consoleError.mock.calls);
-			expect(consoleError).toHaveBeenCalledTimes(4);
+			expect(consoleError).toHaveBeenCalledTimes(5);
 			leaks.forEach((leak) => expect(output).not.toContain(leak));
 		});
 	});
