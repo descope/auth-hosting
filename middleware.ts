@@ -92,6 +92,9 @@ export default middleware;
 // Vercel reads this config to decide which routes invoke the middleware.
 // Skip static assets so we only run (and fetch project config) on document routes.
 export const config = {
+	// Explicit: a CLI-built deployment ran this file on Node as CommonJS and
+	// failed on the import statement
+	runtime: 'edge',
 	matcher: [
 		'/((?!.*\\.(?:js|css|map|ico|svg|png|jpg|jpeg|gif|webp|woff2?|ttf|eot)$).*)'
 	]
