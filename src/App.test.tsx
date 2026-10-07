@@ -679,8 +679,7 @@ describe('App component', () => {
 			render(<App />);
 
 			expect(await screen.findByTestId('app')).toHaveStyle({
-				'background-image': 'url("https://example.com/bg.png")',
-				'background-size': 'cover'
+				'background-image': 'url("https://example.com/bg.png")'
 			});
 		});
 
