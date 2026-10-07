@@ -491,7 +491,8 @@ const STYLES = `
 	--bg: #f4f3ef; --card: #ffffff; --ink: #111113; --muted: #6b6a66;
 	--line: rgba(17, 17, 19, 0.09); --well: #f6f5f2; --accent: #111113;
 	--on-accent: #ffffff; --ok: #1f7a4d; --warn: #9a3b2e;
-	--ring: rgba(17, 17, 19, 0.12);
+	--ring: rgba(17, 17, 19, 0.12); --field: rgba(17, 17, 19, 0.48);
+	--edge: rgba(17, 17, 19, 0.09);
 	color-scheme: light dark;
 }
 @media (prefers-color-scheme: dark) {
@@ -499,14 +500,15 @@ const STYLES = `
 		--bg: #0d0d0e; --card: #161618; --ink: #f2f1ed; --muted: #9b9a95;
 		--line: rgba(242, 241, 237, 0.1); --well: #1e1e21; --accent: #f2f1ed;
 		--on-accent: #111113; --ok: #4fbf87; --warn: #e07a66;
-		--ring: rgba(242, 241, 237, 0.16);
+		--ring: rgba(242, 241, 237, 0.16); --field: rgba(242, 241, 237, 0.45);
+		--edge: rgba(242, 241, 237, 0.22);
 	}
 }
 *, *::before, *::after { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; }
 body {
-	margin: 0; min-height: 100vh; display: grid; place-items: center;
-	padding: 2.5rem 1rem; background: var(--bg); color: var(--ink);
+	margin: 0; min-height: 100vh; display: grid; place-items: start center;
+	padding: clamp(2.5rem, 16vh, 9rem) 1rem 2.5rem; background: var(--bg); color: var(--ink);
 	background-image: radial-gradient(60rem 30rem at 50% -10%, var(--card), transparent 70%);
 	font: 400 1rem/1.55 -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
 		'Helvetica Neue', Arial, sans-serif;
@@ -514,7 +516,7 @@ body {
 }
 main {
 	width: 100%; max-width: 30rem; padding: clamp(1.75rem, 5vw, 2.75rem);
-	background: var(--card); border: 1px solid var(--line); border-radius: 22px;
+	background: var(--card); border: 1px solid var(--edge); border-radius: 22px;
 	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 30px 80px -40px rgba(0, 0, 0, 0.35);
 	animation: enter 0.6s cubic-bezier(0.2, 0.7, 0.1, 1) both;
 }
@@ -530,15 +532,16 @@ main {
 	margin: 0 0 2rem; padding: 0; list-style: none; counter-reset: step;
 	font-size: 0.72rem; color: var(--muted);
 }
-.progress li { counter-increment: step; padding-top: 0.7rem; border-top: 2px solid var(--line); }
+.progress li { counter-increment: step; padding-top: 0.7rem; border-top: 2px solid var(--line); text-wrap: balance; }
 .progress li::before { content: counter(step) '. '; }
 .progress .done { border-top-color: var(--ok); }
-.progress .now { border-top-color: var(--accent); color: var(--ink); font-weight: 600; }
-h1 { margin: 0 0 1rem; font-size: clamp(1.6rem, 5vw, 1.95rem); line-height: 1.15; font-weight: 650; letter-spacing: -0.025em; }
+.progress .now { border-top-color: var(--accent); color: var(--ink); }
+h1 { margin: 0 0 1rem; font-size: clamp(1.6rem, 5vw, 1.95rem); line-height: 1.15; font-weight: 650; letter-spacing: -0.025em; text-wrap: balance; }
 p { margin: 0 0 1rem; }
 .request p {
 	margin: 0 0 1.75rem; padding: 1.1rem 1.25rem; background: var(--well);
 	border: 1px solid var(--line); border-radius: 14px; font-size: 1.02rem;
+	text-wrap: pretty;
 }
 form { margin: 0; }
 label {
@@ -547,7 +550,7 @@ label {
 }
 input[type='email'] {
 	width: 100%; height: 3.25rem; margin: 0; padding: 0 1rem;
-	border: 1px solid var(--line); border-radius: 12px; background: var(--card);
+	border: 1px solid var(--field); border-radius: 12px; background: var(--card);
 	font: inherit; font-size: 1.05rem; color: inherit;
 	transition: border-color 0.2s, box-shadow 0.2s;
 }
