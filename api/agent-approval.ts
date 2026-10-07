@@ -484,16 +484,153 @@ const clearPendingCookie = (res: ApiResponse, ctx: Context) => {
 	res.setHeader('Set-Cookie', pendingCookie(ctx, '', 0));
 };
 
+// Brand-neutral on purpose: every customer's agents land here. System fonts and
+// inline CSS only, so the page loads nothing from a third party.
+const STYLES = `
+:root {
+	--bg: #f4f3ef; --card: #ffffff; --ink: #111113; --muted: #6b6a66;
+	--line: rgba(17, 17, 19, 0.09); --well: #f6f5f2; --accent: #111113;
+	--on-accent: #ffffff; --ok: #1f7a4d; --warn: #9a3b2e;
+	--ring: rgba(17, 17, 19, 0.12);
+	color-scheme: light dark;
+}
+@media (prefers-color-scheme: dark) {
+	:root {
+		--bg: #0d0d0e; --card: #161618; --ink: #f2f1ed; --muted: #9b9a95;
+		--line: rgba(242, 241, 237, 0.1); --well: #1e1e21; --accent: #f2f1ed;
+		--on-accent: #111113; --ok: #4fbf87; --warn: #e07a66;
+		--ring: rgba(242, 241, 237, 0.16);
+	}
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+	margin: 0; min-height: 100vh; display: grid; place-items: center;
+	padding: 2.5rem 1rem; background: var(--bg); color: var(--ink);
+	background-image: radial-gradient(60rem 30rem at 50% -10%, var(--card), transparent 70%);
+	font: 400 1rem/1.55 -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+		'Helvetica Neue', Arial, sans-serif;
+	-webkit-font-smoothing: antialiased;
+}
+main {
+	width: 100%; max-width: 30rem; padding: clamp(1.75rem, 5vw, 2.75rem);
+	background: var(--card); border: 1px solid var(--line); border-radius: 22px;
+	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 30px 80px -40px rgba(0, 0, 0, 0.35);
+	animation: enter 0.6s cubic-bezier(0.2, 0.7, 0.1, 1) both;
+}
+@keyframes enter { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+.kicker {
+	display: flex; align-items: center; gap: 0.6rem; margin: 0 0 1.75rem;
+	font-size: 0.72rem; font-weight: 600; letter-spacing: 0.16em;
+	text-transform: uppercase; color: var(--muted);
+}
+.kicker svg { width: 1.15rem; height: 1.15rem; flex: none; }
+.progress {
+	display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem;
+	margin: 0 0 2rem; padding: 0; list-style: none; counter-reset: step;
+	font-size: 0.72rem; color: var(--muted);
+}
+.progress li { counter-increment: step; padding-top: 0.7rem; border-top: 2px solid var(--line); }
+.progress li::before { content: counter(step) '. '; }
+.progress .done { border-top-color: var(--ok); }
+.progress .now { border-top-color: var(--accent); color: var(--ink); font-weight: 600; }
+h1 { margin: 0 0 1rem; font-size: clamp(1.6rem, 5vw, 1.95rem); line-height: 1.15; font-weight: 650; letter-spacing: -0.025em; }
+p { margin: 0 0 1rem; }
+.request p {
+	margin: 0 0 1.75rem; padding: 1.1rem 1.25rem; background: var(--well);
+	border: 1px solid var(--line); border-radius: 14px; font-size: 1.02rem;
+}
+form { margin: 0; }
+label {
+	display: inline-block; margin-bottom: 0.45rem; font-size: 0.78rem;
+	font-weight: 600; letter-spacing: 0.02em; color: var(--muted);
+}
+input[type='email'] {
+	width: 100%; height: 3.25rem; margin: 0; padding: 0 1rem;
+	border: 1px solid var(--line); border-radius: 12px; background: var(--card);
+	font: inherit; font-size: 1.05rem; color: inherit;
+	transition: border-color 0.2s, box-shadow 0.2s;
+}
+input[type='email']:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px var(--ring); }
+button {
+	width: 100%; height: 3.25rem; margin-top: 0.5rem; border: 0; border-radius: 12px;
+	background: var(--accent); color: var(--on-accent); cursor: pointer;
+	font: inherit; font-weight: 600; letter-spacing: 0.01em;
+	transition: transform 0.15s, opacity 0.2s;
+}
+button:hover { opacity: 0.88; }
+button:active { transform: scale(0.99); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.fine { margin: 1.4rem 0 0; font-size: 0.85rem; color: var(--muted); }
+.status { display: flex; align-items: center; gap: 0.65rem; color: var(--muted); }
+.status::before {
+	content: ''; width: 0.55rem; height: 0.55rem; border-radius: 50%; flex: none;
+	background: var(--ok); box-shadow: 0 0 0 0 var(--ok); animation: beacon 1.8s ease-out infinite;
+}
+@keyframes beacon { 70% { box-shadow: 0 0 0 0.6rem transparent; } 100% { box-shadow: 0 0 0 0 transparent; } }
+.code {
+	margin: 1.75rem 0 1.25rem; padding: 1.5rem 1rem 1.6rem; text-align: center;
+	background: var(--well); border: 1px solid var(--line); border-radius: 16px;
+	font-size: 0.72rem; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted);
+}
+.code strong {
+	display: block; margin-top: 0.6rem; padding-left: 0.32em; color: var(--ink);
+	font-size: clamp(3.25rem, 15vw, 4.5rem); line-height: 1; font-weight: 650;
+	letter-spacing: 0.32em; font-variant-numeric: tabular-nums;
+}
+.track { height: 3px; margin: 0 0 1.4rem; overflow: hidden; border-radius: 3px; background: var(--line); }
+.track::after {
+	content: ''; display: block; width: 35%; height: 100%; border-radius: 3px; background: var(--accent);
+	animation: sweep 1.6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+@keyframes sweep { from { transform: translateX(-100%); } to { transform: translateX(300%); } }
+a { color: inherit; text-underline-offset: 3px; }
+.again { margin: 0; font-size: 0.85rem; }
+.mark { display: grid; place-items: center; width: 3rem; height: 3rem; margin-bottom: 1.4rem; border-radius: 50%; }
+.mark svg { width: 1.5rem; height: 1.5rem; }
+.mark.ok { background: color-mix(in srgb, var(--ok) 14%, transparent); color: var(--ok); }
+.mark.warn { background: color-mix(in srgb, var(--warn) 14%, transparent); color: var(--warn); }
+@media (prefers-reduced-motion: reduce) {
+	*, *::before, *::after { animation: none !important; transition: none !important; }
+}
+`;
+
+const ICONS = {
+	shield:
+		'<path d="M12 3l7 3v5c0 4.5-3 8.3-7 10-4-1.7-7-5.5-7-10V6l7-3z"/><path d="M9 12l2 2 4-4"/>',
+	check: '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+	alert:
+		'<path d="M12 8v5"/><path d="M12 16.5v.5"/><circle cx="12" cy="12" r="9"/>'
+};
+
+const icon = (name: keyof typeof ICONS) =>
+	'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"' +
+	` stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[name]}</svg>`;
+
+const KICKER = `<div class="kicker">${icon('shield')}Agent approval</div>`;
+
+const STEPS = ['Request', 'Customer approves', 'Back to the agent'];
+
+const stepClass = (index: number, current: number) => {
+	if (index < current) return ' class="done"';
+	return index === current ? ' class="now" aria-current="step"' : '';
+};
+
+const progress = (current: number) =>
+	`<ol class="progress">${STEPS.map(
+		(label, index) => `<li${stepClass(index, current)}>${label}</li>`
+	).join('')}</ol>`;
+
 const layout = (title: string, content: string, head = '') =>
 	[
 		'<!doctype html>',
 		'<html lang="en"><head><meta charset="utf-8">',
 		'<meta name="viewport" content="width=device-width, initial-scale=1">',
+		'<meta name="color-scheme" content="light dark">',
 		head,
 		`<title>${escapeHtml(title)}</title>`,
-		'<style>body{font-family:system-ui,sans-serif;max-width:32rem;',
-		'margin:3rem auto;padding:0 1rem;line-height:1.5}</style>',
-		`</head><body>${content}</body></html>`
+		`<style>${STYLES}</style>`,
+		`</head><body><main>${content}</main></body></html>`
 	].join('');
 
 const respond = (
@@ -525,7 +662,18 @@ const sendJwks = (res: ApiResponse, { jwk, kid }: SigningKey) =>
 	);
 
 const sendError = (res: ApiResponse, status: number, message: string) =>
-	send(res, status, layout(message, `<h1>${escapeHtml(message)}</h1>`));
+	send(
+		res,
+		status,
+		layout(
+			message,
+			[
+				KICKER,
+				`<div class="mark warn">${icon('alert')}</div>`,
+				`<h1>${escapeHtml(message)}</h1>`
+			].join('')
+		)
+	);
 
 const hiddenInput = (name: string, value: string) =>
 	`<input type="hidden" name="${name}" value="${escapeHtml(value)}">`;
@@ -534,8 +682,12 @@ const startPage = (ctx: Context, request: ApprovalRequest) =>
 	layout(
 		'Approve an agent action',
 		[
+			KICKER,
+			progress(0),
 			'<h1>Approve an agent action</h1>',
+			'<div class="request">',
 			`<p>An AI agent wants to: ${escapeHtml(request.summary)}</p>`,
+			'</div>',
 			`<form method="post" action="/approve/${escapeHtml(ctx.pid)}">`,
 			hiddenInput('client_id', request.clientId),
 			hiddenInput('scope', request.scope),
@@ -546,7 +698,9 @@ const startPage = (ctx: Context, request: ApprovalRequest) =>
 			'<input id="login_id" name="login_id" type="email" required',
 			' autocomplete="email"></p>',
 			'<button type="submit">Send approval request</button>',
-			'</form>'
+			'</form>',
+			'<p class="fine">The customer gets an email to approve this request.',
+			' Nothing happens until they do.</p>'
 		].join('')
 	);
 
@@ -555,12 +709,15 @@ const waitingPage = (ctx: Context, pending: Pending) => {
 	return layout(
 		'Waiting for approval',
 		[
+			KICKER,
+			progress(1),
 			'<h1>Waiting for approval</h1>',
-			'<p>Waiting for the customer to approve.</p>',
-			'<p>Approval code: <strong id="approval-code">',
+			'<p class="status">Waiting for the customer to approve.</p>',
+			'<p class="code">Approval code: <strong id="approval-code">',
 			`${escapeHtml(pending.code)}</strong></p>`,
+			'<div class="track"></div>',
 			'<p>The customer sees the same code in the approval email.</p>',
-			`<p><a href="${waitUrl}">Check again</a></p>`
+			`<p class="again"><a href="${waitUrl}">Check again</a></p>`
 		].join(''),
 		`<meta http-equiv="refresh" content="${pending.interval}">`
 	);
@@ -570,7 +727,11 @@ const handbackPage = (returnTo: string, ref: string, token: string) =>
 	layout(
 		'Approved',
 		[
+			KICKER,
+			progress(2),
+			`<div class="mark ok">${icon('check')}</div>`,
 			'<h1>Approved</h1>',
+			'<p>The customer approved. Handing the approval back to the agent.</p>',
 			`<form id="handback" method="post" action="${escapeHtml(returnTo)}">`,
 			hiddenInput('token', token),
 			hiddenInput('ref', ref),
