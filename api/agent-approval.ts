@@ -645,12 +645,12 @@ const BRAND_STYLE_FILE = 'v2-beta/agent-approval.json';
 const BRAND_FETCH_TIMEOUT_MS = 2000;
 const BRAND_CACHE_MS = 60 * 1000;
 const MAX_CACHED_BRANDS = 100;
-const MAX_STYLE_LENGTH = 2 * 1024 * 1024;
-// The waiting page reloads every few seconds with the logo inline
-const MAX_IMAGE_URL_LENGTH = 100 * 1024;
+// Also bounds every image in it
+const MAX_STYLE_BYTES = 2 * 1024 * 1024;
 const HEX_COLOR_REGEX = /^#(?:[0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$/i;
+// Only ever an <img> or icon source, where an SVG's scripts do not run
 const IMAGE_DATA_URI_REGEX =
-	/^data:image\/(?:png|jpeg|gif|webp|svg\+xml);base64,[A-Za-z0-9+/]+={0,2}$/;
+	/^data:image\/[a-z0-9.+-]+;base64,[A-Za-z0-9+/]+={0,2}$/i;
 
 type BrandFlavor = {
 	colors?: { accent: string; onAccent: string };
@@ -670,23 +670,35 @@ const PRIMARY_MAIN_REGEX =
 	/(?:^|[{;])\s*--descope-colors-primary-main\s*:\s*([^;}]*)/;
 const PRIMARY_CONTRAST_REGEX =
 	/(?:^|[{;])\s*--descope-colors-primary-contrast\s*:\s*([^;}]*)/;
-// A data URI holds a semicolon, so url() values get their own pattern
+// A data URI holds a semicolon, so url() values get their own pattern. The
+// value must be non-empty: an empty one lets the two whitespace runs around it
+// trade characters, which backtracks quadratically on a long run of spaces.
 const LOGO_URL_REGEX =
-	/(?:^|[{;])\s*--descope-logo-url\s*:\s*url\(\s*(["']?)([^"'()\s]*)\1\s*\)/;
+	/(?:^|[{;])\s*--descope-logo-url\s*:\s*url\(\s*(["']?)([^"'()\s]+)\1\s*\)/;
 const FAVICON_URL_REGEX =
-	/(?:^|[{;])\s*--descope-favicon-url\s*:\s*url\(\s*(["']?)([^"'()\s]*)\1\s*\)/;
+	/(?:^|[{;])\s*--descope-favicon-url\s*:\s*url\(\s*(["']?)([^"'()\s]+)\1\s*\)/;
+
+// A match is a slice that keeps the whole CSS string alive while it is cached
+const flatCopy = (value: string) => Buffer.from(value).toString();
 
 const cssDeclaration = (css: string, regex: RegExp) =>
 	regex.exec(css)?.[1].trim();
 
 const cssUrl = (css: string, regex: RegExp) => regex.exec(css)?.[2];
 
+const cssOf = (value: unknown) => {
+	const css = stringField(value) ?? '';
+	return css.length > MAX_STYLE_BYTES ? '' : css;
+};
+
 const hexColor = (value: string | undefined) =>
-	value && HEX_COLOR_REGEX.test(value) ? value.toLowerCase() : undefined;
+	value && HEX_COLOR_REGEX.test(value)
+		? flatCopy(value.toLowerCase())
+		: undefined;
 
 const imageUrl = (value: string | undefined) => {
-	if (!value || value.length > MAX_IMAGE_URL_LENGTH) return undefined;
-	if (IMAGE_DATA_URI_REGEX.test(value)) return value;
+	if (!value) return undefined;
+	if (IMAGE_DATA_URI_REGEX.test(value)) return flatCopy(value);
 	const url = httpUrl(value);
 	return url?.startsWith('https:') ? url : undefined;
 };
@@ -694,11 +706,10 @@ const imageUrl = (value: string | undefined) => {
 const brandFlavor = (style: unknown, mode: 'light' | 'dark'): BrandFlavor => {
 	const flavor = isRecord(style) ? style[mode] : undefined;
 	if (!isRecord(flavor)) return {};
-	const globals = stringField(flavor.globals) ?? '';
+	const globals = cssOf(flavor.globals);
 	const components = isRecord(flavor.components) ? flavor.components : {};
 	const logoComponent = components['descope-logo'];
-	const logoCss =
-		(isRecord(logoComponent) && stringField(logoComponent.host)) || '';
+	const logoCss = isRecord(logoComponent) ? cssOf(logoComponent.host) : '';
 	const accent = hexColor(cssDeclaration(globals, PRIMARY_MAIN_REGEX));
 	const onAccent = hexColor(cssDeclaration(globals, PRIMARY_CONTRAST_REGEX));
 	return {
@@ -725,6 +736,32 @@ const contentBaseUrl = () => {
 	return value.startsWith('https://') ? value.replace(/\/+$/, '') : undefined;
 };
 
+// Content-Length is the compressed size, if it is sent at all, so the decoded
+// bytes are counted as they arrive and the download stops past the cap.
+const readCapped = async (
+	body: ReadableStream<Uint8Array>,
+	controller: AbortController
+) => {
+	const reader = body.getReader();
+	const decoder = new TextDecoder();
+	const parts: string[] = [];
+	let size = 0;
+	let chunk = await reader.read();
+	while (!chunk.done) {
+		size += chunk.value.byteLength;
+		if (size > MAX_STYLE_BYTES) {
+			controller.abort();
+			reader.cancel().catch(() => undefined);
+			return undefined;
+		}
+		parts.push(decoder.decode(chunk.value, { stream: true }));
+		// eslint-disable-next-line no-await-in-loop -- one chunk at a time is the point
+		chunk = await reader.read();
+	}
+	parts.push(decoder.decode());
+	return parts.join('');
+};
+
 // Never throws: a missing or broken style leaves the pages neutral
 const fetchBrand = async (
 	base: string,
@@ -741,12 +778,9 @@ const fetchBrand = async (
 			redirect: 'error',
 			signal: controller.signal
 		});
-		const length = Number(response.headers.get('content-length'));
-		if (!response.ok || length > MAX_STYLE_LENGTH) return undefined;
-		const text = await response.text();
-		return text.length > MAX_STYLE_LENGTH
-			? undefined
-			: brandFromStyle(JSON.parse(text));
+		if (!response.ok || !response.body) return undefined;
+		const text = await readCapped(response.body, controller);
+		return text === undefined ? undefined : brandFromStyle(JSON.parse(text));
 	} catch {
 		return undefined;
 	} finally {
@@ -754,12 +788,23 @@ const fetchBrand = async (
 	}
 };
 
+const evictBrands = (now: number) => {
+	brandCache.forEach(({ expiresAt }, pid) => {
+		if (expiresAt <= now) brandCache.delete(pid);
+	});
+	// Still full of live entries: drop the oldest
+	if (brandCache.size >= MAX_CACHED_BRANDS) {
+		brandCache.delete(brandCache.keys().next().value as string);
+	}
+};
+
 const loadBrand = (base: string, pid: string) => {
+	const now = Date.now();
 	const cached = brandCache.get(pid);
-	if (cached && cached.expiresAt > Date.now()) return cached.brand;
-	if (brandCache.size >= MAX_CACHED_BRANDS) brandCache.clear();
+	if (cached && cached.expiresAt > now) return cached.brand;
+	evictBrands(now);
 	const brand = fetchBrand(base, pid);
-	brandCache.set(pid, { expiresAt: Date.now() + BRAND_CACHE_MS, brand });
+	brandCache.set(pid, { expiresAt: now + BRAND_CACHE_MS, brand });
 	return brand;
 };
 

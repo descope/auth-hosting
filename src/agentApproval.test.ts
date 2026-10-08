@@ -1837,25 +1837,56 @@ describe('agent-approval function', () => {
 		type StyleReply = (init: RequestInit) => Promise<unknown>;
 		let styleReply: StyleReply;
 
-		const serveStyle = (
-			body: unknown,
-			{
-				status = 200,
-				headers = {}
-			}: { status?: number; headers?: Record<string, string> } = {}
-		) => {
+		// A fetch body as a reader that hands out the chunks one by one
+		const bodyOf = (chunks: () => Uint8Array | undefined) => {
+			const reader = {
+				reads: 0,
+				cancelled: false,
+				read: async () => {
+					reader.reads += 1;
+					const value = chunks();
+					return value ? { done: false, value } : { done: true };
+				},
+				cancel: async () => {
+					reader.cancelled = true;
+				}
+			};
+			return { getReader: () => reader, reader };
+		};
+
+		const textBody = (text: string, chunkSize = 64 * 1024) => {
+			const bytes = Buffer.from(text);
+			let offset = 0;
+			return bodyOf(() => {
+				if (offset >= bytes.length) return undefined;
+				offset += chunkSize;
+				return new Uint8Array(bytes.subarray(offset - chunkSize, offset));
+			});
+		};
+
+		// Every fetch gets a fresh body
+		const replyWith = (body: () => unknown, status = 200) => {
 			styleReply = async () => ({
 				ok: status >= 200 && status < 300,
 				status,
-				headers: { get: (name: string) => headers[name.toLowerCase()] ?? null },
-				text: async () =>
-					typeof body === 'string' ? body : JSON.stringify(body)
+				headers: { get: () => null },
+				body: body()
 			});
 		};
+
+		const serveStyle = (style: unknown, { status = 200 } = {}) =>
+			replyWith(
+				() =>
+					textBody(typeof style === 'string' ? style : JSON.stringify(style)),
+				status
+			);
 
 		const styleWithLogo = (logoDeclaration: string) => ({
 			light: flavor('light', '#c2410c', '#fff', `;${logoDeclaration}`)
 		});
+
+		const isStyleUrl = (url: unknown) =>
+			String(url).endsWith('/v2-beta/agent-approval.json');
 
 		const styleCalls = () =>
 			mockFetch.mock.calls.filter(([url]) => url === styleUrl);
@@ -1870,7 +1901,7 @@ describe('agent-approval function', () => {
 			process.env.REACT_APP_CONTENT_BASE_URL = `${styleBase}/`;
 			const implementation = mockFetch.getMockImplementation();
 			mockFetch.mockImplementation(async (url: string, init: RequestInit) =>
-				url === styleUrl ? styleReply(init) : implementation?.(url, init)
+				isStyleUrl(url) ? styleReply(init) : implementation?.(url, init)
 			);
 			serveStyle(brandedStyle);
 		});
@@ -1970,13 +2001,7 @@ describe('agent-approval function', () => {
 			],
 			['the file is not JSON', () => serveStyle('<html></html>')],
 			['the file is not an object', () => serveStyle(['light', 'dark'])],
-			[
-				'the file declares more than 2MB',
-				() =>
-					serveStyle(brandedStyle, {
-						headers: { 'content-length': String(2 * 1024 * 1024 + 1) }
-					})
-			],
+			['the response has no body', () => replyWith(() => null)],
 			[
 				'the file is longer than 2MB',
 				() => serveStyle(`${' '.repeat(2 * 1024 * 1024)}{}`)
@@ -1988,6 +2013,68 @@ describe('agent-approval function', () => {
 
 			expect(res.statusCode).toBe(200);
 			expect(styleCalls()).toHaveLength(1);
+			expectNeutral(res);
+		});
+
+		it('stops reading a body that decodes past 2MB, whatever its declared length', async () => {
+			// A small compressed file that inflates without end
+			const megabyte = new Uint8Array(1024 * 1024).fill(32);
+			const endless = bodyOf(() => megabyte);
+			replyWith(() => endless);
+
+			const res = await getStart();
+
+			expect(endless.reader.reads).toBe(3);
+			expect(endless.reader.cancelled).toBe(true);
+			expect(styleCalls()[0][1].signal.aborted).toBe(true);
+			expect(res.statusCode).toBe(200);
+			expectNeutral(res);
+		});
+
+		it('drops the oldest project, not the whole cache, when 100 are cached', async () => {
+			const pids = Array.from(
+				{ length: 101 },
+				(_, index) => `P${String(index).padStart(3, '0')}${'a'.repeat(24)}`
+			);
+			const styleFetchesFor = (projectId: string) =>
+				mockFetch.mock.calls.filter(([url]) =>
+					String(url).includes(`/${projectId}/v2-beta/`)
+				).length;
+			const open = (projectId: string) =>
+				call({ url: `/approve/${projectId}?${startQuery()}` });
+
+			// eslint-disable-next-line no-restricted-syntax
+			for (const projectId of pids) {
+				// eslint-disable-next-line no-await-in-loop
+				await open(projectId);
+			}
+			await open(pids[1]);
+			await open(pids[0]);
+
+			expect(styleFetchesFor(pids[1])).toBe(1);
+			expect(styleFetchesFor(pids[0])).toBe(2);
+		});
+
+		it('matches the style in linear time on long runs of whitespace', async () => {
+			const spaces = ' '.repeat(1024 * 1024);
+			serveStyle({
+				light: {
+					globals: `[data-theme=light]{--descope-colors-primary-main:${spaces}x y}`,
+					components: {
+						'descope-logo': {
+							host:
+								`:host{--descope-logo-url:url(${spaces}x y);` +
+								`--descope-favicon-url:url(${spaces}x y)}`
+						}
+					}
+				}
+			});
+
+			const started = Date.now();
+			const res = await getStart();
+
+			expect(Date.now() - started).toBeLessThan(1000);
+			expect(res.statusCode).toBe(200);
 			expectNeutral(res);
 		});
 
@@ -2064,8 +2151,8 @@ describe('agent-approval function', () => {
 				'--descope-logo-url:url(http://cdn.example.com/logo.png)'
 			],
 			[
-				'an image over 100KB',
-				`--descope-logo-url:url(data:image/png;base64,${'A'.repeat(100 * 1024)})`
+				'an image data URI that is not base64',
+				'--descope-logo-url:url(data:image/png;base64,ab<b>cd)'
 			],
 			['only the fallback placeholder', placeholder]
 		])('ignores a logo that is %s', async (_, declaration) => {
@@ -2098,6 +2185,21 @@ describe('agent-approval function', () => {
 			expect(res.body).toContain(
 				'<img src="https://cdn.example.com/logo.png?a=1&amp;b=%3C2%3E" alt="">'
 			);
+		});
+
+		it('takes an image data URI of any type and size within the file', async () => {
+			const logo = `data:image/svg+xml;base64,${'A'.repeat(512 * 1024)}`;
+			const favicon = 'data:image/x-icon;base64,AAABAAEAEBA=';
+			serveStyle(
+				styleWithLogo(
+					`--descope-logo-url:url(${logo});--descope-favicon-url:url(${favicon})`
+				)
+			);
+
+			const res = await getStart();
+
+			expect(res.body).toContain(`<img src="${logo}" alt="">`);
+			expect(res.body).toContain(`<link rel="icon" href="${favicon}">`);
 		});
 	});
 
