@@ -987,6 +987,14 @@ describe('agent-approval function', () => {
 				'a code that is not ISO 4217',
 				{ order: orderWith({ currency: 'ABC' }) }
 			],
+			[
+				'an ISO 4217 code not in the supported list',
+				{ order: orderWith({ total: '1.250', currency: 'BHD' }) }
+			],
+			[
+				'a currency whose minor digits differ in CLDR',
+				{ order: orderWith({ total: '100.00', currency: 'HUF' }) }
+			],
 			['a numeric currency', { order: orderWith({ currency: 840 }) }],
 			['empty items', { order: itemsOf() }],
 			[
@@ -1062,10 +1070,7 @@ describe('agent-approval function', () => {
 
 		it.each([
 			['a currency without minor units', { total: '15000', currency: 'JPY' }],
-			[
-				'a currency with three minor digits',
-				{ total: '1.250', currency: 'BHD' }
-			],
+			['another two-digit currency', { total: '99.95', currency: 'EUR' }],
 			['a zero total', { total: '0.00' }],
 			['a 12 digit total', { total: '999999999999.99' }],
 			[
@@ -1093,6 +1098,59 @@ describe('agent-approval function', () => {
 
 			expect(res.statusCode).toBe(200);
 		});
+
+		// Two 80 character names, then a last item that brings the binding message to 256
+		const longNames = ['b'.repeat(80), 'c'.repeat(80)];
+		const lastNameLength =
+			256 -
+			'. Approve only if you asked for this. Code: 1234'.length -
+			`Order 1x A; 1x ${longNames[0]}; 1x ${longNames[1]}; 1x . Total USD 282.00`
+				.length;
+		const fillingItems = (extra: number) => [
+			{ name: 'A', qty: 1 },
+			...longNames.map((name) => ({ name, qty: 1 })),
+			{ name: 'd'.repeat(lastNameLength + extra), qty: 1 }
+		];
+
+		it('shows every item of an order that fills the binding message exactly', async () => {
+			const res = await getStart({ order: itemsOf(...fillingItems(0)) });
+
+			expect(res.statusCode).toBe(200);
+			const fullSummary = `Order 1x A; 1x ${longNames[0]}; 1x ${longNames[1]}; 1x ${'d'.repeat(
+				lastNameLength
+			)}. Total USD 282.00`;
+			expect(res.body).toContain(`wants to: ${fullSummary}</p>`);
+			expect(
+				buildBindingMessage(
+					orderSummary({ ...order, items: fillingItems(0) }),
+					'1234'
+				)
+			).toHaveLength(256);
+		});
+
+		it.each([
+			['one character over', itemsOf(...fillingItems(1))],
+			[
+				'seven catalog-length items',
+				itemsOf(
+					...Array.from({ length: 7 }, (_unused, index) => ({
+						name: `Superyacht week ${index}, French Riviera`,
+						qty: 1
+					}))
+				)
+			]
+		])(
+			'returns 400 for an order whose summary is %s, never hiding items',
+			async (_, value) => {
+				const res = await getStart({ order: value });
+
+				expect(res.statusCode).toBe(400);
+				expect(res.body).toContain(
+					'This order is too long to approve in one request. Split it into smaller orders.'
+				);
+				expect(mockFetch).not.toHaveBeenCalled();
+			}
+		);
 
 		it.each([
 			['a missing ref', { ref: '' }],
@@ -1250,6 +1308,45 @@ describe('agent-approval function', () => {
 					}
 				]
 			);
+		});
+
+		it("keeps the largest accepted order within Descope's 4096 bytes as Go encodes it", async () => {
+			// Ten items of & only, as long as the binding message allows. Go writes & as &.
+			const total = '999999999999.99';
+			const unnamed = Array.from({ length: 10 }, () => ({ name: '', qty: 99 }));
+			const room =
+				256 -
+				'. Approve only if you asked for this. Code: 1234'.length -
+				orderSummary({ total, currency: 'USD', items: unnamed }).length;
+			const items = unnamed.map((item, index) => ({
+				...item,
+				name: '&'.repeat(Math.floor(room / 10) + (index === 0 ? room % 10 : 0))
+			}));
+			const largest = { total, currency: 'USD', items };
+			expect(buildBindingMessage(orderSummary(largest), '1234')).toHaveLength(
+				256
+			);
+
+			const res = await postStart({ order: JSON.stringify(largest) });
+
+			expect(res.statusCode).toBe(303);
+			const sent = sentForm('bcAuthorize').authorization_details;
+			const goBytes =
+				Buffer.byteLength(sent) + 5 * (sent.match(/[&<>]/g) ?? []).length;
+			expect(goBytes).toBeLessThanOrEqual(4096);
+		});
+
+		it('returns 400 for an order too long to show in full before calling Descope', async () => {
+			const items = Array.from({ length: 7 }, (_unused, index) => ({
+				name: `Superyacht week ${index}, French Riviera`,
+				qty: 1
+			}));
+
+			const res = await postStart({ order: itemsOf(...items) });
+
+			expect(res.statusCode).toBe(400);
+			expect(res.body).toContain('Split it into smaller orders.');
+			expect(mockFetch).not.toHaveBeenCalled();
 		});
 
 		it.each([
@@ -1860,30 +1957,32 @@ describe('agent-approval function', () => {
 
 	describe('orderSummary and buildBindingMessage', () => {
 		const suffix = '. Approve only if you asked for this. Code: 1234';
-		const item = (index: number, qty = 1) => ({
-			name: `Item ${index} ${'n'.repeat(30)}`,
-			qty
-		});
-		const longest = (index: number) => ({
-			name: `${index}${'w'.repeat(79)}`,
-			qty: 99
-		});
 
 		it('lists every item with its quantity, then the total with the currency', () => {
 			expect(orderSummary(order)).toBe(summary);
 			expect(buildBindingMessage(summary, '1234')).toBe(`${summary}${suffix}`);
 		});
 
+		it('never shortens the item list', () => {
+			const items = Array.from({ length: 10 }, (_unused, index) => ({
+				name: `Item ${index} ${'n'.repeat(70)}`,
+				qty: 99
+			}));
+
+			const text = orderSummary({ ...order, items });
+
+			expect(text).toBe(
+				`Order ${items.map(({ name }) => `99x ${name}`).join('; ')}. Total USD 282.00`
+			);
+		});
+
 		it.each([
 			['a currency without minor units', '15000', 'JPY', 'JPY 15,000'],
 			['grouping', '185000.00', 'USD', 'USD 185,000.00'],
-			[
-				'the largest total',
-				'999999999999.999',
-				'BHD',
-				'BHD 999,999,999,999.999'
-			],
-			['a total under 1000', '45.00', 'USD', 'USD 45.00']
+			['the largest total', '999999999999.99', 'EUR', 'EUR 999,999,999,999.99'],
+			['exactly 1000', '1000.00', 'USD', 'USD 1,000.00'],
+			['a total under 1000', '45.00', 'USD', 'USD 45.00'],
+			['a zero total', '0', 'JPY', 'JPY 0']
 		])(
 			'renders the total from the string with %s',
 			(_, total, currency, text) => {
@@ -1892,62 +1991,5 @@ describe('agent-approval function', () => {
 				);
 			}
 		);
-
-		it('ends the item list with +N more instead of cutting an item', () => {
-			const items = Array.from({ length: 10 }, (_unused, index) => item(index));
-			const firstFour = [0, 1, 2, 3].map((index) => `1x ${item(index).name}`);
-
-			const text = orderSummary({ ...order, items });
-
-			expect(text).toBe(
-				`Order ${firstFour.join('; ')} +6 more. Total USD 282.00`
-			);
-			expect(buildBindingMessage(text, '1234').length).toBeLessThanOrEqual(256);
-			expect(
-				`Order ${firstFour.join('; ')}; 1x ${item(4).name} +5 more. Total USD 282.00`
-					.length + suffix.length
-			).toBeGreaterThan(256);
-		});
-
-		it('keeps the first item and counts the rest for the largest order', () => {
-			const items = Array.from({ length: 10 }, (_unused, index) =>
-				longest(index)
-			);
-
-			const text = orderSummary({
-				total: '999999999999.999',
-				currency: 'BHD',
-				items
-			});
-
-			expect(text).toBe(
-				`Order 99x ${longest(0).name} +9 more. Total BHD 999,999,999,999.999`
-			);
-			expect(buildBindingMessage(text, '1234').length).toBeLessThanOrEqual(256);
-		});
-
-		it.each([
-			['keeps both items when they fill 256 characters exactly', 0, false],
-			['counts the second item when it is one character over', 1, true]
-		])('%s', (_, extra, counted) => {
-			const fixed = 'Order 1x A; 1x . Total USD 282.00'.length;
-			const name = 'b'.repeat(256 - suffix.length - fixed + extra);
-			const items = [
-				{ name: 'A', qty: 1 },
-				{ name, qty: 1 }
-			];
-
-			const message = buildBindingMessage(
-				orderSummary({ ...order, items }),
-				'1234'
-			);
-
-			expect(message).toBe(
-				counted
-					? `Order 1x A +1 more. Total USD 282.00${suffix}`
-					: `Order 1x A; 1x ${name}. Total USD 282.00${suffix}`
-			);
-			expect(message.length).toBeLessThanOrEqual(256);
-		});
 	});
 });

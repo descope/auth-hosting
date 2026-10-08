@@ -50,9 +50,20 @@ const MAX_ORDER_PARAM_LENGTH = 4096;
 const MAX_ORDER_ITEMS = 10;
 const MAX_ITEM_QTY = 99;
 const MAX_ITEM_NAME_LENGTH = 80;
-// Descope's limit on serialized authorization_details
-const MAX_AUTHORIZATION_DETAILS_BYTES = 4096;
-const CURRENCY_REGEX = /^[A-Z]{3}$/;
+// ISO 4217 minor units, written out so every runtime agrees (ICU data differs by version)
+const CURRENCY_MINOR_DIGITS = new Map([
+	['USD', 2],
+	['EUR', 2],
+	['GBP', 2],
+	['ILS', 2],
+	['CHF', 2],
+	['CAD', 2],
+	['AUD', 2],
+	['JPY', 0]
+]);
+const INVALID_REQUEST = 'Invalid approval request';
+const ORDER_TOO_LONG =
+	'This order is too long to approve in one request. Split it into smaller orders.';
 const TOTAL_WHOLE_REGEX = /^(?:0|[1-9]\d{0,11})$/;
 const DIGITS_REGEX = /^\d+$/;
 // Letters, digits, single spaces and plain punctuation. No ; (it separates the items in the
@@ -146,34 +157,38 @@ const escapeHtml = (value: string) =>
 const bindingSuffix = (code: string) =>
 	`. Approve only if you asked for this. Code: ${code}`;
 
-// The code is always 4 digits, so every summary fits the binding message
+// The code is always 4 digits, so a summary within this fits the binding message
 const MAX_SUMMARY_LENGTH =
 	MAX_BINDING_MESSAGE_LENGTH - bindingSuffix('0000').length;
 
 const buildBindingMessage = (summary: string, code: string) =>
 	`${summary}${bindingSuffix(code)}`;
 
+const groupThousands = (digits: string) => {
+	const groups: string[] = [];
+	for (let end = digits.length; end > 0; end -= 3) {
+		groups.unshift(digits.slice(Math.max(0, end - 3), end));
+	}
+	return groups.join(',');
+};
+
 // From the string, never through a float: "185000.00" -> "185,000.00"
 const formatTotal = ({ total, currency }: Order) => {
 	const [whole, fraction] = total.split('.');
-	const grouped = BigInt(whole).toLocaleString('en-US');
+	const grouped = groupThousands(whole);
 	return `${currency} ${fraction === undefined ? grouped : `${grouped}.${fraction}`}`;
 };
 
-// A fixed format from the validated fields. Whole items only: when the list does not fit,
-// it ends with "+N more". The caps on items, names and totals make the first item always fit.
+// A fixed format from the validated fields, every item included: the caller rejects an order
+// whose summary is longer than MAX_SUMMARY_LENGTH rather than hide items from the customer
 const orderSummary = (order: Order) => {
 	const lines = order.items.map(({ name, qty }) => `${qty}x ${name}`);
-	const textFor = (shown: number) => {
-		const more = shown < lines.length ? ` +${lines.length - shown} more` : '';
-		return `Order ${lines.slice(0, shown).join('; ')}${more}. Total ${formatTotal(order)}`;
-	};
-	let shown = lines.length;
-	while (shown > 1 && textFor(shown).length > MAX_SUMMARY_LENGTH) shown -= 1;
-	return textFor(shown);
+	return `Order ${lines.join('; ')}. Total ${formatTotal(order)}`;
 };
 
-// RFC 9396, one object; Descope copies it onto the access token unchanged
+// RFC 9396, one object; Descope copies it onto the access token unchanged. The summary limit
+// bounds the item names, so even with Go's & escaping of & this stays far below Descope's
+// 4096-byte limit (pinned by a test).
 const authorizationDetails = (ref: string, { total, currency, items }: Order) =>
 	JSON.stringify([
 		{
@@ -460,20 +475,6 @@ const hasExactKeys = (record: Record<string, unknown>, keys: string[]) => {
 	return own.length === keys.length && keys.every((key) => hasOwn(record, key));
 };
 
-// ISO 4217 as Intl knows it; its minor digits come from the same data (CLDR)
-const currencyDigits = (currency: string) => {
-	if (
-		!CURRENCY_REGEX.test(currency) ||
-		!Intl.supportedValuesOf('currency').includes(currency)
-	) {
-		return undefined;
-	}
-	return new Intl.NumberFormat('en', {
-		style: 'currency',
-		currency
-	}).resolvedOptions().maximumFractionDigits;
-};
-
 const isValidTotal = (total: string, digits: number) => {
 	const [whole, fraction, ...rest] = total.split('.');
 	if (rest.length > 0 || !TOTAL_WHOLE_REGEX.test(whole)) return false;
@@ -529,7 +530,7 @@ const readOrder = (raw: string | null | undefined): Order | undefined => {
 	if (typeof currency !== 'string' || typeof total !== 'string') {
 		return undefined;
 	}
-	const digits = currencyDigits(currency);
+	const digits = CURRENCY_MINOR_DIGITS.get(currency);
 	if (digits === undefined || !isValidTotal(total, digits)) return undefined;
 	if (
 		!Array.isArray(items) ||
@@ -545,36 +546,26 @@ const readOrder = (raw: string | null | undefined): Order | undefined => {
 	return { total, currency, items: checked };
 };
 
-const readApprovalRequest = (fields: Fields): ApprovalRequest | undefined => {
+// A string is the message of the 400 the caller answers
+const readApprovalRequest = (fields: Fields): ApprovalRequest | string => {
 	const clientId = fields('client_id');
 	const scope = fields('scope');
 	const ref = fields('ref');
 	const returnTo = fields('return_to');
 	const resource = fields('resource');
 	if (!nonEmptyString(clientId) || !nonEmptyString(returnTo)) {
-		return undefined;
+		return INVALID_REQUEST;
 	}
-	if (!isValidScope(scope)) return undefined;
-	if (!ref || !REF_REGEX.test(ref)) return undefined;
-	if (resource !== undefined && !isValidResource(resource)) return undefined;
+	if (!isValidScope(scope)) return INVALID_REQUEST;
+	if (!ref || !REF_REGEX.test(ref)) return INVALID_REQUEST;
+	if (resource !== undefined && !isValidResource(resource)) {
+		return INVALID_REQUEST;
+	}
 	const order = readOrder(fields('order'));
-	if (!order) return undefined;
-	// Unreachable under the caps above; kept so a cap change cannot exceed Descope's limit
-	if (
-		Buffer.byteLength(authorizationDetails(ref, order)) >
-		MAX_AUTHORIZATION_DETAILS_BYTES
-	) {
-		return undefined;
-	}
-	return {
-		clientId,
-		scope,
-		ref,
-		order,
-		summary: orderSummary(order),
-		returnTo,
-		resource
-	};
+	if (!order) return INVALID_REQUEST;
+	const summary = orderSummary(order);
+	if (summary.length > MAX_SUMMARY_LENGTH) return ORDER_TOO_LONG;
+	return { clientId, scope, ref, order, summary, returnTo, resource };
 };
 
 const normalizeLoginId = (value: string | null | undefined) => {
@@ -916,8 +907,8 @@ const showStart = async (
 	query: URLSearchParams
 ) => {
 	const request = readApprovalRequest(paramsFields(query));
-	if (!request) {
-		sendError(res, 400, 'Invalid approval request');
+	if (typeof request === 'string') {
+		sendError(res, 400, request);
 		return;
 	}
 	const result = await gate(ctx, request.clientId, request.returnTo);
@@ -934,9 +925,13 @@ const startApproval = async (
 	ctx: Context
 ) => {
 	const fields = bodyFields(req);
-	const request = fields && readApprovalRequest(fields);
-	if (!fields || !request) {
-		sendError(res, 400, 'Invalid approval request');
+	if (!fields) {
+		sendError(res, 400, INVALID_REQUEST);
+		return;
+	}
+	const request = readApprovalRequest(fields);
+	if (typeof request === 'string') {
+		sendError(res, 400, request);
 		return;
 	}
 	const loginId = normalizeLoginId(fields('login_id'));
