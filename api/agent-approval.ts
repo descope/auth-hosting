@@ -638,8 +638,178 @@ const clearPendingCookie = (res: ApiResponse, ctx: Context) => {
 	res.setHeader('Set-Cookie', pendingCookie(ctx, '', 0));
 };
 
-// Brand-neutral on purpose: every customer's agents land here. System fonts and
-// inline CSS only, so the page loads nothing from a third party.
+// Branding: the project's agent-approval style, which the console's Agent Login
+// saves, as Descope publishes it for the login pages. The file is the merchant's
+// data, so only a hex color or an image URL is taken from it, never markup or CSS.
+const BRAND_STYLE_FILE = 'v2-beta/agent-approval.json';
+const BRAND_FETCH_TIMEOUT_MS = 2000;
+const BRAND_CACHE_MS = 60 * 1000;
+const MAX_CACHED_BRANDS = 100;
+const MAX_STYLE_LENGTH = 2 * 1024 * 1024;
+// The waiting page reloads every few seconds with the logo inline
+const MAX_IMAGE_URL_LENGTH = 100 * 1024;
+const HEX_COLOR_REGEX = /^#(?:[0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$/i;
+const IMAGE_DATA_URI_REGEX =
+	/^data:image\/(?:png|jpeg|gif|webp|svg\+xml);base64,[A-Za-z0-9+/]+={0,2}$/;
+
+type BrandFlavor = {
+	colors?: { accent: string; onAccent: string };
+	logo?: string;
+	favicon?: string;
+};
+
+type Brand = { light: BrandFlavor; dark: BrandFlavor };
+
+const brandCache = new Map<
+	string,
+	{ expiresAt: number; brand: Promise<Brand | undefined> }
+>();
+
+// The compiled CSS holds declarations such as `--descope-colors-primary-main:#006af5`
+const PRIMARY_MAIN_REGEX =
+	/(?:^|[{;])\s*--descope-colors-primary-main\s*:\s*([^;}]*)/;
+const PRIMARY_CONTRAST_REGEX =
+	/(?:^|[{;])\s*--descope-colors-primary-contrast\s*:\s*([^;}]*)/;
+// A data URI holds a semicolon, so url() values get their own pattern
+const LOGO_URL_REGEX =
+	/(?:^|[{;])\s*--descope-logo-url\s*:\s*url\(\s*(["']?)([^"'()\s]*)\1\s*\)/;
+const FAVICON_URL_REGEX =
+	/(?:^|[{;])\s*--descope-favicon-url\s*:\s*url\(\s*(["']?)([^"'()\s]*)\1\s*\)/;
+
+const cssDeclaration = (css: string, regex: RegExp) =>
+	regex.exec(css)?.[1].trim();
+
+const cssUrl = (css: string, regex: RegExp) => regex.exec(css)?.[2];
+
+const hexColor = (value: string | undefined) =>
+	value && HEX_COLOR_REGEX.test(value) ? value.toLowerCase() : undefined;
+
+const imageUrl = (value: string | undefined) => {
+	if (!value || value.length > MAX_IMAGE_URL_LENGTH) return undefined;
+	if (IMAGE_DATA_URI_REGEX.test(value)) return value;
+	const url = httpUrl(value);
+	return url?.startsWith('https:') ? url : undefined;
+};
+
+const brandFlavor = (style: unknown, mode: 'light' | 'dark'): BrandFlavor => {
+	const flavor = isRecord(style) ? style[mode] : undefined;
+	if (!isRecord(flavor)) return {};
+	const globals = stringField(flavor.globals) ?? '';
+	const components = isRecord(flavor.components) ? flavor.components : {};
+	const logoComponent = components['descope-logo'];
+	const logoCss =
+		(isRecord(logoComponent) && stringField(logoComponent.host)) || '';
+	const accent = hexColor(cssDeclaration(globals, PRIMARY_MAIN_REGEX));
+	const onAccent = hexColor(cssDeclaration(globals, PRIMARY_CONTRAST_REGEX));
+	return {
+		colors: accent && onAccent ? { accent, onAccent } : undefined,
+		logo: imageUrl(cssUrl(logoCss, LOGO_URL_REGEX)),
+		favicon: imageUrl(cssUrl(logoCss, FAVICON_URL_REGEX))
+	};
+};
+
+const brandFromStyle = (style: unknown): Brand | undefined => {
+	const brand = {
+		light: brandFlavor(style, 'light'),
+		dark: brandFlavor(style, 'dark')
+	};
+	const found = [brand.light, brand.dark].some(
+		({ colors, logo, favicon }) => colors || logo || favicon
+	);
+	return found ? brand : undefined;
+};
+
+// Where the login pages read published styles; without it the pages stay neutral
+const contentBaseUrl = () => {
+	const value = process.env.REACT_APP_CONTENT_BASE_URL ?? '';
+	return value.startsWith('https://') ? value.replace(/\/+$/, '') : undefined;
+};
+
+// Never throws: a missing or broken style leaves the pages neutral
+const fetchBrand = async (
+	base: string,
+	pid: string
+): Promise<Brand | undefined> => {
+	const controller = new AbortController();
+	const timeoutId = setTimeout(
+		() => controller.abort(),
+		BRAND_FETCH_TIMEOUT_MS
+	);
+	try {
+		const response = await fetch(`${base}/${pid}/${BRAND_STYLE_FILE}`, {
+			headers: { Accept: 'application/json' },
+			redirect: 'error',
+			signal: controller.signal
+		});
+		const length = Number(response.headers.get('content-length'));
+		if (!response.ok || length > MAX_STYLE_LENGTH) return undefined;
+		const text = await response.text();
+		return text.length > MAX_STYLE_LENGTH
+			? undefined
+			: brandFromStyle(JSON.parse(text));
+	} catch {
+		return undefined;
+	} finally {
+		clearTimeout(timeoutId);
+	}
+};
+
+const loadBrand = (base: string, pid: string) => {
+	const cached = brandCache.get(pid);
+	if (cached && cached.expiresAt > Date.now()) return cached.brand;
+	if (brandCache.size >= MAX_CACHED_BRANDS) brandCache.clear();
+	const brand = fetchBrand(base, pid);
+	brandCache.set(pid, { expiresAt: Date.now() + BRAND_CACHE_MS, brand });
+	return brand;
+};
+
+// Pages are rendered from many places that hold only the response
+const responseBrands = new WeakMap<ApiResponse, Brand>();
+
+const BRAND_STYLES = `
+.brand { margin: 0 0 1.5rem; }
+.brand img { display: block; max-width: 12rem; max-height: 3rem; object-fit: contain; }
+.brand .brand-dark { display: none; }
+@media (prefers-color-scheme: dark) {
+	.brand .brand-light { display: none; }
+	.brand .brand-dark { display: block; }
+}
+`;
+
+const brandColors = (colors: BrandFlavor['colors']) =>
+	colors
+		? `:root { --accent: ${colors.accent}; --on-accent: ${colors.onAccent}; }`
+		: '';
+
+const brandStyles = ({ light, dark }: Brand) =>
+	[
+		BRAND_STYLES,
+		`@media (prefers-color-scheme: light) { ${brandColors(light.colors)} }`,
+		`@media (prefers-color-scheme: dark) { ${brandColors(dark.colors)} }`
+	].join('');
+
+const brandImage = (src: string, className?: string) =>
+	`<img${className ? ` class="${className}"` : ''} src="${escapeHtml(src)}" alt="">`;
+
+const brandLogo = ({ light, dark }: Brand) => {
+	const lightLogo = light.logo ?? dark.logo;
+	const darkLogo = dark.logo ?? light.logo;
+	if (!lightLogo || !darkLogo) return '';
+	const images =
+		lightLogo === darkLogo
+			? brandImage(lightLogo)
+			: brandImage(lightLogo, 'brand-light') +
+				brandImage(darkLogo, 'brand-dark');
+	return `<div class="brand">${images}</div>`;
+};
+
+const brandHead = ({ light, dark }: Brand) => {
+	const favicon = light.favicon ?? dark.favicon;
+	return favicon ? `<link rel="icon" href="${escapeHtml(favicon)}">` : '';
+};
+
+// Neutral unless the project publishes an agent-approval style (see Branding).
+// System fonts and inline CSS, so a neutral page loads nothing from a third party.
 const STYLES = `
 :root {
 	--bg: #f4f3ef; --card: #ffffff; --ink: #111113; --muted: #6b6a66;
@@ -778,17 +948,23 @@ const progress = (current: number) =>
 		(label, index) => `<li${stepClass(index, current)}>${label}</li>`
 	).join('')}</ol>`;
 
-const layout = (title: string, content: string, head = '') =>
-	[
-		'<!doctype html>',
-		'<html lang="en"><head><meta charset="utf-8">',
-		'<meta name="viewport" content="width=device-width, initial-scale=1">',
-		'<meta name="color-scheme" content="light dark">',
-		head,
-		`<title>${escapeHtml(title)}</title>`,
-		`<style>${STYLES}</style>`,
-		`</head><body><main>${content}</main></body></html>`
-	].join('');
+// The response's brand is known only when the page is sent
+type Page = (brand: Brand | undefined) => string;
+
+const layout =
+	(title: string, content: string, head = ''): Page =>
+	(brand) =>
+		[
+			'<!doctype html>',
+			'<html lang="en"><head><meta charset="utf-8">',
+			'<meta name="viewport" content="width=device-width, initial-scale=1">',
+			'<meta name="color-scheme" content="light dark">',
+			head,
+			brand ? brandHead(brand) : '',
+			`<title>${escapeHtml(title)}</title>`,
+			`<style>${STYLES}${brand ? brandStyles(brand) : ''}</style>`,
+			`</head><body><main>${brand ? brandLogo(brand) : ''}${content}</main></body></html>`
+		].join('');
 
 const respond = (
 	res: ApiResponse,
@@ -806,8 +982,14 @@ const respond = (
 	res.end(body);
 };
 
-const send = (res: ApiResponse, status: number, html: string) =>
-	respond(res, status, 'text/html; charset=utf-8', 'no-store', html);
+const send = (res: ApiResponse, status: number, page: Page | string) =>
+	respond(
+		res,
+		status,
+		'text/html; charset=utf-8',
+		'no-store',
+		typeof page === 'string' ? page : page(responseBrands.get(res))
+	);
 
 const sendJwks = (res: ApiResponse, { jwk, kid }: SigningKey) =>
 	respond(
@@ -1088,6 +1270,9 @@ const handler = async (req: ApiRequest, res: ApiResponse) => {
 		return;
 	}
 
+	const styleBase = contentBaseUrl();
+	const brand = styleBase && (await loadBrand(styleBase, route.pid));
+	if (brand) responseBrands.set(res, brand);
 	const ctx: Context = { pid: route.pid, signingKey, secure: isHttps(req) };
 	try {
 		if (route.wait && req.method === 'GET') {

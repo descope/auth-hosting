@@ -1794,6 +1794,313 @@ describe('agent-approval function', () => {
 		});
 	});
 
+	describe('branding', () => {
+		const styleBase = 'https://static.example.com/pages';
+		const styleUrl = `${styleBase}/${pid}/v2-beta/agent-approval.json`;
+		const lightLogo = 'data:image/png;base64,iVBORw0KGgo=';
+		const darkLogo = 'data:image/png;base64,R0lGODlh';
+		const placeholder =
+			'--descope-logo-fallback-url:url(https://imgs.descope.com/components/no-logo-placeholder.svg)';
+
+		// The published file's shape, as read from a local stack (2026-10-08)
+		const flavor = (
+			mode: string,
+			primary: string,
+			contrast: string,
+			logoDeclarations = ''
+		) => ({
+			globals:
+				`[data-theme=${mode}]{--descope-colors-surface-main:#fff;` +
+				`--descope-colors-primary-main:${primary};--descope-colors-primary-dark:#7c2d12;` +
+				`--descope-colors-primary-contrast:${contrast}}`,
+			components: {
+				'descope-button': { host: ':host{--descope-button-x:1px}' },
+				'descope-logo': { host: `:host{${placeholder}${logoDeclarations}}` }
+			}
+		});
+
+		const brandedStyle = {
+			light: flavor(
+				'light',
+				'#C2410C',
+				'#fff',
+				`;--descope-favicon-url:url(${lightLogo});--descope-logo-url:url(${lightLogo})`
+			),
+			dark: flavor(
+				'dark',
+				'#fb923c',
+				'#000',
+				`;--descope-logo-url:url(${darkLogo})`
+			)
+		};
+
+		type StyleReply = (init: RequestInit) => Promise<unknown>;
+		let styleReply: StyleReply;
+
+		const serveStyle = (
+			body: unknown,
+			{
+				status = 200,
+				headers = {}
+			}: { status?: number; headers?: Record<string, string> } = {}
+		) => {
+			styleReply = async () => ({
+				ok: status >= 200 && status < 300,
+				status,
+				headers: { get: (name: string) => headers[name.toLowerCase()] ?? null },
+				text: async () =>
+					typeof body === 'string' ? body : JSON.stringify(body)
+			});
+		};
+
+		const styleWithLogo = (logoDeclaration: string) => ({
+			light: flavor('light', '#c2410c', '#fff', `;${logoDeclaration}`)
+		});
+
+		const styleCalls = () =>
+			mockFetch.mock.calls.filter(([url]) => url === styleUrl);
+
+		const expectNeutral = (res: FakeResponse) => {
+			expect(res.body).not.toContain('class="brand"');
+			expect(res.body).not.toContain('.brand img');
+			expect(res.body).not.toContain('rel="icon"');
+		};
+
+		beforeEach(() => {
+			process.env.REACT_APP_CONTENT_BASE_URL = `${styleBase}/`;
+			const implementation = mockFetch.getMockImplementation();
+			mockFetch.mockImplementation(async (url: string, init: RequestInit) =>
+				url === styleUrl ? styleReply(init) : implementation?.(url, init)
+			);
+			serveStyle(brandedStyle);
+		});
+
+		it('shows the logo, favicon and primary colors of the agent-approval style', async () => {
+			const res = await getStart();
+
+			expect(res.statusCode).toBe(200);
+			expect(res.body).toContain(
+				`<main><div class="brand"><img class="brand-light" src="${lightLogo}" alt="">` +
+					`<img class="brand-dark" src="${darkLogo}" alt=""></div>`
+			);
+			expect(res.body).toContain(
+				'@media (prefers-color-scheme: light) { :root { --accent: #c2410c; --on-accent: #fff; } }'
+			);
+			expect(res.body).toContain(
+				'@media (prefers-color-scheme: dark) { :root { --accent: #fb923c; --on-accent: #000; } }'
+			);
+			expect(res.body).toContain(`<link rel="icon" href="${lightLogo}">`);
+			expect(res.body).not.toContain('no-logo-placeholder');
+			expect(styleCalls()[0][1]).toEqual(
+				expect.objectContaining({ redirect: 'error' })
+			);
+		});
+
+		it('brands the error, waiting and hand-back pages too', async () => {
+			const error = await getStart({ ref: 'short' });
+			replies.token = { status: 400, body: { error: 'authorization_pending' } };
+			const waiting = await getWait(pendingCookie());
+			replies.token = { status: 200, body: { access_token: accessToken } };
+			const handback = await getWait(pendingCookie());
+
+			expect(error.statusCode).toBe(400);
+			expect(waiting.body).toContain('id="approval-code"');
+			expect(handback.body).toContain('id="handback"');
+			[error, waiting, handback].forEach((res) =>
+				expect(res.body).toContain('<div class="brand">')
+			);
+		});
+
+		it('shows the one logo in both modes when only one is set', async () => {
+			serveStyle(styleWithLogo(`--descope-logo-url:url(${lightLogo})`));
+
+			const res = await getStart();
+
+			expect(res.body).toContain(
+				`<div class="brand"><img src="${lightLogo}" alt=""></div>`
+			);
+			expect(res.body).not.toContain(
+				'@media (prefers-color-scheme: dark) { :root'
+			);
+		});
+
+		it('reads the style once a minute per project', async () => {
+			const now = Date.now();
+			const clock = jest.spyOn(Date, 'now').mockReturnValue(now);
+
+			await getStart();
+			await getStart();
+			expect(styleCalls()).toHaveLength(1);
+
+			clock.mockReturnValue(now + 60001);
+			await getStart();
+			expect(styleCalls()).toHaveLength(2);
+		});
+
+		it('gives up on a slow style after 2 seconds and shows the neutral page', async () => {
+			jest.useFakeTimers();
+			styleReply = (init) =>
+				new Promise((_resolve, reject) => {
+					init.signal?.addEventListener('abort', () => {
+						reject(new Error('The operation was aborted.'));
+					});
+				});
+
+			const promise = getStart();
+			const { signal } = styleCalls()[0][1];
+			jest.advanceTimersByTime(1999);
+			expect(signal.aborted).toBe(false);
+			jest.advanceTimersByTime(1);
+			const res = await promise;
+
+			expect(signal.aborted).toBe(true);
+			expect(res.statusCode).toBe(200);
+			expectNeutral(res);
+		});
+
+		it.each<[string, () => void]>([
+			['the project has no such style', () => serveStyle({}, { status: 404 })],
+			[
+				'the fetch fails',
+				() => {
+					styleReply = async () => {
+						throw new Error('getaddrinfo ENOTFOUND');
+					};
+				}
+			],
+			['the file is not JSON', () => serveStyle('<html></html>')],
+			['the file is not an object', () => serveStyle(['light', 'dark'])],
+			[
+				'the file declares more than 2MB',
+				() =>
+					serveStyle(brandedStyle, {
+						headers: { 'content-length': String(2 * 1024 * 1024 + 1) }
+					})
+			],
+			[
+				'the file is longer than 2MB',
+				() => serveStyle(`${' '.repeat(2 * 1024 * 1024)}{}`)
+			]
+		])('keeps the neutral look when %s', async (_, setup) => {
+			setup();
+
+			const res = await getStart();
+
+			expect(res.statusCode).toBe(200);
+			expect(styleCalls()).toHaveLength(1);
+			expectNeutral(res);
+		});
+
+		it.each([
+			['is not set', undefined],
+			['is not https', 'http://static.example.com/pages'],
+			['is a path', '/pages']
+		])(
+			'reads no style when the content base URL %s',
+			async (_, contentBaseUrl) => {
+				if (contentBaseUrl === undefined) {
+					delete process.env.REACT_APP_CONTENT_BASE_URL;
+				} else {
+					process.env.REACT_APP_CONTENT_BASE_URL = contentBaseUrl;
+				}
+
+				const res = await getStart();
+
+				expect(res.statusCode).toBe(200);
+				expect(
+					mockFetch.mock.calls.filter(([url]) =>
+						String(url).includes('agent-approval.json')
+					)
+				).toHaveLength(0);
+				expectNeutral(res);
+			}
+		);
+
+		it.each([
+			['a script after the color', 'red}</style><script>alert(1)</script>'],
+			['a named color', 'red'],
+			['a CSS function', 'rgb(0 0 0)'],
+			['an expression', 'var(--x);background:url(https://evil.example/x)']
+		])('ignores primary colors with %s', async (_, color) => {
+			serveStyle({
+				light: flavor('light', color, '#fff'),
+				dark: flavor('dark', color, '#000')
+			});
+
+			const res = await getStart();
+
+			expect(res.body).not.toContain('<script>alert(1)');
+			expect(res.body).not.toContain('evil.example');
+			expectNeutral(res);
+		});
+
+		it('ignores a primary color without a contrast color', async () => {
+			serveStyle({
+				light: {
+					...flavor('light', '#c2410c', '#fff'),
+					globals: '[data-theme=light]{--descope-colors-primary-main:#c2410c}'
+				}
+			});
+
+			expectNeutral(await getStart());
+		});
+
+		it.each([
+			['a javascript URL', '--descope-logo-url:url(javascript:alert(1))'],
+			[
+				'a quote breaking out of the URL',
+				'--descope-logo-url:url("https://cdn.example.com/a.png"onerror="alert(1)")'
+			],
+			[
+				'an HTML data URI',
+				'--descope-logo-url:url(data:text/html;base64,PHNjcmlwdD4=)'
+			],
+			[
+				'an unencoded SVG',
+				'--descope-logo-url:url(data:image/svg+xml;utf8,<svg onload=alert(1)>)'
+			],
+			[
+				'an http URL',
+				'--descope-logo-url:url(http://cdn.example.com/logo.png)'
+			],
+			[
+				'an image over 100KB',
+				`--descope-logo-url:url(data:image/png;base64,${'A'.repeat(100 * 1024)})`
+			],
+			['only the fallback placeholder', placeholder]
+		])('ignores a logo that is %s', async (_, declaration) => {
+			serveStyle({
+				light: {
+					...flavor('light', '#c2410c', '#fff'),
+					globals: '[data-theme=light]{}',
+					components: {
+						'descope-logo': { host: `:host{${declaration}}` }
+					}
+				}
+			});
+
+			const res = await getStart();
+
+			expect(res.body).not.toContain('alert(1)');
+			expect(res.body).not.toContain('<img');
+			expectNeutral(res);
+		});
+
+		it('escapes an https logo URL', async () => {
+			serveStyle(
+				styleWithLogo(
+					"--descope-logo-url:url('https://cdn.example.com/logo.png?a=1&b=<2>')"
+				)
+			);
+
+			const res = await getStart();
+
+			expect(res.body).toContain(
+				'<img src="https://cdn.example.com/logo.png?a=1&amp;b=%3C2%3E" alt="">'
+			);
+		});
+	});
+
 	describe('logging', () => {
 		const logged = (message: string) =>
 			consoleError.mock.calls
