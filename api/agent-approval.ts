@@ -46,7 +46,19 @@ const DEFAULT_INTERVAL_SEC = 5;
 const DEFAULT_EXPIRES_IN_SEC = 300;
 const SLOW_DOWN_STEP_SEC = 5;
 const MAX_BINDING_MESSAGE_LENGTH = 256;
-const EMPTY_SUMMARY = 'An AI agent wants to act for you';
+const MAX_ORDER_PARAM_LENGTH = 4096;
+const MAX_ORDER_ITEMS = 10;
+const MAX_ITEM_QTY = 99;
+const MAX_ITEM_NAME_LENGTH = 80;
+// Descope's limit on serialized authorization_details
+const MAX_AUTHORIZATION_DETAILS_BYTES = 4096;
+const CURRENCY_REGEX = /^[A-Z]{3}$/;
+const TOTAL_WHOLE_REGEX = /^(?:0|[1-9]\d{0,11})$/;
+const DIGITS_REGEX = /^\d+$/;
+// Letters, digits, single spaces and plain punctuation. No ; (it separates the items in the
+// summary) and no markup characters: the name reaches the customer's email.
+const ITEM_NAME_REGEX = /^[A-Za-z0-9 ,.&'()+/#%:!?-]+$/;
+const URL_LIKE_REGEX = /:\/\/|www\./i;
 const POLLING_ERRORS = ['authorization_pending', 'slow_down'];
 
 type ApiRequest = {
@@ -78,10 +90,15 @@ type Context = { pid: string; signingKey: SigningKey; secure: boolean };
 // undefined: absent; null: repeated or not a string
 type Fields = (name: string) => string | null | undefined;
 
+type OrderItem = { name: string; qty: number };
+
+type Order = { total: string; currency: string; items: OrderItem[] };
+
 type ApprovalRequest = {
 	clientId: string;
 	scope: string;
 	ref: string;
+	order: Order;
 	summary: string;
 	returnTo: string;
 	resource?: string;
@@ -126,22 +143,47 @@ const escapeHtml = (value: string) =>
 		.replace(/"/g, '&quot;')
 		.replace(/'/g, '&#39;');
 
-const buildBindingMessage = (summary: string, code: string) => {
-	const suffix = `. Approve only if you asked for this. Code: ${code}`;
-	const cleaned = summary
-		.replace(/\s+/g, ' ')
-		.replace(/[^\x20-\x7E]/g, '')
-		.replace(/https?:\/\/ ?\S*|www\. ?\S*/gi, '')
-		.replace(/ {2,}/g, ' ')
-		.trim();
-	if (!cleaned) return `${EMPTY_SUMMARY}${suffix}`;
-	const budget = MAX_BINDING_MESSAGE_LENGTH - suffix.length;
-	const text =
-		cleaned.length > budget
-			? `${cleaned.slice(0, budget - 3).trimEnd()}...`
-			: cleaned;
-	return `${text}${suffix}`;
+const bindingSuffix = (code: string) =>
+	`. Approve only if you asked for this. Code: ${code}`;
+
+// The code is always 4 digits, so every summary fits the binding message
+const MAX_SUMMARY_LENGTH =
+	MAX_BINDING_MESSAGE_LENGTH - bindingSuffix('0000').length;
+
+const buildBindingMessage = (summary: string, code: string) =>
+	`${summary}${bindingSuffix(code)}`;
+
+// From the string, never through a float: "185000.00" -> "185,000.00"
+const formatTotal = ({ total, currency }: Order) => {
+	const [whole, fraction] = total.split('.');
+	const grouped = BigInt(whole).toLocaleString('en-US');
+	return `${currency} ${fraction === undefined ? grouped : `${grouped}.${fraction}`}`;
 };
+
+// A fixed format from the validated fields. Whole items only: when the list does not fit,
+// it ends with "+N more". The caps on items, names and totals make the first item always fit.
+const orderSummary = (order: Order) => {
+	const lines = order.items.map(({ name, qty }) => `${qty}x ${name}`);
+	const textFor = (shown: number) => {
+		const more = shown < lines.length ? ` +${lines.length - shown} more` : '';
+		return `Order ${lines.slice(0, shown).join('; ')}${more}. Total ${formatTotal(order)}`;
+	};
+	let shown = lines.length;
+	while (shown > 1 && textFor(shown).length > MAX_SUMMARY_LENGTH) shown -= 1;
+	return textFor(shown);
+};
+
+// RFC 9396, one object; Descope copies it onto the access token unchanged
+const authorizationDetails = (ref: string, { total, currency, items }: Order) =>
+	JSON.stringify([
+		{
+			type: 'order',
+			ref,
+			total,
+			currency,
+			items: items.map(({ name, qty }) => ({ name, qty }))
+		}
+	]);
 
 const descopeBaseUrl = () =>
 	(process.env.DESCOPE_BASE_URL || DEFAULT_BASE_URL).replace(/\/+$/, '');
@@ -413,6 +455,96 @@ const isValidResource = (resource: string | null): resource is string =>
 	resource.length <= MAX_RESOURCE_LENGTH &&
 	httpUrl(resource) !== undefined;
 
+const hasExactKeys = (record: Record<string, unknown>, keys: string[]) => {
+	const own = Object.keys(record);
+	return own.length === keys.length && keys.every((key) => hasOwn(record, key));
+};
+
+// ISO 4217 as Intl knows it; its minor digits come from the same data (CLDR)
+const currencyDigits = (currency: string) => {
+	if (
+		!CURRENCY_REGEX.test(currency) ||
+		!Intl.supportedValuesOf('currency').includes(currency)
+	) {
+		return undefined;
+	}
+	return new Intl.NumberFormat('en', {
+		style: 'currency',
+		currency
+	}).resolvedOptions().maximumFractionDigits;
+};
+
+const isValidTotal = (total: string, digits: number) => {
+	const [whole, fraction, ...rest] = total.split('.');
+	if (rest.length > 0 || !TOTAL_WHOLE_REGEX.test(whole)) return false;
+	if (digits === 0) return fraction === undefined;
+	return (
+		fraction !== undefined &&
+		fraction.length === digits &&
+		DIGITS_REGEX.test(fraction)
+	);
+};
+
+const isValidItemName = (name: string) =>
+	name.length <= MAX_ITEM_NAME_LENGTH &&
+	ITEM_NAME_REGEX.test(name) &&
+	name === name.trim() &&
+	!name.includes('  ') &&
+	!URL_LIKE_REGEX.test(name);
+
+const readItem = (value: unknown): OrderItem | undefined => {
+	if (!isRecord(value) || !hasExactKeys(value, ['name', 'qty'])) {
+		return undefined;
+	}
+	const { name, qty } = value;
+	if (typeof name !== 'string' || !isValidItemName(name)) return undefined;
+	if (
+		typeof qty !== 'number' ||
+		!Number.isInteger(qty) ||
+		qty < 1 ||
+		qty > MAX_ITEM_QTY
+	) {
+		return undefined;
+	}
+	return { name, qty };
+};
+
+// The order param is JSON {"total","currency","items":[{"name","qty"}]}, untrusted: exact
+// keys, strict types, and a fresh object built from the checked fields
+const readOrder = (raw: string | null | undefined): Order | undefined => {
+	if (!raw || raw.length > MAX_ORDER_PARAM_LENGTH) return undefined;
+	let value: unknown;
+	try {
+		value = JSON.parse(raw);
+	} catch {
+		return undefined;
+	}
+	if (
+		!isRecord(value) ||
+		!hasExactKeys(value, ['total', 'currency', 'items'])
+	) {
+		return undefined;
+	}
+	const { total, currency, items } = value;
+	if (typeof currency !== 'string' || typeof total !== 'string') {
+		return undefined;
+	}
+	const digits = currencyDigits(currency);
+	if (digits === undefined || !isValidTotal(total, digits)) return undefined;
+	if (
+		!Array.isArray(items) ||
+		items.length === 0 ||
+		items.length > MAX_ORDER_ITEMS
+	) {
+		return undefined;
+	}
+	const checked = items.map(readItem);
+	if (!checked.every((item): item is OrderItem => item !== undefined)) {
+		return undefined;
+	}
+	return { total, currency, items: checked };
+};
+
 const readApprovalRequest = (fields: Fields): ApprovalRequest | undefined => {
 	const clientId = fields('client_id');
 	const scope = fields('scope');
@@ -425,12 +557,22 @@ const readApprovalRequest = (fields: Fields): ApprovalRequest | undefined => {
 	if (!isValidScope(scope)) return undefined;
 	if (!ref || !REF_REGEX.test(ref)) return undefined;
 	if (resource !== undefined && !isValidResource(resource)) return undefined;
+	const order = readOrder(fields('order'));
+	if (!order) return undefined;
+	// Unreachable under the caps above; kept so a cap change cannot exceed Descope's limit
+	if (
+		Buffer.byteLength(authorizationDetails(ref, order)) >
+		MAX_AUTHORIZATION_DETAILS_BYTES
+	) {
+		return undefined;
+	}
 	return {
 		clientId,
 		scope,
 		ref,
+		order,
+		summary: orderSummary(order),
 		returnTo,
-		summary: fields('summary') ?? '',
 		resource
 	};
 };
@@ -716,7 +858,7 @@ const startPage = (ctx: Context, request: ApprovalRequest) =>
 			hiddenInput('client_id', request.clientId),
 			hiddenInput('scope', request.scope),
 			hiddenInput('ref', request.ref),
-			hiddenInput('summary', request.summary),
+			hiddenInput('order', JSON.stringify(request.order)),
 			hiddenInput('return_to', request.returnTo),
 			...(request.resource === undefined
 				? []
@@ -814,6 +956,7 @@ const startApproval = async (
 		login_hint: loginId,
 		scope: request.scope,
 		binding_message: buildBindingMessage(request.summary, code),
+		authorization_details: authorizationDetails(request.ref, request.order),
 		...(request.resource === undefined ? {} : { resource: request.resource })
 	});
 	const authReqId = started.body.auth_req_id;
@@ -983,6 +1126,6 @@ const handler = async (req: ApiRequest, res: ApiResponse) => {
 	}
 };
 
-export { buildBindingMessage };
+export { buildBindingMessage, orderSummary };
 
 export default handler;

@@ -3,7 +3,7 @@
  */
 import crypto from 'crypto';
 import vercelConfig from '../vercel.json';
-import { buildBindingMessage } from '../api/agent-approval';
+import { buildBindingMessage, orderSummary } from '../api/agent-approval';
 
 type Handler = typeof import('../api/agent-approval').default;
 
@@ -33,7 +33,20 @@ const scope = 'orders:write email';
 const returnTo = 'https://shop.example.com/descope/agent-callback';
 const resource = 'https://shop.example.com';
 const ref = 'test_ref-0123456789abcdefghijklmnopqrstuv';
-const summary = 'Order 2x Trail Runner at Acme Shop. Total $129.00';
+const order = {
+	total: '282.00',
+	currency: 'USD',
+	items: [
+		{ name: 'Trail Runner', qty: 2 },
+		{ name: 'Merino Socks', qty: 1 }
+	]
+};
+const orderParam = JSON.stringify(order);
+const expectedDetails = JSON.stringify([{ type: 'order', ref, ...order }]);
+const summary = 'Order 2x Trail Runner; 1x Merino Socks. Total USD 282.00';
+const orderWith = (overrides: Record<string, unknown>) =>
+	JSON.stringify({ ...order, ...overrides });
+const itemsOf = (...items: unknown[]) => orderWith({ items });
 const loginId = 'alice@example.com';
 const accessToken = 'test-access-token';
 const codeChallenge = 'E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM';
@@ -165,7 +178,7 @@ const startQuery = (overrides: Record<string, string> = {}) =>
 		client_id: clientId,
 		scope,
 		ref,
-		summary,
+		order: orderParam,
 		return_to: returnTo,
 		...overrides
 	}).toString();
@@ -181,7 +194,7 @@ const startBody = (overrides: Record<string, unknown> = {}) => ({
 	client_id: clientId,
 	scope,
 	ref,
-	summary,
+	order: orderParam,
 	return_to: returnTo,
 	login_id: loginId,
 	...overrides
@@ -861,15 +874,16 @@ describe('agent-approval function', () => {
 
 	describe('start page', () => {
 		it('renders the approval form with every value escaped', async () => {
-			const res = await getStart({ summary: '<script>alert(1)</script>' });
+			const res = await getStart({
+				order: itemsOf({ name: "Socks & Co's", qty: 1 })
+			});
 
 			expect(res.statusCode).toBe(200);
 			expectSecurityHeaders(res);
 			expect(res.body).toContain('<h1>Approve an agent action</h1>');
 			expect(res.body).toContain(
-				'<p>An AI agent wants to: &lt;script&gt;alert(1)&lt;/script&gt;</p>'
+				'<p>An AI agent wants to: Order 1x Socks &amp; Co&#39;s. Total USD 282.00</p>'
 			);
-			expect(res.body).not.toContain('<script>alert');
 			expect(res.body).toContain(
 				`<form method="post" action="/approve/${pid}">`
 			);
@@ -883,7 +897,9 @@ describe('agent-approval function', () => {
 				`<input type="hidden" name="ref" value="${ref}">`
 			);
 			expect(res.body).toContain(
-				'<input type="hidden" name="summary" value="&lt;script&gt;alert(1)&lt;/script&gt;">'
+				'<input type="hidden" name="order" value="{&quot;total&quot;:&quot;282.00&quot;,' +
+					'&quot;currency&quot;:&quot;USD&quot;,&quot;items&quot;:[{&quot;name&quot;:' +
+					'&quot;Socks &amp; Co&#39;s&quot;,&quot;qty&quot;:1}]}">'
 			);
 			expect(res.body).toContain(
 				`<input type="hidden" name="return_to" value="${returnTo}">`
@@ -897,25 +913,185 @@ describe('agent-approval function', () => {
 			expect(callsTo('bcAuthorize')).toHaveLength(0);
 		});
 
-		it.each([
-			[
-				'double quotes',
-				'" onfocus="alert(1)" x="',
-				'&quot; onfocus=&quot;alert(1)&quot; x=&quot;'
-			],
-			[
-				'apostrophes',
-				"' onfocus='alert(1)' x='",
-				'&#39; onfocus=&#39;alert(1)&#39; x=&#39;'
-			]
-		])('escapes %s in the summary attribute', async (_, value, escaped) => {
-			const res = await getStart({ summary: value });
+		it('echoes the order rebuilt from the checked fields, not the raw text', async () => {
+			const raw = `{ "items": [ { "qty": 2, "name": "Trail Runner" } ], "currency": "USD", "total": "1.50" }`;
+
+			const res = await getStart({ order: raw });
 
 			expect(res.statusCode).toBe(200);
 			expect(res.body).toContain(
-				`<input type="hidden" name="summary" value="${escaped}">`
+				'name="order" value="{&quot;total&quot;:&quot;1.50&quot;,&quot;currency&quot;:' +
+					'&quot;USD&quot;,&quot;items&quot;:[{&quot;name&quot;:&quot;Trail Runner&quot;,' +
+					'&quot;qty&quot;:2}]}"'
 			);
-			expect(res.body).toContain(`wants to: ${escaped}</p>`);
+		});
+
+		it('returns 400 for a summary in place of the order', async () => {
+			const query = new URLSearchParams(startQuery({ summary }));
+			query.delete('order');
+
+			const res = await call({ url: `/approve/${pid}?${query}` });
+
+			expect(res.statusCode).toBe(400);
+			expect(mockFetch).not.toHaveBeenCalled();
+		});
+
+		it('returns 400 for a repeated order', async () => {
+			const res = await call({
+				url: `/approve/${pid}?${startQuery()}&order=${encodeURIComponent(orderParam)}`
+			});
+
+			expect(res.statusCode).toBe(400);
+			expect(mockFetch).not.toHaveBeenCalled();
+		});
+
+		it.each([
+			['an empty order', { order: '' }],
+			['an order that is not JSON', { order: '{total:1}' }],
+			['an order that is an array', { order: JSON.stringify([order]) }],
+			['an order with an extra key', { order: orderWith({ note: 'x' }) }],
+			[
+				'an order with a type',
+				{ order: orderWith({ type: 'payment_initiation' }) }
+			],
+			[
+				'an order without items',
+				{ order: JSON.stringify({ total: '1.00', currency: 'USD' }) }
+			],
+			[
+				'an order over 4096 characters',
+				{ order: `${orderParam}${' '.repeat(4096)}` }
+			],
+			['a numeric total', { order: orderWith({ total: 282 }) }],
+			['a total with one decimal', { order: orderWith({ total: '282.0' }) }],
+			['a total with no decimals', { order: orderWith({ total: '282' }) }],
+			[
+				'a total with three decimals',
+				{ order: orderWith({ total: '282.000' }) }
+			],
+			['a negative total', { order: orderWith({ total: '-1.00' }) }],
+			['a total with a leading zero', { order: orderWith({ total: '01.00' }) }],
+			['a total with grouping', { order: orderWith({ total: '1,282.00' }) }],
+			[
+				'a total with 13 digits',
+				{ order: orderWith({ total: '1234567890123.00' }) }
+			],
+			['a total in exponent form', { order: orderWith({ total: '1e3' }) }],
+			[
+				'decimals on a currency without minor units',
+				{ order: orderWith({ total: '100.00', currency: 'JPY' }) }
+			],
+			['a lower-case currency', { order: orderWith({ currency: 'usd' }) }],
+			['a currency symbol', { order: orderWith({ currency: '$' }) }],
+			[
+				'a code that is not ISO 4217',
+				{ order: orderWith({ currency: 'ABC' }) }
+			],
+			['a numeric currency', { order: orderWith({ currency: 840 }) }],
+			['empty items', { order: itemsOf() }],
+			[
+				'items as an object',
+				{ order: orderWith({ items: { name: 'A', qty: 1 } }) }
+			],
+			[
+				'11 items',
+				{
+					order: itemsOf(
+						...Array.from({ length: 11 }, (_unused, index) => ({
+							name: `Item ${index}`,
+							qty: 1
+						}))
+					)
+				}
+			],
+			[
+				'an item with an extra key',
+				{ order: itemsOf({ name: 'A', qty: 1, price: '1.00' }) }
+			],
+			['an item without qty', { order: itemsOf({ name: 'A' }) }],
+			['a qty of 0', { order: itemsOf({ name: 'A', qty: 0 }) }],
+			['a qty of 100', { order: itemsOf({ name: 'A', qty: 100 }) }],
+			['a fractional qty', { order: itemsOf({ name: 'A', qty: 1.5 }) }],
+			['a qty as a string', { order: itemsOf({ name: 'A', qty: '1' }) }],
+			['an empty name', { order: itemsOf({ name: '', qty: 1 }) }],
+			['a numeric name', { order: itemsOf({ name: 7, qty: 1 }) }],
+			[
+				'an 81 character name',
+				{ order: itemsOf({ name: 'a'.repeat(81), qty: 1 }) }
+			],
+			[
+				'a name with markup',
+				{ order: itemsOf({ name: '<b>Socks</b>', qty: 1 }) }
+			],
+			[
+				'a name with a double quote',
+				{ order: itemsOf({ name: 'Socks "x"', qty: 1 }) }
+			],
+			[
+				'a name with a semicolon',
+				{ order: itemsOf({ name: 'Socks; Shoes', qty: 1 }) }
+			],
+			[
+				'a name with a leading space',
+				{ order: itemsOf({ name: ' Socks', qty: 1 }) }
+			],
+			[
+				'a name with a double space',
+				{ order: itemsOf({ name: 'Wool  Socks', qty: 1 }) }
+			],
+			[
+				'a name with a newline',
+				{ order: itemsOf({ name: 'Socks\nShoes', qty: 1 }) }
+			],
+			['a name with non-ASCII', { order: itemsOf({ name: 'Café', qty: 1 }) }],
+			[
+				'a name with a URL',
+				{ order: itemsOf({ name: 'Refund at https://evil.example', qty: 1 }) }
+			],
+			[
+				'a name with www.',
+				{ order: itemsOf({ name: 'Visit WWW.evil.example', qty: 1 }) }
+			]
+		])('returns 400 for %s', async (_, overrides) => {
+			const res = await getStart(overrides);
+
+			expect(res.statusCode).toBe(400);
+			expect(res.body).toContain('Invalid approval request');
+			expect(mockFetch).not.toHaveBeenCalled();
+		});
+
+		it.each([
+			['a currency without minor units', { total: '15000', currency: 'JPY' }],
+			[
+				'a currency with three minor digits',
+				{ total: '1.250', currency: 'BHD' }
+			],
+			['a zero total', { total: '0.00' }],
+			['a 12 digit total', { total: '999999999999.99' }],
+			[
+				'10 items',
+				{
+					items: Array.from({ length: 10 }, (_unused, index) => ({
+						name: `Item ${index}`,
+						qty: 99
+					}))
+				}
+			],
+			[
+				'an 80 character name with every allowed character',
+				{
+					items: [
+						{
+							name: "Az09 ,.&'()+/#%:!?- ".repeat(4).trimEnd().padEnd(80, 'x'),
+							qty: 1
+						}
+					]
+				}
+			]
+		])('accepts an order with %s', async (_, overrides) => {
+			const res = await getStart({ order: orderWith(overrides) });
+
+			expect(res.statusCode).toBe(200);
 		});
 
 		it.each([
@@ -1049,8 +1225,50 @@ describe('agent-approval function', () => {
 				client_assertion: expect.any(String),
 				login_hint: loginId,
 				scope,
-				binding_message: buildBindingMessage(summary, pending.code)
+				binding_message: buildBindingMessage(summary, pending.code),
+				authorization_details: expectedDetails
 			});
+			expect(sentForm('bcAuthorize').binding_message).toBe(
+				`${summary}. Approve only if you asked for this. Code: ${pending.code}`
+			);
+		});
+
+		it('sends the order as one RFC 9396 object of type order, bound to the ref', async () => {
+			await postStart();
+
+			expect(JSON.parse(sentForm('bcAuthorize').authorization_details)).toEqual(
+				[
+					{
+						type: 'order',
+						ref,
+						total: '282.00',
+						currency: 'USD',
+						items: [
+							{ name: 'Trail Runner', qty: 2 },
+							{ name: 'Merino Socks', qty: 1 }
+						]
+					}
+				]
+			);
+		});
+
+		it.each([
+			['a bad order', { order: orderWith({ total: '1' }) }],
+			['a non-string order', { order }]
+		])('returns 400 for %s before calling Descope', async (_, overrides) => {
+			const res = await postStart(overrides);
+
+			expect(res.statusCode).toBe(400);
+			expect(mockFetch).not.toHaveBeenCalled();
+		});
+
+		it('returns 400 for a repeated order in a raw string body', async () => {
+			const body = `${new URLSearchParams(startBody())}&order=${encodeURIComponent(orderParam)}`;
+
+			const res = await call({ method: 'POST', url: `/approve/${pid}`, body });
+
+			expect(res.statusCode).toBe(400);
+			expect(mockFetch).not.toHaveBeenCalled();
 		});
 
 		it('forwards the resource to bc-authorize unchanged', async () => {
@@ -1066,6 +1284,7 @@ describe('agent-approval function', () => {
 				login_hint: loginId,
 				scope,
 				binding_message: buildBindingMessage(summary, pending.code),
+				authorization_details: expectedDetails,
 				resource
 			});
 			expect(pending).not.toHaveProperty('resource');
@@ -1639,73 +1858,96 @@ describe('agent-approval function', () => {
 		});
 	});
 
-	describe('buildBindingMessage', () => {
+	describe('orderSummary and buildBindingMessage', () => {
 		const suffix = '. Approve only if you asked for this. Code: 1234';
+		const item = (index: number, qty = 1) => ({
+			name: `Item ${index} ${'n'.repeat(30)}`,
+			qty
+		});
+		const longest = (index: number) => ({
+			name: `${index}${'w'.repeat(79)}`,
+			qty: 99
+		});
 
-		it('appends the warning and the code', () => {
+		it('lists every item with its quantity, then the total with the currency', () => {
+			expect(orderSummary(order)).toBe(summary);
 			expect(buildBindingMessage(summary, '1234')).toBe(`${summary}${suffix}`);
 		});
 
-		it('keeps a summary that exactly fits 256 characters', () => {
-			const fitting = 'a'.repeat(256 - suffix.length);
-
-			expect(buildBindingMessage(fitting, '1234')).toBe(`${fitting}${suffix}`);
-		});
-
-		it('truncates a long summary to 256 characters', () => {
-			const message = buildBindingMessage(`${'a'.repeat(300)} end`, '1234');
-
-			expect(message).toHaveLength(256);
-			expect(message.endsWith(`...${suffix}`)).toBe(true);
-		});
-
-		it('drops URL-like substrings', () => {
-			expect(
-				buildBindingMessage(
-					'Buy https://evil.example/x?y=1 now at www.evil.example or HTTP://a.b today',
-					'1234'
-				)
-			).toBe(`Buy now at or today${suffix}`);
-		});
-
 		it.each([
+			['a currency without minor units', '15000', 'JPY', 'JPY 15,000'],
+			['grouping', '185000.00', 'USD', 'USD 185,000.00'],
 			[
-				'a zero-width space in the scheme',
-				'Pay at http\u200b://evil.example/x now'
+				'the largest total',
+				'999999999999.999',
+				'BHD',
+				'BHD 999,999,999,999.999'
 			],
-			[
-				'a soft hyphen in the scheme',
-				'Pay at ht\u00adtps://evil.example/x now'
-			],
-			[
-				'a word joiner after the scheme',
-				'Pay at https://\u2060evil.example/x now'
-			],
-			['a zero-width space in www', 'Pay at ww\u200bw.evil.example now'],
-			['a soft hyphen after www', 'Pay at www.\u00adevil.example now'],
-			[
-				'a no-break space after the scheme',
-				'Pay at https://\u00a0evil.example now'
-			],
-			['a space after the scheme', 'Pay at https:// evil.example/x now'],
-			['a no-break space after www', 'Pay at www.\u00a0evil.example now']
-		])('drops a URL hidden with %s', (_, value) => {
-			expect(buildBindingMessage(value, '1234')).toBe(`Pay at now${suffix}`);
-		});
-
-		it('keeps printable ASCII only and collapses whitespace', () => {
-			expect(
-				buildBindingMessage('Café ☕ order\n\tfor\u0000 you ', '1234')
-			).toBe(`Caf order for you${suffix}`);
-		});
-
-		it.each(['', '   ', 'https://evil.example', '☕☕'])(
-			'falls back for the empty summary %j',
-			(value) => {
-				expect(buildBindingMessage(value, '1234')).toBe(
-					`An AI agent wants to act for you${suffix}`
+			['a total under 1000', '45.00', 'USD', 'USD 45.00']
+		])(
+			'renders the total from the string with %s',
+			(_, total, currency, text) => {
+				expect(orderSummary({ ...order, total, currency })).toBe(
+					`Order 2x Trail Runner; 1x Merino Socks. Total ${text}`
 				);
 			}
 		);
+
+		it('ends the item list with +N more instead of cutting an item', () => {
+			const items = Array.from({ length: 10 }, (_unused, index) => item(index));
+			const firstFour = [0, 1, 2, 3].map((index) => `1x ${item(index).name}`);
+
+			const text = orderSummary({ ...order, items });
+
+			expect(text).toBe(
+				`Order ${firstFour.join('; ')} +6 more. Total USD 282.00`
+			);
+			expect(buildBindingMessage(text, '1234').length).toBeLessThanOrEqual(256);
+			expect(
+				`Order ${firstFour.join('; ')}; 1x ${item(4).name} +5 more. Total USD 282.00`
+					.length + suffix.length
+			).toBeGreaterThan(256);
+		});
+
+		it('keeps the first item and counts the rest for the largest order', () => {
+			const items = Array.from({ length: 10 }, (_unused, index) =>
+				longest(index)
+			);
+
+			const text = orderSummary({
+				total: '999999999999.999',
+				currency: 'BHD',
+				items
+			});
+
+			expect(text).toBe(
+				`Order 99x ${longest(0).name} +9 more. Total BHD 999,999,999,999.999`
+			);
+			expect(buildBindingMessage(text, '1234').length).toBeLessThanOrEqual(256);
+		});
+
+		it.each([
+			['keeps both items when they fill 256 characters exactly', 0, false],
+			['counts the second item when it is one character over', 1, true]
+		])('%s', (_, extra, counted) => {
+			const fixed = 'Order 1x A; 1x . Total USD 282.00'.length;
+			const name = 'b'.repeat(256 - suffix.length - fixed + extra);
+			const items = [
+				{ name: 'A', qty: 1 },
+				{ name, qty: 1 }
+			];
+
+			const message = buildBindingMessage(
+				orderSummary({ ...order, items }),
+				'1234'
+			);
+
+			expect(message).toBe(
+				counted
+					? `Order 1x A +1 more. Total USD 282.00${suffix}`
+					: `Order 1x A; 1x ${name}. Total USD 282.00${suffix}`
+			);
+			expect(message.length).toBeLessThanOrEqual(256);
+		});
 	});
 });
