@@ -41,7 +41,8 @@ const getSizingValue = ({
 	envVar: string;
 }) => {
 	const value = urlParams.get(key) ?? env[envVar];
-	if (value === undefined) return undefined;
+	// env.js renders an unset width/height as '', which is "no size set".
+	if (!value) return undefined;
 
 	const [match, amount, unit] = /^(\d+)(px|%)$/.exec(value ?? '') ?? [];
 
