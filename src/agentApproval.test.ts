@@ -2029,6 +2029,10 @@ describe('agent-approval function', () => {
 			expect(styleCalls()[0][1].signal.aborted).toBe(true);
 			expect(res.statusCode).toBe(200);
 			expectNeutral(res);
+			expect(consoleError).toHaveBeenCalledWith(
+				'Agent approval style is over the size limit',
+				JSON.stringify({ pid, maxBytes: 2 * 1024 * 1024 })
+			);
 		});
 
 		it('drops the oldest project, not the whole cache, when 100 are cached', async () => {

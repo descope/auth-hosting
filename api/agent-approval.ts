@@ -780,7 +780,14 @@ const fetchBrand = async (
 		});
 		if (!response.ok || !response.body) return undefined;
 		const text = await readCapped(response.body, controller);
-		return text === undefined ? undefined : brandFromStyle(JSON.parse(text));
+		if (text === undefined) {
+			logFailure('Agent approval style is over the size limit', {
+				pid,
+				maxBytes: MAX_STYLE_BYTES
+			});
+			return undefined;
+		}
+		return brandFromStyle(JSON.parse(text));
 	} catch {
 		return undefined;
 	} finally {
