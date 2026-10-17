@@ -1305,6 +1305,14 @@
     jwt-decode "4.0.0"
     tslib "2.8.1"
 
+"@descope/core-js-sdk@2.77.0":
+  version "2.77.0"
+  resolved "https://registry.yarnpkg.com/@descope/core-js-sdk/-/core-js-sdk-2.77.0.tgz#7fe30d014dc0612829483749b3ff2136bf88c661"
+  integrity sha512-abnOnuBPw3oQzfFNswwJ5+Ct5DY4C6he5Btj0ZKJH0s0YSwLdUstKRhx4zngziwBLm8WpjYsq8VQJ4cwXJQiMQ==
+  dependencies:
+    jwt-decode "4.0.0"
+    tslib "2.8.1"
+
 "@descope/escape-markdown@0.1.6":
   version "0.1.6"
   resolved "https://registry.yarnpkg.com/@descope/escape-markdown/-/escape-markdown-0.1.6.tgz#66b5ce59d1ed29a3c43a51089d1d8682074670fe"
@@ -1453,12 +1461,35 @@
     "@fingerprintjs/fingerprintjs-pro" "3.11.6"
     tslib "2.8.1"
 
+"@descope/web-component@4.4.11":
+  version "4.4.11"
+  resolved "https://registry.yarnpkg.com/@descope/web-component/-/web-component-4.4.11.tgz#7c4c3f0240017d01554979de756b9e9ad0a77d75"
+  integrity sha512-rV2ZmdAMkovqWuOs/GF6cnqDaJDRPjB/YHP1Q8eH1a0BuqWnviztIS28XE+vLnS4NyzlavYSyXcMCOYFdvzL2w==
+  dependencies:
+    "@descope/escape-markdown" "0.1.6"
+    "@descope/sdk-helpers" "0.10.1"
+    "@descope/sdk-mixins" "0.27.2"
+    "@descope/web-js-sdk" "1.54.3"
+    "@fingerprintjs/fingerprintjs-pro" "3.11.6"
+    tslib "2.8.1"
+
 "@descope/web-js-sdk@1.54.2":
   version "1.54.2"
   resolved "https://registry.yarnpkg.com/@descope/web-js-sdk/-/web-js-sdk-1.54.2.tgz#1e91083f70294d1e27afc32b181bf65c7ec408c5"
   integrity sha512-TElJA85OYA6U1I4STTz9bGHBttwYln9XaWNvu+VnQpTjvrpwAE3EgXSPC4T8Y/CqkjGWH7gablT0gm4kb/qrLQ==
   dependencies:
     "@descope/core-js-sdk" "2.76.0"
+    "@fingerprintjs/fingerprintjs-pro" "3.11.6"
+    js-cookie "3.0.8"
+    jwt-decode "4.0.0"
+    tslib "2.8.1"
+
+"@descope/web-js-sdk@1.54.3":
+  version "1.54.3"
+  resolved "https://registry.yarnpkg.com/@descope/web-js-sdk/-/web-js-sdk-1.54.3.tgz#f812a7dbd5fc5d17d5efe236121d7ef6f85692d3"
+  integrity sha512-/w/fFNikG8g4uNPnFlUyGl6r0aYkU8BUxmhhwO5P+/OKBoNwDNmVVJqAY/a/QZ4QhTnxrJZtA2qSI/5e2xZgUw==
+  dependencies:
+    "@descope/core-js-sdk" "2.77.0"
     "@fingerprintjs/fingerprintjs-pro" "3.11.6"
     js-cookie "3.0.8"
     jwt-decode "4.0.0"
