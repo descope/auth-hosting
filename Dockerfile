@@ -7,10 +7,20 @@ ARG REACT_APP_USE_ORIGIN_BASE_URL="false"
 ARG REACT_APP_FAVICON_URL="https://imgs.descope.com/auth-hosting/favicon.svg"
 ARG DESCOPE_PROJECT_ID=""
 ARG DESCOPE_FLOW_ID=""
+# Only the FedRAMP image bakes an enforcing policy into index.html; everything
+# else reports against the Caddyfile header. See config/cspPlugin.js.
+ARG ADD_CSP="false"
+ARG INJECT_CADDY_NONCE="false"
 ARG BUILDPLATFORM
 
 FROM --platform=${BUILDPLATFORM} node:${NODE_VERSION}-alpine AS builder
 ENV NODE_ENV=production
+
+# ARGs do not cross FROM boundaries.
+ARG ADD_CSP
+ARG INJECT_CADDY_NONCE
+ENV ADD_CSP=${ADD_CSP}
+ENV INJECT_CADDY_NONCE=${INJECT_CADDY_NONCE}
 
 WORKDIR /app
 COPY ["package.json", "yarn.lock*", "./"]
