@@ -89,6 +89,23 @@ describe('App component', () => {
 		);
 	});
 
+	// The backend refuses a disabled project's flow on this header alone, so the app has to send it
+	// on everything its flow does. AuthProvider takes no baseHeaders; the hook is the way in.
+	test('tells the backend the flow is running in the auth hosting app', async () => {
+		window.location.pathname = `/${packageJson.homepage}/${validProjectId}`;
+		render(<App />);
+		expect(await screen.findByTestId('descope-component')).toBeInTheDocument();
+		const props = mockAuthProvider.mock.calls.at(-1)?.[0];
+		// The hook is what reaches the flow's own requests; assert what it does to one.
+		expect(
+			props.hooks.beforeRequest({ path: '/v1/flow/start', method: 'POST' })
+		).toEqual(
+			expect.objectContaining({
+				headers: expect.objectContaining({ 'x-descope-auth-hosting': '1' })
+			})
+		);
+	});
+
 	test('displays Descope component when projectId is valid and part of the location', async () => {
 		window.location.pathname = `/${packageJson.homepage}/${validProjectId}`;
 		render(<App />);
@@ -504,6 +521,151 @@ describe('App component', () => {
 				expect(link).not.toBeInTheDocument();
 			});
 		});
+
+		// No per-app favicon, but a ?style= is set -> read the style's favicon out of its
+		// published JSON.
+		it('should use the style favicon when the app has none and a style is set', async () => {
+			env.REACT_APP_DEFAULT_FAVICON_URL =
+				'https://example.com/default-favicon.ico';
+			env.REACT_APP_FAVICON_URL_TEMPLATE =
+				'https://example.com/{projectId}/{ssoAppId}/assets/favicon.ico';
+
+			Object.defineProperty(window, 'location', {
+				value: {
+					...window.location,
+					search: '?sso_app_id=testSsoAppId&style=ap',
+					pathname: '/test'
+				},
+				writable: true
+			});
+
+			const styleFavicon = 'data:image/png;base64,AAAA';
+			mockFetch
+				.mockResolvedValueOnce({ ok: false, status: 404 })
+				.mockResolvedValueOnce({
+					ok: true,
+					status: 200,
+					json: async () => ({
+						light: {
+							components: {
+								'descope-logo': {
+									host: `--descope-fed-apps-favicon-url:url(${styleFavicon});`
+								}
+							}
+						}
+					})
+				});
+
+			render(<App />);
+
+			await waitFor(() => {
+				// eslint-disable-next-line testing-library/no-node-access -- can't query head with screen
+				const link = document.head.querySelector(
+					"link[rel~='icon']"
+				) as HTMLLinkElement;
+				expect(link?.href).toBe(styleFavicon);
+			});
+		});
+
+		it('should fall back to the light style favicon in dark theme and encode the style id', async () => {
+			env.REACT_APP_DEFAULT_FAVICON_URL =
+				'https://example.com/default-favicon.ico';
+			env.REACT_APP_FAVICON_URL_TEMPLATE =
+				'https://example.com/{projectId}/{ssoAppId}/assets/favicon.ico';
+
+			Object.defineProperty(window, 'location', {
+				value: {
+					...window.location,
+					search: '?sso_app_id=testSsoAppId&theme=dark&style=../x',
+					pathname: '/test'
+				},
+				writable: true
+			});
+
+			const styleFavicon = 'data:image/png;base64,AAAA';
+			mockFetch.mockImplementation(async (url: string) =>
+				url.endsWith('.json')
+					? {
+							ok: true,
+							status: 200,
+							json: async () => ({
+								light: {
+									components: {
+										logo: { '--descope-fed-apps-favicon-url': styleFavicon }
+									}
+								},
+								dark: { components: { logo: {} } }
+							})
+						}
+					: { ok: false, status: 404 }
+			);
+
+			render(<App />);
+
+			await waitFor(() => {
+				// eslint-disable-next-line testing-library/no-node-access -- can't query head with screen
+				const link = document.head.querySelector(
+					"link[rel~='icon']"
+				) as HTMLLinkElement;
+				expect(link?.href).toBe(styleFavicon);
+			});
+			expect(mockFetch).toHaveBeenCalledWith(
+				expect.stringMatching(/\/\.\.%2Fx\.json$/)
+			);
+		});
+
+		describe('per-app favicon by theme', () => {
+			const appFavicon =
+				'https://example.com/P1234567890123456789012345678901/testSsoAppId/assets/favicon.ico';
+			const appDarkFavicon =
+				'https://example.com/P1234567890123456789012345678901/testSsoAppId/assets/favicon-dark.ico';
+
+			const renderWithTheme = (theme: string, existing: string[]) => {
+				env.REACT_APP_DEFAULT_FAVICON_URL =
+					'https://example.com/default-favicon.ico';
+				env.REACT_APP_FAVICON_URL_TEMPLATE =
+					'https://example.com/{projectId}/{ssoAppId}/assets/favicon.ico';
+				Object.defineProperty(window, 'location', {
+					value: {
+						...window.location,
+						search: `?sso_app_id=testSsoAppId&theme=${theme}`,
+						pathname: '/test'
+					},
+					writable: true
+				});
+				mockFetch.mockImplementation(async (url: string) => ({
+					ok: existing.includes(url),
+					status: existing.includes(url) ? 200 : 404
+				}));
+				render(<App />);
+			};
+
+			const expectFavicon = async (href: string) => {
+				await waitFor(() => {
+					// eslint-disable-next-line testing-library/no-node-access -- can't query head with screen
+					const link = document.head.querySelector(
+						"link[rel~='icon']"
+					) as HTMLLinkElement;
+					expect(link?.href).toBe(href);
+				});
+			};
+
+			it('should use the dark app favicon in dark theme', async () => {
+				renderWithTheme('dark', [appFavicon, appDarkFavicon]);
+				await expectFavicon(appDarkFavicon);
+			});
+
+			it('should fall back to the light app favicon in dark theme when there is no dark one', async () => {
+				renderWithTheme('dark', [appFavicon]);
+				await expectFavicon(appFavicon);
+			});
+
+			it('should never use the dark app favicon in light theme', async () => {
+				renderWithTheme('light', [appDarkFavicon]);
+				await expectFavicon('https://example.com/default-favicon.ico');
+				expect(mockFetch).not.toHaveBeenCalledWith(appDarkFavicon);
+			});
+		});
 	});
 
 	describe('bg', () => {
@@ -534,8 +696,7 @@ describe('App component', () => {
 			render(<App />);
 
 			expect(await screen.findByTestId('app')).toHaveStyle({
-				'background-image': 'url("https://example.com/bg.png")',
-				'background-size': 'cover'
+				'background-image': 'url("https://example.com/bg.png")'
 			});
 		});
 

@@ -9,6 +9,12 @@ import FlowGate from './components/FlowGate';
 import useOidcMfa from './hooks/useOidcMfa';
 import { env } from './env';
 import { logger } from './utils/logger';
+import {
+	isFaviconUrlSecure,
+	resolveFaviconUrl,
+	resolveThemeFlavor
+} from './utils/favicon';
+import { addAuthHostingHeader } from './shared/authHostingHeader';
 import { projectRegex } from './shared/projectRegex';
 
 const ssoAppRegex = /^[a-zA-Z0-9\-_]{1,30}$/;
@@ -23,23 +29,6 @@ const normalizeBackgroundParam = (
 	const trimmed = value.trim();
 	if (BARE_HEX_COLOR.test(trimmed)) return `#${trimmed}`;
 	return value;
-};
-
-const isFaviconUrlSecure = (url: string) => {
-	try {
-		const parsedUrl = new URL(url);
-		const isSecure = parsedUrl.protocol === 'https:';
-		logger.log('Favicon URL security check:', {
-			url,
-			protocol: parsedUrl.protocol,
-			hostname: parsedUrl.hostname,
-			isSecure
-		});
-		return isSecure;
-	} catch (error) {
-		logger.error('Error checking favicon URL security:', error);
-		return false;
-	}
 };
 
 /// Parse the width & height options allowing amounts like "50%" or "800px"
@@ -81,21 +70,6 @@ const getClientParams = (urlParams: URLSearchParams) => {
 		}
 	});
 	return Object.keys(clientParams).length > 0 ? clientParams : undefined;
-};
-
-const getFaviconUrl = async (url: string, defaultFaviconUrl: string) => {
-	logger.log('Attempting to fetch favicon from:', url);
-	try {
-		const response = await fetch(url);
-		logger.log('Favicon fetch response:', response.status, response.ok);
-		if (response.ok) {
-			return new URL(url).href;
-		}
-	} catch (error) {
-		logger.error('Error fetching favicon:', error);
-	}
-	logger.log('Falling back to default favicon:', defaultFaviconUrl);
-	return new URL(defaultFaviconUrl).href;
 };
 
 const App = () => {
@@ -161,7 +135,19 @@ const App = () => {
 		let existingFaviconUrl = defaultFaviconUrl;
 		if (ssoAppId) {
 			logger.log('Checking custom favicon for ssoAppId:', ssoAppId);
-			existingFaviconUrl = await getFaviconUrl(faviconUrl, defaultFaviconUrl);
+			const faviconStyleId =
+				urlParams.get('style') || env.DESCOPE_STYLE_ID || '';
+			const themeFlavor = resolveThemeFlavor(
+				urlParams.get('theme') || env.DESCOPE_FLOW_THEME
+			);
+			existingFaviconUrl = await resolveFaviconUrl({
+				perAppUrl: faviconUrl,
+				projectId,
+				styleId: faviconStyleId,
+				themeFlavor,
+				faviconUrlTemplate,
+				defaultFaviconUrl
+			});
 		}
 
 		let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
@@ -174,7 +160,7 @@ const App = () => {
 		link.href = existingFaviconUrl;
 
 		logger.log('Favicon updated to:', existingFaviconUrl);
-	}, [projectId, ssoAppId, faviconUrlTemplate, defaultFaviconUrl]);
+	}, [projectId, ssoAppId, faviconUrlTemplate, defaultFaviconUrl, urlParams]);
 
 	// Run immediately and also when dependencies change
 	useEffect(() => {
@@ -247,7 +233,6 @@ const App = () => {
 			// We want url("https://whatever.invalid") with any quotes escaped correctly
 			// so JSON.stringify is a convenient option.
 			css.backgroundImage = `url(${JSON.stringify(url.toString())})`;
-			css.backgroundSize = 'cover';
 			logger.log('Using background url', url);
 		} catch (err) {
 			logger.log('Using background as color', background);
@@ -334,6 +319,7 @@ const App = () => {
 		<AuthProvider
 			projectId={projectId}
 			baseUrl={baseUrl}
+			hooks={{ beforeRequest: addAuthHostingHeader }}
 			storeLastAuthenticatedUser={storeLastAuthUser}
 			persistTokens={persistTokens}
 		>
