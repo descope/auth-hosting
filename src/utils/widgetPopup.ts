@@ -17,6 +17,16 @@ import { logger } from './logger';
 const WIDGET_POPUP_NAME_PREFIX = 'descope-widget-flow';
 const WIDGET_FLOW_DONE = 'widget-flow-done';
 const WIDGET_FLOW_UNAUTHENTICATED = 'widget-flow-unauthenticated';
+const WIDGET_FLOW_HELLO = 'widget-flow-hello';
+const WIDGET_FLOW_HELLO_ACK = 'widget-flow-hello-ack';
+
+/**
+ * The opener is already listening before it opens this window, so a real answer
+ * comes back in single-digit milliseconds. This only has to cover a busy main
+ * thread. It is also how long the flow is held back when nobody answers, which
+ * is why it is not generous.
+ */
+const HELLO_TIMEOUT_MS = 1000;
 
 /**
  * Backend codes meaning "no usable session on this domain". The widget turns
@@ -64,6 +74,73 @@ const setWidgetOpenerApproved = (approved: boolean) => {
  */
 const widgetOpenerOrigin = (): string =>
 	openerApproved ? claimedWidgetOpenerOrigin() : '';
+
+/**
+ * Only has to be unique per window, not secret: a page at another origin never
+ * receives the hello, and cannot fake the origin stamp on its answer. So the
+ * weak fallback is fine where crypto.randomUUID is missing.
+ */
+const newNonce = (): string =>
+	window.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`;
+
+/**
+ * Asks the opener to prove it really is at the origin it claims.
+ *
+ * Checking the claim against the project's trusted domains is not enough on its
+ * own: a hostile page can claim the customer's real app origin, which IS
+ * trusted. The browser then refuses to deliver our postMessage, but closing the
+ * window is still visible through `popup.closed`, and whether we close tells the
+ * hostile page whether the visitor has a session here.
+ *
+ * So we post a one-time code TO the claimed origin and wait for it to come back.
+ * Only a page actually at that origin can receive it, and `event.origin` is set
+ * by the browser, so it cannot be forged on the way back.
+ *
+ * Resolves false on timeout, which is what an opener that does not speak this
+ * protocol looks like. Then nothing is reported and nothing is closed.
+ */
+const confirmWidgetOpener = (
+	timeoutMs: number = HELLO_TIMEOUT_MS
+): Promise<boolean> => {
+	const claimedOrigin = claimedWidgetOpenerOrigin();
+	const { opener } = window;
+	if (!claimedOrigin || !opener) return Promise.resolve(false);
+
+	const nonce = newNonce();
+
+	return new Promise<boolean>((resolve) => {
+		const listening = new AbortController();
+		let timer: ReturnType<typeof setTimeout> | undefined;
+
+		const settle = (confirmed: boolean) => {
+			clearTimeout(timer);
+			listening.abort();
+			resolve(confirmed);
+		};
+
+		window.addEventListener(
+			'message',
+			(event: MessageEvent) => {
+				if (event.source !== opener) return;
+				// set by the browser, not by the sender - this is the whole proof
+				if (event.origin !== claimedOrigin) return;
+				if (event.data?.action !== WIDGET_FLOW_HELLO_ACK) return;
+				if (event.data?.nonce !== nonce) return;
+				settle(true);
+			},
+			{ signal: listening.signal }
+		);
+		timer = setTimeout(() => settle(false), timeoutMs);
+
+		try {
+			opener.postMessage({ action: WIDGET_FLOW_HELLO, nonce }, claimedOrigin);
+		} catch (e) {
+			// COOP can sever window.opener between the read above and here
+			logger.error('Could not reach the window that opened this one', e);
+			settle(false);
+		}
+	});
+};
 
 const postToOpener = (action: string, openerOrigin: string) => {
 	try {
@@ -131,6 +208,9 @@ export {
 	WIDGET_POPUP_NAME_PREFIX,
 	WIDGET_FLOW_DONE,
 	WIDGET_FLOW_UNAUTHENTICATED,
+	WIDGET_FLOW_HELLO,
+	WIDGET_FLOW_HELLO_ACK,
+	confirmWidgetOpener,
 	isNoSessionError,
 	claimedWidgetOpenerOrigin,
 	setWidgetOpenerApproved,

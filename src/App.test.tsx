@@ -965,15 +965,40 @@ describe('opened as a widget popup', () => {
 		});
 	};
 
-	// The opener writes its own origin into window.name, so FlowGate asks the
-	// backend whether the project trusts it before anything may be reported.
+	// The opener writes its own origin into window.name, so before anything may
+	// be reported FlowGate runs two checks: it asks the backend whether the
+	// project trusts that origin, and it asks the opener to echo a code back,
+	// which only a page really at that origin could do.
+	//
 	// Only the validate-domain call is answered here; the favicon fetches keep
 	// the outer suite's not-ok default.
-	const openedBy = (origin: string, openerApproved: boolean) => {
+	// Everything the popup posts except the handshake hello - that one is sent to
+	// an unproven origin on purpose, and carries nothing.
+	const reportsSent = () =>
+		postMessage.mock.calls.filter(
+			([data]: any[]) => data?.action !== 'widget-flow-hello'
+		);
+
+	const openedBy = (
+		origin: string,
+		{ trusted = true, echoes = true }: { trusted?: boolean; echoes?: boolean }
+	) => {
 		window.name = `descope-widget-flow|${origin}`;
+		postMessage.mockImplementation((data: any) => {
+			if (!echoes || data?.action !== 'widget-flow-hello') return;
+			const event = new MessageEvent('message', {
+				data: { action: 'widget-flow-hello-ack', nonce: data.nonce },
+				origin
+			});
+			Object.defineProperty(event, 'source', { value: window.opener });
+			window.dispatchEvent(event);
+		});
 		mockFetch.mockImplementation(async (url: string) =>
 			String(url).includes('/v1/flow/validate-domain')
-				? { ok: true, json: async () => ({ success: true, openerApproved }) }
+				? {
+						ok: true,
+						json: async () => ({ success: true, openerApproved: trusted })
+					}
 				: { ok: false }
 		);
 	};
@@ -996,7 +1021,7 @@ describe('opened as a widget popup', () => {
 	});
 
 	it('tells the widget and closes when the flow finishes', async () => {
-		openedBy(OPENER_ORIGIN, true);
+		openedBy(OPENER_ORIGIN, {});
 		atUrl(`?flow=${flowId}`);
 		render(<App />);
 
@@ -1017,7 +1042,7 @@ describe('opened as a widget popup', () => {
 		// saml-config has its own onSuccess branch that navigates. If the popup
 		// check did not come first, that branch would win and the window would
 		// go somewhere instead of closing, leaving the app waiting.
-		openedBy(OPENER_ORIGIN, true);
+		openedBy(OPENER_ORIGIN, {});
 		atUrl(`?flow=saml-config`);
 		render(<App />);
 
@@ -1032,7 +1057,7 @@ describe('opened as a widget popup', () => {
 	it('says nothing to an opener the project does not trust', async () => {
 		// Without this, any page could open us and learn from the message it
 		// gets back whether the visitor has a session on this auth domain.
-		openedBy('https://evil.example', false);
+		openedBy('https://evil.example', { trusted: false });
 		atUrl(`?flow=${flowId}`);
 		render(<App />);
 
@@ -1040,7 +1065,27 @@ describe('opened as a widget popup', () => {
 		fireEvent.click(screen.getByTestId('descope-button'));
 
 		await waitFor(() => expect(window.location.assign).not.toHaveBeenCalled());
-		expect(postMessage).not.toHaveBeenCalled();
+		expect(reportsSent()).toHaveLength(0);
+		expect(close).not.toHaveBeenCalled();
+	});
+
+	// The second half of the same leak: a hostile page claims the customer's own
+	// app origin, which IS in Trusted Domains, so the backend approves it. It
+	// never receives our code, so it cannot answer, and we stay silent.
+	it('says nothing to an opener that claims a trusted origin but cannot prove it', async () => {
+		openedBy(OPENER_ORIGIN, { trusted: true, echoes: false });
+		atUrl(`?flow=${flowId}`);
+		render(<App />);
+
+		// Nobody answers the handshake here, so the flow is held for its full
+		// timeout before it renders.
+		await waitFor(() => expect(mockDescope).toHaveBeenCalled(), {
+			timeout: 3000
+		});
+		fireEvent.click(screen.getByTestId('descope-button'));
+
+		await waitFor(() => expect(window.location.assign).not.toHaveBeenCalled());
+		expect(reportsSent()).toHaveLength(0);
 		expect(close).not.toHaveBeenCalled();
 	});
 

@@ -2,6 +2,7 @@ import React, { PropsWithChildren, useEffect, useState } from 'react';
 import ErrorScreen from '../Error';
 import {
 	claimedWidgetOpenerOrigin,
+	confirmWidgetOpener,
 	setWidgetOpenerApproved
 } from '../utils/widgetPopup';
 
@@ -15,12 +16,19 @@ type FlowGateProps = PropsWithChildren<{
 // { success, openerApproved }; we fail open on any error so a transient failure
 // never blocks.
 //
-// The same call answers a second question when this window is a widget popup:
-// whoever opened us wrote their own origin into window.name, so we ask whether
-// the project's trusted domains cover it. We hold the flow back until that
-// answer arrives, because a flow that finishes first would report to an origin
-// we had not checked. Reporting fails closed - an unapproved or unknown opener
-// is told nothing, and this page behaves like an ordinary hosted login.
+// When this window is a widget popup there is a second question to answer, and
+// it takes two separate checks that each cover the other's blind spot:
+//
+//   is the opener allowed?  -> openerApproved, the project's trusted domains
+//   is it really there?     -> confirmWidgetOpener, the postMessage handshake
+//
+// Trusted domains alone lets a hostile page claim the customer's real app
+// origin; the handshake alone lets it claim its own. Both must pass.
+//
+// The flow is held back until they do, because a flow that finished first would
+// report to an opener we had not checked. Reporting fails closed - an opener we
+// cannot vouch for is told nothing, and this page behaves like an ordinary
+// hosted login.
 const FlowGate: React.FC<FlowGateProps> = ({
 	baseUrl,
 	projectId,
@@ -33,18 +41,17 @@ const FlowGate: React.FC<FlowGateProps> = ({
 
 	useEffect(() => {
 		let active = true;
-		const settleOpener = (approved: boolean) => {
+		const openerOrigin = claimedWidgetOpenerOrigin();
+
+		const settleOpener = (approved: boolean, reason?: string) => {
 			if (!active) return;
-			if (!approved && claimedWidgetOpenerOrigin()) {
+			if (!approved && openerOrigin && reason) {
 				// A configuration mistake looks exactly like an attack from here,
-				// so say which domain to add rather than going quiet. Same reason
-				// App.tsx reports a bad ?width= straight to the console: logger is
-				// silent outside development, and this has to be visible in
-				// production.
+				// so say what to fix rather than going quiet. Same reason App.tsx
+				// reports a bad ?width= straight to the console: logger is silent
+				// outside development, and this has to be visible in production.
 				// eslint-disable-next-line no-console
-				console.error(
-					`The page that opened this one, ${claimedWidgetOpenerOrigin()}, is not covered by this project's Trusted Domains, so the flow will not report back to it. Add that domain under Trusted Domains in the Descope console.`
-				);
+				console.error(reason);
 			}
 			setWidgetOpenerApproved(approved);
 			setWaitingForOpener(false);
@@ -58,10 +65,15 @@ const FlowGate: React.FC<FlowGateProps> = ({
 		const url = new URL(
 			`${baseUrl.replace(/\/+$/, '')}/v1/flow/validate-domain`
 		);
-		const openerOrigin = claimedWidgetOpenerOrigin();
 		if (openerOrigin) {
 			url.searchParams.set('openerOrigin', openerOrigin);
 		}
+
+		// Started now, not after the request: it is two postMessage calls inside
+		// the browser, so running it alongside costs nothing.
+		const handshake = openerOrigin
+			? confirmWidgetOpener()
+			: Promise.resolve(false);
 
 		fetch(url.toString(), {
 			method: 'POST',
@@ -71,16 +83,26 @@ const FlowGate: React.FC<FlowGateProps> = ({
 			}
 		})
 			.then((res) => (res.ok ? res.json() : undefined))
-			.then((body) => {
+			.then(async (body) => {
 				if (active && body && body.success !== true) {
 					setBlocked(true);
 				}
-				settleOpener(body?.openerApproved === true);
+				const trusted = body?.openerApproved === true;
+				const real = await handshake;
+				settleOpener(
+					trusted && real,
+					trusted
+						? `The page that opened this one claims to be ${openerOrigin} but never answered the handshake, so the flow will not report back to it. An older widget version, or a page pretending to be that origin.`
+						: `The page that opened this one, ${openerOrigin}, is not covered by this project's Trusted Domains, so the flow will not report back to it. Add that domain under Trusted Domains in the Descope console.`
+				);
 			})
 			.catch(() => {
 				// Rendering fails open: the backend still enforces the check.
 				// Reporting fails closed: saying nothing is always safe.
-				settleOpener(false);
+				settleOpener(
+					false,
+					`Could not check the page that opened this one (${openerOrigin}), so the flow will not report back to it.`
+				);
 			});
 		return () => {
 			active = false;

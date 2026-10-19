@@ -1,11 +1,14 @@
 import {
 	WIDGET_FLOW_DONE,
+	WIDGET_FLOW_HELLO,
+	WIDGET_FLOW_HELLO_ACK,
 	WIDGET_FLOW_UNAUTHENTICATED,
 	getFormParams,
 	isNoSessionError,
 	reportWidgetFlowFinished,
 	reportWidgetFlowUnauthenticated,
 	claimedWidgetOpenerOrigin,
+	confirmWidgetOpener,
 	setWidgetOpenerApproved,
 	widgetOpenerOrigin
 } from './widgetPopup';
@@ -93,6 +96,97 @@ describe('widgetOpenerOrigin', () => {
 	it('is the stamped origin once it has been approved', () => {
 		asWidgetPopup();
 		expect(widgetOpenerOrigin()).toBe(OPENER_ORIGIN);
+	});
+});
+
+// Trusted domains alone is not enough: a hostile page can claim the customer's
+// real app origin, which IS trusted. So the opener has to prove it is really
+// there. We post a code to the claimed origin and wait for it back; only a page
+// actually at that origin can receive it, and the browser, not the sender, sets
+// the origin on the answer.
+describe('confirmWidgetOpener', () => {
+	const sentNonce = () => postMessage.mock.calls[0][0].nonce;
+
+	const answer = (
+		data: any,
+		origin = OPENER_ORIGIN,
+		source: any = window.opener
+	) => {
+		const event = new MessageEvent('message', { data, origin });
+		Object.defineProperty(event, 'source', { value: source });
+		window.dispatchEvent(event);
+	};
+
+	const ackWith = (overrides: any = {}, origin = OPENER_ORIGIN) =>
+		answer(
+			{
+				action: WIDGET_FLOW_HELLO_ACK,
+				nonce: sentNonce(),
+				...overrides
+			},
+			origin
+		);
+
+	it('posts the hello only to the claimed origin, never to *', () => {
+		window.name = `descope-widget-flow|${OPENER_ORIGIN}`;
+		confirmWidgetOpener(10);
+
+		expect(postMessage).toHaveBeenCalledWith(
+			{ action: WIDGET_FLOW_HELLO, nonce: expect.any(String) },
+			OPENER_ORIGIN
+		);
+	});
+
+	it('confirms when the opener echoes the code back', async () => {
+		window.name = `descope-widget-flow|${OPENER_ORIGIN}`;
+		const confirmed = confirmWidgetOpener(50);
+		ackWith();
+
+		await expect(confirmed).resolves.toBe(true);
+	});
+
+	// The attack: a page at evil.example opens us claiming the customer's app
+	// origin. It never receives our hello, so the only answer it can send comes
+	// stamped with its own origin.
+	it('refuses an answer stamped with a different origin', async () => {
+		window.name = `descope-widget-flow|${OPENER_ORIGIN}`;
+		const confirmed = confirmWidgetOpener(10);
+		ackWith({}, 'https://evil.example');
+
+		await expect(confirmed).resolves.toBe(false);
+	});
+
+	it('refuses an answer carrying the wrong code', async () => {
+		window.name = `descope-widget-flow|${OPENER_ORIGIN}`;
+		const confirmed = confirmWidgetOpener(10);
+		ackWith({ nonce: 'not-the-one' });
+
+		await expect(confirmed).resolves.toBe(false);
+	});
+
+	it('refuses an answer from a window that is not the opener', async () => {
+		window.name = `descope-widget-flow|${OPENER_ORIGIN}`;
+		const confirmed = confirmWidgetOpener(10);
+		answer(
+			{ action: WIDGET_FLOW_HELLO_ACK, nonce: sentNonce() },
+			OPENER_ORIGIN,
+			{}
+		);
+
+		await expect(confirmed).resolves.toBe(false);
+	});
+
+	// What an opener that does not speak this protocol looks like - an older
+	// widget version, or a page that simply ignores us.
+	it('gives up quietly when nothing answers', async () => {
+		window.name = `descope-widget-flow|${OPENER_ORIGIN}`;
+
+		await expect(confirmWidgetOpener(10)).resolves.toBe(false);
+	});
+
+	it('does nothing at all on a normal hosted login', async () => {
+		await expect(confirmWidgetOpener(10)).resolves.toBe(false);
+		expect(postMessage).not.toHaveBeenCalled();
 	});
 });
 
