@@ -14,7 +14,7 @@ import {
 	resolveFaviconUrl,
 	resolveThemeFlavor
 } from './utils/favicon';
-import { AUTH_HOSTING_HEADER } from './shared/authHostingHeader';
+import { addAuthHostingHeader } from './shared/authHostingHeader';
 import { projectRegex } from './shared/projectRegex';
 
 const ssoAppRegex = /^[a-zA-Z0-9\-_]{1,30}$/;
@@ -318,7 +318,7 @@ const App = () => {
 		<AuthProvider
 			projectId={projectId}
 			baseUrl={baseUrl}
-			baseHeaders={{ [AUTH_HOSTING_HEADER]: '1' }}
+			hooks={{ beforeRequest: addAuthHostingHeader }}
 			storeLastAuthenticatedUser={storeLastAuthUser}
 			persistTokens={persistTokens}
 		>
