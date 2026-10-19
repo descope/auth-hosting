@@ -5,6 +5,8 @@ import {
 	isNoSessionError,
 	reportWidgetFlowFinished,
 	reportWidgetFlowUnauthenticated,
+	claimedWidgetOpenerOrigin,
+	setWidgetOpenerApproved,
 	widgetOpenerOrigin
 } from './widgetPopup';
 
@@ -23,14 +25,18 @@ const mountFlow = (executionId: string) => {
 const postMessage = jest.fn();
 const close = jest.fn();
 
+// A real widget popup: the opener stamped the name, and FlowGate has since
+// confirmed with the backend that the project trusts that origin.
 const asWidgetPopup = () => {
 	window.name = `descope-widget-flow|${OPENER_ORIGIN}`;
+	setWidgetOpenerApproved(true);
 };
 
 beforeEach(() => {
 	postMessage.mockReset();
 	close.mockReset();
 	window.name = '';
+	setWidgetOpenerApproved(false);
 	document.body.innerHTML = '';
 	Object.defineProperty(window, 'opener', {
 		value: { postMessage },
@@ -44,22 +50,47 @@ beforeEach(() => {
 	});
 });
 
-describe('widgetOpenerOrigin', () => {
+describe('claimedWidgetOpenerOrigin', () => {
 	it('is empty for a normal hosted login, which is what keeps this inert', () => {
-		expect(widgetOpenerOrigin()).toBe('');
+		expect(claimedWidgetOpenerOrigin()).toBe('');
 	});
 
 	it('ignores a window name that is not ours', () => {
 		window.name = `something-else|${OPENER_ORIGIN}`;
-		expect(widgetOpenerOrigin()).toBe('');
+		expect(claimedWidgetOpenerOrigin()).toBe('');
 	});
 
 	it('ignores our prefix with no origin after it', () => {
 		window.name = 'descope-widget-flow';
+		expect(claimedWidgetOpenerOrigin()).toBe('');
+	});
+
+	it('reads the claim without judging it, which is what FlowGate checks', () => {
+		window.name = `descope-widget-flow|${OPENER_ORIGIN}`;
+		expect(claimedWidgetOpenerOrigin()).toBe(OPENER_ORIGIN);
+	});
+});
+
+describe('widgetOpenerOrigin', () => {
+	it('is empty for a normal hosted login', () => {
 		expect(widgetOpenerOrigin()).toBe('');
 	});
 
-	it('reads the origin the widget stamped', () => {
+	// Anyone can open this page with any window name. Until the backend says the
+	// project trusts that origin we say nothing, or the message itself would tell
+	// a hostile page whether the visitor has a session here.
+	it('is empty while the opener is unchecked, however convincing the claim', () => {
+		window.name = `descope-widget-flow|${OPENER_ORIGIN}`;
+		expect(widgetOpenerOrigin()).toBe('');
+	});
+
+	it('is empty for an opener the project does not trust', () => {
+		window.name = 'descope-widget-flow|https://evil.example';
+		setWidgetOpenerApproved(false);
+		expect(widgetOpenerOrigin()).toBe('');
+	});
+
+	it('is the stamped origin once it has been approved', () => {
 		asWidgetPopup();
 		expect(widgetOpenerOrigin()).toBe(OPENER_ORIGIN);
 	});
@@ -125,6 +156,30 @@ describe('reportWidgetFlowUnauthenticated', () => {
 	it('stays out of the way on a normal hosted login', () => {
 		expect(reportWidgetFlowUnauthenticated()).toBe(false);
 		expect(postMessage).not.toHaveBeenCalled();
+	});
+});
+
+describe('an opener the project does not trust', () => {
+	// The leak this closes: a hostile page opens us with its own origin in
+	// window.name and learns, from whichever message comes back, whether the
+	// visitor has a session on the customer's auth domain.
+	beforeEach(() => {
+		window.name = 'descope-widget-flow|https://evil.example';
+		setWidgetOpenerApproved(false);
+	});
+
+	it('is told nothing when the flow finishes', () => {
+		mountFlow(EXECUTION_ID);
+
+		expect(reportWidgetFlowFinished()).toBe(false);
+		expect(postMessage).not.toHaveBeenCalled();
+		expect(close).not.toHaveBeenCalled();
+	});
+
+	it('is told nothing when there is no session either', () => {
+		expect(reportWidgetFlowUnauthenticated()).toBe(false);
+		expect(postMessage).not.toHaveBeenCalled();
+		expect(close).not.toHaveBeenCalled();
 	});
 });
 

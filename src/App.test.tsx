@@ -965,6 +965,19 @@ describe('opened as a widget popup', () => {
 		});
 	};
 
+	// The opener writes its own origin into window.name, so FlowGate asks the
+	// backend whether the project trusts it before anything may be reported.
+	// Only the validate-domain call is answered here; the favicon fetches keep
+	// the outer suite's not-ok default.
+	const openedBy = (origin: string, openerApproved: boolean) => {
+		window.name = `descope-widget-flow|${origin}`;
+		mockFetch.mockImplementation(async (url: string) =>
+			String(url).includes('/v1/flow/validate-domain')
+				? { ok: true, json: async () => ({ success: true, openerApproved }) }
+				: { ok: false }
+		);
+	};
+
 	it('passes form.<key> inputs through, which is how one passkey is removed', async () => {
 		atUrl(`?flow=${flowId}&form.externalId=user-1&form.credentialId=cred-9`);
 		render(<App />);
@@ -983,10 +996,12 @@ describe('opened as a widget popup', () => {
 	});
 
 	it('tells the widget and closes when the flow finishes', async () => {
-		window.name = `descope-widget-flow|${OPENER_ORIGIN}`;
+		openedBy(OPENER_ORIGIN, true);
 		atUrl(`?flow=${flowId}`);
 		render(<App />);
 
+		// In popup mode the flow is held back until the opener check answers.
+		await waitFor(() => expect(mockDescope).toHaveBeenCalled());
 		fireEvent.click(screen.getByTestId('descope-button'));
 
 		await waitFor(() =>
@@ -1002,15 +1017,31 @@ describe('opened as a widget popup', () => {
 		// saml-config has its own onSuccess branch that navigates. If the popup
 		// check did not come first, that branch would win and the window would
 		// go somewhere instead of closing, leaving the app waiting.
-		window.name = `descope-widget-flow|${OPENER_ORIGIN}`;
+		openedBy(OPENER_ORIGIN, true);
 		atUrl(`?flow=saml-config`);
 		render(<App />);
 
+		await waitFor(() => expect(mockDescope).toHaveBeenCalled());
 		fireEvent.click(screen.getByTestId('descope-button'));
 
 		await waitFor(() => expect(postMessage).toHaveBeenCalled());
 		expect(close).toHaveBeenCalled();
 		expect(window.location.assign).not.toHaveBeenCalled();
+	});
+
+	it('says nothing to an opener the project does not trust', async () => {
+		// Without this, any page could open us and learn from the message it
+		// gets back whether the visitor has a session on this auth domain.
+		openedBy('https://evil.example', false);
+		atUrl(`?flow=${flowId}`);
+		render(<App />);
+
+		await waitFor(() => expect(mockDescope).toHaveBeenCalled());
+		fireEvent.click(screen.getByTestId('descope-button'));
+
+		await waitFor(() => expect(window.location.assign).not.toHaveBeenCalled());
+		expect(postMessage).not.toHaveBeenCalled();
+		expect(close).not.toHaveBeenCalled();
 	});
 
 	it('does nothing of the sort on a normal hosted login', async () => {

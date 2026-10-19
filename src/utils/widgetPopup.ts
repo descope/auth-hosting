@@ -30,15 +30,40 @@ const isNoSessionError = (detail: { errorCode?: string } | undefined) =>
 	!!detail?.errorCode && NO_SESSION_ERROR_CODES.includes(detail.errorCode);
 
 /**
- * The origin the widget stamped on `window.name` when it opened us, or '' when
- * this is not a widget popup. Self-declared by the opener, which is acceptable
- * because the only thing ever sent back is "finished" - never a token. The app
- * re-establishes its own session with its own refresh token.
+ * The origin the opener stamped on `window.name`, or '' when this is not a
+ * widget popup.
+ *
+ * This is a CLAIM, not a fact: anyone can open this page with any window name,
+ * so a hostile page can claim to be the customer's app. Only `FlowGate` should
+ * read it, to ask the backend whether the project trusts that origin.
+ * Everything that reports back goes through `widgetOpenerOrigin` instead.
  */
-const widgetOpenerOrigin = (): string => {
+const claimedWidgetOpenerOrigin = (): string => {
 	const [prefix, origin] = (window.name || '').split('|');
 	return prefix === WIDGET_POPUP_NAME_PREFIX && origin ? origin : '';
 };
+
+/**
+ * Starts false and only `FlowGate` sets it, once the backend has confirmed the
+ * claimed origin is one of the project's trusted domains. Nothing is reported
+ * before then, so a flow that finishes early cannot beat the check.
+ *
+ * Without this, any page could open us and learn from the message it gets back
+ * whether the visitor has a session on the customer's auth domain.
+ */
+let openerApproved = false;
+
+const setWidgetOpenerApproved = (approved: boolean) => {
+	openerApproved = approved;
+};
+
+/**
+ * The origin we may talk to: the claimed one, but only after it was approved.
+ * '' on a normal hosted login and on an opener the project does not trust,
+ * which is what makes both report paths inert.
+ */
+const widgetOpenerOrigin = (): string =>
+	openerApproved ? claimedWidgetOpenerOrigin() : '';
 
 const postToOpener = (action: string, openerOrigin: string) => {
 	try {
@@ -107,6 +132,8 @@ export {
 	WIDGET_FLOW_DONE,
 	WIDGET_FLOW_UNAUTHENTICATED,
 	isNoSessionError,
+	claimedWidgetOpenerOrigin,
+	setWidgetOpenerApproved,
 	widgetOpenerOrigin,
 	reportWidgetFlowFinished,
 	reportWidgetFlowUnauthenticated,
