@@ -89,6 +89,19 @@ describe('App component', () => {
 		);
 	});
 
+	// The backend refuses a disabled project's flow on this header alone, so the app has to send it
+	// on everything its flow does -- baseHeaders is what reaches the web component's requests.
+	test('tells the backend the flow is running in the auth hosting app', async () => {
+		window.location.pathname = `/${packageJson.homepage}/${validProjectId}`;
+		render(<App />);
+		expect(await screen.findByTestId('descope-component')).toBeInTheDocument();
+		expect(mockAuthProvider).toHaveBeenCalledWith(
+			expect.objectContaining({
+				baseHeaders: { 'x-descope-auth-hosting': '1' }
+			})
+		);
+	});
+
 	test('displays Descope component when projectId is valid and part of the location', async () => {
 		window.location.pathname = `/${packageJson.homepage}/${validProjectId}`;
 		render(<App />);
