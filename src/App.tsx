@@ -10,6 +10,12 @@ import useOidcMfa from './hooks/useOidcMfa';
 import { env } from './env';
 import { logger } from './utils/logger';
 import {
+	getFormParams,
+	isNoSessionError,
+	reportWidgetFlowFinished,
+	reportWidgetFlowUnauthenticated
+} from './utils/widgetPopup';
+import {
 	isFaviconUrlSecure,
 	resolveFaviconUrl,
 	resolveThemeFlavor
@@ -215,7 +221,12 @@ const App = () => {
 	const theme = (urlParams.get('theme') ||
 		env.DESCOPE_FLOW_THEME) as React.ComponentProps<typeof Descope>['theme'];
 
-	const form = { userCode: urlParams.get('user_code') || '' };
+	// userCode stays unconditional, exactly as before, so the device-code flow is
+	// untouched; any `form.<key>` params are merged on top.
+	const form = {
+		userCode: urlParams.get('user_code') || '',
+		...getFormParams(urlParams)
+	};
 
 	const bodyCss = useMemo(() => {
 		const css: CSSProperties = {};
@@ -288,7 +299,21 @@ const App = () => {
 		styleId,
 		form,
 		client,
+		onError: (e: CustomEvent<{ errorCode?: string }>) => {
+			// No usable session here. Hand back to the app rather than signing
+			// the user in ourselves - see reportWidgetFlowUnauthenticated.
+			if (isNoSessionError(e?.detail)) {
+				reportWidgetFlowUnauthenticated();
+			}
+		},
 		onSuccess: (e: CustomEvent<FlowJWTResponse>) => {
+			// FIRST, and it returns. If this ran after the redirect branch below,
+			// a flow carrying onSuccessRedirectUrl would navigate the popup away
+			// instead of closing it, and the app would wait for the widget's
+			// close-poll instead of being told.
+			if (reportWidgetFlowFinished()) {
+				return;
+			}
 			if (flowId === 'saml-config' || flowId === 'sso-config') {
 				let search = window?.location.search;
 				if (search) {
