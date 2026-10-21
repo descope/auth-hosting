@@ -3,6 +3,18 @@
 		{
 			"source": "/login/:path*",
 			"destination": "/:path*"
+		},
+		{
+			"source": "/approve/jwks.json",
+			"destination": "/api/agent-approval?path=/approve/jwks.json"
+		},
+		{
+			"source": "/approve/:pid",
+			"destination": "/api/agent-approval?path=/approve/:pid"
+		},
+		{
+			"source": "/approve/:pid/wait",
+			"destination": "/api/agent-approval?path=/approve/:pid/wait"
 		}
 	]
 }
