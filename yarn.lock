@@ -1327,10 +1327,10 @@
     reselect "5.1.1"
     tslib "2.8.1"
 
-"@descope/react-sdk@3.4.2":
-  version "3.4.2"
-  resolved "https://registry.yarnpkg.com/@descope/react-sdk/-/react-sdk-3.4.2.tgz#c7a0a92a5eaff5f823e29f1897ea88bc8866e5a8"
-  integrity sha512-d6gvhtzIQ5mMJeuhxH9vQ3k8BAtp3vLhMmGZ1+p15V32OXwaLgY5/QgVSuRvYfYbt8CB6HyEQceAJcA9dMCwQA==
+"@descope/react-sdk@3.4.3":
+  version "3.4.3"
+  resolved "https://registry.yarnpkg.com/@descope/react-sdk/-/react-sdk-3.4.3.tgz#86e89eaa687180d53b9d526207c28594dfadab53"
+  integrity sha512-R4zvT0OjwYRq3pGFoDEz2xO/rYYxKDjYVcZPHCnnlrNUaSHPu70DI3OiXYgX6TtW+jVbVvc8zC81Mf/y43EnYw==
   dependencies:
     "@descope/access-key-management-widget" "0.10.13"
     "@descope/applications-portal-widget" "0.9.13"
