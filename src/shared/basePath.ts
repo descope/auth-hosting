@@ -1,6 +1,6 @@
 import packageJson from '../../package.json';
 
-// The app is built with package.json "homepage" ("login"), so every page URL contains a
+// The app is mounted at package.json "homepage" ("login"), so every page URL contains a
 // "/login" segment. Anything before that segment is the prefix the app is mounted under,
 // e.g. "" for https://host/login/<pid> and "/auth" for https://host/auth/login/<pid>.
 export const getBasePath = (
