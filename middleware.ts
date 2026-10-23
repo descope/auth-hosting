@@ -84,6 +84,9 @@ export default middleware;
 // Vercel reads this config to decide which routes invoke the middleware.
 // Skip static assets so we only run (and fetch project config) on document routes.
 export const config = {
+	// Pin the Edge runtime: projects created after Oct 2026 default to Node.js middleware, where this
+	// ESM bundle fails to load (MIDDLEWARE_INVOCATION_FAILED on auth-hosting-dev-use4 and star7).
+	runtime: 'edge',
 	matcher: [
 		'/((?!.*\\.(?:js|css|map|ico|svg|png|jpg|jpeg|gif|webp|woff2?|ttf|eot)$).*)'
 	]
