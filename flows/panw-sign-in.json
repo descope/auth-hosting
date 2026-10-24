@@ -1,0 +1,2134 @@
+{
+	"flow": {
+		"id": "panw-sign-in",
+		"version": 1,
+		"name": "Palo Alto Networks Sign In",
+		"description": "Recreates the Okta CIS hosted sign-in page: email first, SSO when enabled for the domain, otherwise password, with email password reset and the keep me signed in prompt.",
+		"disabled": false,
+		"translate": false,
+		"fingerprint": false,
+		"widget": false,
+		"sharedInteractions": [
+			{
+				"id": "0.success",
+				"type": "success",
+				"label": "",
+				"icon": "",
+				"subType": ""
+			}
+		],
+		"dsl": {
+			"startTask": "1",
+			"tasks": {
+				"1": {
+					"conditions": [
+						{
+							"atomicConditions": [
+								{
+									"operator": "is-true",
+									"predicate": {
+										"type": "inline",
+										"value": ""
+									},
+									"target": {
+										"type": "context",
+										"value": "idpInitiated"
+									}
+								}
+							],
+							"interactionId": "GHzTEUc0jZ",
+							"name": "True"
+						},
+						{
+							"interactionId": "ELSE",
+							"name": "False"
+						}
+					],
+					"id": "1",
+					"name": "Is the request IdP initiated?",
+					"type": "condition",
+					"view": {
+						"x": 0,
+						"y": 360
+					},
+					"next": {
+						"rules": [
+							{
+								"interactionId": "GHzTEUc0jZ",
+								"taskId": "2"
+							},
+							{
+								"interactionId": "ELSE",
+								"taskId": "3"
+							}
+						]
+					}
+				},
+				"2": {
+					"action": "saml-start",
+					"id": "2",
+					"name": "SSO",
+					"type": "automated",
+					"next": {
+						"rules": [
+							{
+								"interactionId": "success",
+								"taskId": "2.end"
+							}
+						]
+					},
+					"view": {
+						"x": 360,
+						"y": 40
+					},
+					"arguments": {
+						"exchangeStepId": {
+							"type": "inline",
+							"value": "2.end"
+						},
+						"fetchIDPGroups": {
+							"type": "inline",
+							"value": false
+						},
+						"forceAuthn": {
+							"type": "inline",
+							"value": false
+						},
+						"loginHint": {
+							"type": "inline",
+							"value": "{{form.email}}"
+						},
+						"prompt": {
+							"type": "inline",
+							"value": []
+						},
+						"redirectUrl": {
+							"type": "inline",
+							"value": ""
+						},
+						"verifyInitiatedEmail": {
+							"type": "inline",
+							"value": false
+						}
+					}
+				},
+				"2.end": {
+					"action": "exchange-saml-code",
+					"id": "2.end",
+					"name": "SSO",
+					"type": "automated",
+					"next": {
+						"rules": [
+							{
+								"interactionId": "success",
+								"taskId": "20"
+							}
+						]
+					},
+					"view": {
+						"x": 720,
+						"y": 40
+					},
+					"arguments": {
+						"exchangeStepId": {
+							"type": "inline",
+							"value": "2.end"
+						},
+						"fetchIDPGroups": {
+							"type": "inline",
+							"value": false
+						},
+						"forceAuthn": {
+							"type": "inline",
+							"value": false
+						},
+						"loginHint": {
+							"type": "inline",
+							"value": "{{form.email}}"
+						},
+						"prompt": {
+							"type": "inline",
+							"value": []
+						},
+						"redirectUrl": {
+							"type": "inline",
+							"value": ""
+						},
+						"verifyInitiatedEmail": {
+							"type": "inline",
+							"value": false
+						}
+					}
+				},
+				"3": {
+					"allInputKeys": ["email"],
+					"calculatedInputKeys": true,
+					"id": "3",
+					"inputKeys": ["email"],
+					"name": "Sign in",
+					"next": {
+						"rules": [
+							{
+								"interactionId": "krPJJf5Z_Y",
+								"taskId": "4"
+							},
+							{
+								"interactionId": "cyp8ELcFuO",
+								"taskId": "10"
+							},
+							{
+								"interactionId": "6uT7jCUuV5",
+								"taskId": "10"
+							}
+						]
+					},
+					"screenId": "SCYntwsLqK83wcKzbjD34M0yjsV9d",
+					"type": "screen",
+					"view": {
+						"x": 1080,
+						"y": 200
+					}
+				},
+				"4": {
+					"conditions": [
+						{
+							"atomicConditions": [
+								{
+									"operator": "is-true",
+									"predicate": {
+										"type": "inline",
+										"value": ""
+									},
+									"target": {
+										"type": "context",
+										"value": "ssoEnabled"
+									}
+								}
+							],
+							"interactionId": "eKEm5GnNUp",
+							"name": "True"
+						},
+						{
+							"interactionId": "ELSE",
+							"name": "False"
+						}
+					],
+					"id": "4",
+					"name": "Is SSO enabled for this email?",
+					"type": "condition",
+					"view": {
+						"x": 1440,
+						"y": 360
+					},
+					"next": {
+						"rules": [
+							{
+								"interactionId": "eKEm5GnNUp",
+								"taskId": "2"
+							},
+							{
+								"interactionId": "ELSE",
+								"taskId": "5"
+							}
+						]
+					}
+				},
+				"5": {
+					"allInputKeys": ["password"],
+					"calculatedInputKeys": true,
+					"id": "5",
+					"inputKeys": ["password"],
+					"name": "Password",
+					"next": {
+						"rules": [
+							{
+								"interactionId": "pUHQ56Hhhr",
+								"taskId": "6"
+							},
+							{
+								"interactionId": "Y2YpTnafYU",
+								"taskId": "10"
+							},
+							{
+								"interactionId": "_ApMCJpIdn",
+								"taskId": "3"
+							}
+						]
+					},
+					"screenId": "SCe4uTklr6Kwo0S1MTfYl1enVZqhl",
+					"type": "screen",
+					"view": {
+						"x": 1800,
+						"y": 200
+					}
+				},
+				"6": {
+					"action": "password-sign-in-v2",
+					"id": "6",
+					"name": "Sign In / Password",
+					"type": "automated",
+					"next": {
+						"rules": [
+							{
+								"interactionId": "success",
+								"taskId": "20"
+							},
+							{
+								"interactionId": "PasswordExpired",
+								"taskId": "7"
+							}
+						]
+					},
+					"view": {
+						"x": 2160,
+						"y": 40
+					},
+					"errorHandlingV2": {
+						"PasswordExpired": {
+							"errorHandlingType": "custom"
+						}
+					}
+				},
+				"7": {
+					"allInputKeys": ["newPassword"],
+					"calculatedInputKeys": true,
+					"id": "7",
+					"inputKeys": ["newPassword"],
+					"name": "Password expired",
+					"next": {
+						"rules": [
+							{
+								"interactionId": "GGB7XBLLyM",
+								"taskId": "8"
+							}
+						]
+					},
+					"screenId": "SClBCrYIyg9fVTQNwuPggyJFCkoOc",
+					"type": "screen",
+					"view": {
+						"x": 2520,
+						"y": 200
+					}
+				},
+				"8": {
+					"action": "password-replace-v3",
+					"id": "8",
+					"name": "Replace Password",
+					"type": "automated",
+					"next": {
+						"rules": [
+							{
+								"interactionId": "success",
+								"taskId": "20"
+							}
+						]
+					},
+					"view": {
+						"x": 2880,
+						"y": 40
+					}
+				},
+				"10": {
+					"allInputKeys": ["email"],
+					"calculatedInputKeys": true,
+					"id": "10",
+					"inputKeys": ["email"],
+					"name": "Reset password",
+					"next": {
+						"rules": [
+							{
+								"interactionId": "LJvEgtsD6U",
+								"taskId": "11"
+							},
+							{
+								"interactionId": "EuUmFdaP28",
+								"taskId": "3"
+							}
+						]
+					},
+					"screenId": "SC9UbbeHBQAaw8MxcZdmy9sK6s8La",
+					"type": "screen",
+					"view": {
+						"x": 3240,
+						"y": 200
+					}
+				},
+				"11": {
+					"action": "password-send-reset",
+					"id": "11",
+					"name": "Send Password Reset",
+					"type": "automated",
+					"next": {
+						"rules": [
+							{
+								"interactionId": "success",
+								"taskId": "12"
+							},
+							{
+								"interactionId": "success",
+								"taskId": "11.end"
+							}
+						]
+					},
+					"view": {
+						"x": 3600,
+						"y": 40
+					},
+					"arguments": {
+						"extraTemplateVals": {
+							"type": "inline",
+							"value": ""
+						},
+						"providerId": {
+							"type": "inline",
+							"value": ""
+						},
+						"skipVerify": {
+							"type": "inline",
+							"value": ""
+						},
+						"templateId": {
+							"type": "inline",
+							"value": ""
+						},
+						"uri": {
+							"type": "inline",
+							"value": ""
+						},
+						"verifyStepId": {
+							"type": "inline",
+							"value": "11.end"
+						}
+					}
+				},
+				"11.end": {
+					"action": "verify-magic-link",
+					"id": "11.end",
+					"name": "Send Password Reset",
+					"type": "automated",
+					"next": {
+						"rules": [
+							{
+								"interactionId": "success",
+								"taskId": "13"
+							}
+						]
+					},
+					"view": {
+						"x": 3960,
+						"y": 40
+					},
+					"arguments": {
+						"extraTemplateVals": {
+							"type": "inline",
+							"value": ""
+						},
+						"providerId": {
+							"type": "inline",
+							"value": ""
+						},
+						"templateId": {
+							"type": "inline",
+							"value": ""
+						},
+						"uri": {
+							"type": "inline",
+							"value": ""
+						},
+						"verifyStepId": {
+							"type": "inline",
+							"value": "11.end"
+						}
+					}
+				},
+				"12": {
+					"allInputKeys": [],
+					"calculatedInputKeys": true,
+					"id": "12",
+					"inputKeys": [],
+					"name": "Reset email sent",
+					"next": {
+						"rules": [
+							{
+								"interactionId": "polling",
+								"taskId": "14"
+							},
+							{
+								"interactionId": "resend",
+								"taskId": "11"
+							},
+							{
+								"interactionId": "uhWNkHJqO1",
+								"taskId": "3"
+							}
+						]
+					},
+					"screenId": "SCGKtV8gm9iYdoc39lElkviyOtQCO",
+					"type": "screen",
+					"view": {
+						"x": 4320,
+						"y": 200
+					},
+					"contextKeys": ["sentTo.maskedEmail"]
+				},
+				"14": {
+					"allInputKeys": [],
+					"calculatedInputKeys": true,
+					"id": "14",
+					"inputKeys": [],
+					"name": "Continue in other tab",
+					"next": {
+						"rules": [
+							{
+								"interactionId": "MI2k6opaRT",
+								"taskId": "3"
+							}
+						]
+					},
+					"screenId": "SCVbgtDmcwy4RHbSEmR2Dxr2oQ8j8",
+					"type": "screen",
+					"view": {
+						"x": 4680,
+						"y": 200
+					}
+				},
+				"13": {
+					"allInputKeys": ["newPassword"],
+					"calculatedInputKeys": true,
+					"id": "13",
+					"inputKeys": ["newPassword"],
+					"name": "New password",
+					"next": {
+						"rules": [
+							{
+								"interactionId": "hsyDXFqdsq",
+								"taskId": "15"
+							}
+						]
+					},
+					"screenId": "SCNEYiz6Tv8vSnSE7SyQkVmDnJUgE",
+					"type": "screen",
+					"view": {
+						"x": 5040,
+						"y": 200
+					}
+				},
+				"15": {
+					"action": "password-update",
+					"id": "15",
+					"name": "Update Password",
+					"type": "automated",
+					"next": {
+						"rules": [
+							{
+								"interactionId": "success",
+								"taskId": "20"
+							}
+						]
+					},
+					"view": {
+						"x": 5400,
+						"y": 40
+					}
+				},
+				"20": {
+					"allInputKeys": [],
+					"calculatedInputKeys": true,
+					"id": "20",
+					"inputKeys": [],
+					"name": "Keep me signed in",
+					"next": {
+						"rules": [
+							{
+								"interactionId": "ap4gHLthGR",
+								"taskId": "21"
+							},
+							{
+								"interactionId": "TBfbh0uKBh",
+								"taskId": "0"
+							}
+						]
+					},
+					"screenId": "SC9c0EH34mtVCqxG18mBMOy9TShoa",
+					"type": "screen",
+					"view": {
+						"x": 5760,
+						"y": 200
+					}
+				},
+				"21": {
+					"action": "custom-claims",
+					"id": "21",
+					"name": "Longer session",
+					"type": "automated",
+					"next": {
+						"rules": [
+							{
+								"interactionId": "success",
+								"taskId": "0"
+							}
+						]
+					},
+					"view": {
+						"x": 6120,
+						"y": 40
+					},
+					"arguments": {
+						"customClaims": {
+							"type": "inline",
+							"value": []
+						},
+						"customRefreshDuration": {
+							"type": "inline",
+							"value": true
+						},
+						"providedCustomClaimsKey": {
+							"type": "inline",
+							"value": ""
+						},
+						"refreshDuration": {
+							"type": "inline",
+							"value": "30"
+						},
+						"refreshDurationType": {
+							"type": "inline",
+							"value": "days"
+						}
+					}
+				},
+				"0": {
+					"action": "logged-in",
+					"id": "0",
+					"name": "End",
+					"type": "automated",
+					"next": {
+						"rules": []
+					},
+					"view": {
+						"x": 6480,
+						"y": 40
+					}
+				}
+			}
+		}
+	},
+	"screens": [
+		{
+			"id": "SCYntwsLqK83wcKzbjD34M0yjsV9d",
+			"version": 1,
+			"flowId": "panw-sign-in",
+			"inputs": [],
+			"interactions": [
+				{
+					"id": "krPJJf5Z_Y",
+					"type": "",
+					"label": "Next",
+					"icon": "",
+					"subType": ""
+				},
+				{
+					"id": "cyp8ELcFuO",
+					"type": "",
+					"label": "Forgot password?",
+					"icon": "",
+					"subType": ""
+				},
+				{
+					"id": "6uT7jCUuV5",
+					"type": "",
+					"label": "Unlock account?",
+					"icon": "",
+					"subType": ""
+				}
+			],
+			"htmlTemplate": {
+				"ROOT": {
+					"custom": {},
+					"displayName": "Container",
+					"hidden": false,
+					"isCanvas": true,
+					"linkedNodes": {},
+					"nodes": [
+						"KC0HVQfdIG",
+						"tEPIMTcJtI",
+						"DymeOtfxbE",
+						"krPJJf5Z_Y",
+						"WkwOsy7G26"
+					],
+					"props": {
+						"id": "ROOT",
+						"align": "center",
+						"background": "#ffffff00",
+						"data-editor-type": "container",
+						"direction": "column",
+						"justify": "start",
+						"paddingX": "0",
+						"paddingY": "0",
+						"spaceBetween": "3",
+						"st-items-grow": 0,
+						"width": "100%"
+					},
+					"type": {
+						"resolvedName": "Container"
+					}
+				},
+				"KC0HVQfdIG": {
+					"custom": {},
+					"displayName": "Text",
+					"hidden": false,
+					"isCanvas": false,
+					"linkedNodes": {},
+					"nodes": [],
+					"props": {
+						"id": "KC0HVQfdIG",
+						"children": "Sign in",
+						"full-width": true,
+						"isEnriched": true,
+						"italic": false,
+						"link-target-blank": true,
+						"mode": "primary",
+						"text-align": "left",
+						"variant": "h3"
+					},
+					"type": {
+						"resolvedName": "Text"
+					},
+					"parent": "ROOT"
+				},
+				"tEPIMTcJtI": {
+					"custom": {
+						"type": "input"
+					},
+					"displayName": "Email Input",
+					"hidden": false,
+					"isCanvas": false,
+					"linkedNodes": {},
+					"nodes": [],
+					"props": {
+						"id": "tEPIMTcJtI",
+						"autocomplete": "username",
+						"bordered": true,
+						"copy-to-clipboard": false,
+						"has-confirm": false,
+						"data-errormessage-pattern-mismatch": "Must be a valid email",
+						"data-errormessage-value-missing": "Please fill out this field.",
+						"full-width": true,
+						"label": "Email",
+						"label-type": "static",
+						"max": 100,
+						"name": "email",
+						"pattern": "^[\\w._%+-]+@[\\w.-]+\\.[A-Za-z]{2,}$",
+						"placeholder": "",
+						"required": true,
+						"size": "md",
+						"type": "email"
+					},
+					"type": {
+						"resolvedName": "EmailInput"
+					},
+					"parent": "ROOT"
+				},
+				"DymeOtfxbE": {
+					"custom": {},
+					"displayName": "Error Message",
+					"hidden": false,
+					"isCanvas": false,
+					"linkedNodes": {},
+					"nodes": [],
+					"props": {
+						"id": "DymeOtfxbE",
+						"data-type": "error-message",
+						"full-width": true,
+						"hide-when-empty": true,
+						"italic": false,
+						"link-target-blank": true,
+						"mode": "error",
+						"text-align": "left",
+						"variant": "body1"
+					},
+					"type": {
+						"resolvedName": "ErrorMessage"
+					},
+					"parent": "ROOT"
+				},
+				"krPJJf5Z_Y": {
+					"custom": {
+						"type": "button"
+					},
+					"displayName": "Button",
+					"hidden": false,
+					"isCanvas": false,
+					"linkedNodes": {},
+					"nodes": [],
+					"props": {
+						"id": "krPJJf5Z_Y",
+						"auto-submit": true,
+						"children": "Next",
+						"color": "primary",
+						"data-type": "button",
+						"formNoValidate": false,
+						"full-width": true,
+						"mode": "primary",
+						"shape": "",
+						"size": "md",
+						"variant": "contained"
+					},
+					"type": {
+						"resolvedName": "Button"
+					},
+					"parent": "ROOT"
+				},
+				"WkwOsy7G26": {
+					"custom": {},
+					"displayName": "Container",
+					"hidden": false,
+					"isCanvas": true,
+					"linkedNodes": {},
+					"nodes": ["cyp8ELcFuO", "6uT7jCUuV5", "ee19eogH0Q"],
+					"props": {
+						"id": "WkwOsy7G26",
+						"align": "start",
+						"background": "#ffffff00",
+						"data-editor-type": "container",
+						"direction": "column",
+						"justify": "start",
+						"paddingX": "0",
+						"paddingY": "0",
+						"spaceBetween": "1",
+						"st-items-grow": 0,
+						"width": "100%"
+					},
+					"type": {
+						"resolvedName": "Container"
+					},
+					"parent": "ROOT"
+				},
+				"cyp8ELcFuO": {
+					"custom": {
+						"type": "button"
+					},
+					"displayName": "Button",
+					"hidden": false,
+					"isCanvas": false,
+					"linkedNodes": {},
+					"nodes": [],
+					"props": {
+						"id": "cyp8ELcFuO",
+						"auto-submit": false,
+						"children": "Forgot password?",
+						"color": "primary",
+						"data-type": "button",
+						"formNoValidate": true,
+						"full-width": false,
+						"mode": "primary",
+						"shape": "",
+						"size": "sm",
+						"variant": "link",
+						"text-align": "left"
+					},
+					"type": {
+						"resolvedName": "Button"
+					},
+					"parent": "WkwOsy7G26"
+				},
+				"6uT7jCUuV5": {
+					"custom": {
+						"type": "button"
+					},
+					"displayName": "Button",
+					"hidden": false,
+					"isCanvas": false,
+					"linkedNodes": {},
+					"nodes": [],
+					"props": {
+						"id": "6uT7jCUuV5",
+						"auto-submit": false,
+						"children": "Unlock account?",
+						"color": "primary",
+						"data-type": "button",
+						"formNoValidate": true,
+						"full-width": false,
+						"mode": "primary",
+						"shape": "",
+						"size": "sm",
+						"variant": "link",
+						"text-align": "left"
+					},
+					"type": {
+						"resolvedName": "Button"
+					},
+					"parent": "WkwOsy7G26"
+				},
+				"ee19eogH0Q": {
+					"custom": {},
+					"displayName": "Link",
+					"hidden": false,
+					"isCanvas": false,
+					"linkedNodes": {},
+					"nodes": [],
+					"props": {
+						"id": "ee19eogH0Q",
+						"children": "Contact Support",
+						"full-width": false,
+						"href": "https://www.paloaltonetworks.com/company/contact-support",
+						"italic": false,
+						"mode": "primary",
+						"target": "_blank",
+						"text-align": "left",
+						"variant": "body2"
+					},
+					"type": {
+						"resolvedName": "Link"
+					},
+					"parent": "WkwOsy7G26"
+				}
+			},
+			"componentsVersion": "3.26.0"
+		},
+		{
+			"id": "SCe4uTklr6Kwo0S1MTfYl1enVZqhl",
+			"version": 1,
+			"flowId": "panw-sign-in",
+			"inputs": [],
+			"interactions": [
+				{
+					"id": "pUHQ56Hhhr",
+					"type": "",
+					"label": "Sign In",
+					"icon": "",
+					"subType": ""
+				},
+				{
+					"id": "Y2YpTnafYU",
+					"type": "",
+					"label": "Forgot password?",
+					"icon": "",
+					"subType": ""
+				},
+				{
+					"id": "_ApMCJpIdn",
+					"type": "",
+					"label": "Back to sign in",
+					"icon": "",
+					"subType": ""
+				}
+			],
+			"htmlTemplate": {
+				"ROOT": {
+					"custom": {},
+					"displayName": "Container",
+					"hidden": false,
+					"isCanvas": true,
+					"linkedNodes": {},
+					"nodes": [
+						"kXUdgvzBhS",
+						"DcJ3MKgcL0",
+						"Di4Y87RfyV",
+						"zM-PuOUp7t",
+						"pUHQ56Hhhr",
+						"-Wq2MTXM8m"
+					],
+					"props": {
+						"id": "ROOT",
+						"align": "center",
+						"background": "#ffffff00",
+						"data-editor-type": "container",
+						"direction": "column",
+						"justify": "start",
+						"paddingX": "0",
+						"paddingY": "0",
+						"spaceBetween": "3",
+						"st-items-grow": 0,
+						"width": "100%"
+					},
+					"type": {
+						"resolvedName": "Container"
+					}
+				},
+				"kXUdgvzBhS": {
+					"custom": {},
+					"displayName": "Text",
+					"hidden": false,
+					"isCanvas": false,
+					"linkedNodes": {},
+					"nodes": [],
+					"props": {
+						"id": "kXUdgvzBhS",
+						"children": "Sign in",
+						"full-width": true,
+						"isEnriched": true,
+						"italic": false,
+						"link-target-blank": true,
+						"mode": "primary",
+						"text-align": "left",
+						"variant": "h3"
+					},
+					"type": {
+						"resolvedName": "Text"
+					},
+					"parent": "ROOT"
+				},
+				"DcJ3MKgcL0": {
+					"custom": {},
+					"displayName": "Text",
+					"hidden": false,
+					"isCanvas": false,
+					"linkedNodes": {},
+					"nodes": [],
+					"props": {
+						"id": "DcJ3MKgcL0",
+						"children": "{{form.email}}",
+						"full-width": true,
+						"isEnriched": true,
+						"italic": false,
+						"link-target-blank": true,
+						"mode": "primary",
+						"text-align": "left",
+						"variant": "body2"
+					},
+					"type": {
+						"resolvedName": "Text"
+					},
+					"parent": "ROOT"
+				},
+				"Di4Y87RfyV": {
+					"custom": {
+						"type": "input"
+					},
+					"displayName": "Login Password",
+					"hidden": false,
+					"isCanvas": false,
+					"linkedNodes": {},
+					"nodes": [],
+					"props": {
+						"id": "Di4Y87RfyV",
+						"autocomplete": "current-password",
+						"bordered": true,
+						"data-errormessage-value-missing": "Please fill out this field.",
+						"external-input": false,
+						"full-width": true,
+						"label": "Password",
+						"label-type": "static",
+						"name": "password",
+						"placeholder": "",
+						"required": true,
+						"size": "md",
+						"type": "password"
+					},
+					"type": {
+						"resolvedName": "Password"
+					},
+					"parent": "ROOT"
+				},
+				"zM-PuOUp7t": {
+					"custom": {},
+					"displayName": "Error Message",
+					"hidden": false,
+					"isCanvas": false,
+					"linkedNodes": {},
+					"nodes": [],
+					"props": {
+						"id": "zM-PuOUp7t",
+						"data-type": "error-message",
+						"full-width": true,
+						"hide-when-empty": true,
+						"italic": false,
+						"link-target-blank": true,
+						"mode": "error",
+						"text-align": "left",
+						"variant": "body1"
+					},
+					"type": {
+						"resolvedName": "ErrorMessage"
+					},
+					"parent": "ROOT"
+				},
+				"pUHQ56Hhhr": {
+					"custom": {
+						"type": "button"
+					},
+					"displayName": "Button",
+					"hidden": false,
+					"isCanvas": false,
+					"linkedNodes": {},
+					"nodes": [],
+					"props": {
+						"id": "pUHQ56Hhhr",
+						"auto-submit": true,
+						"children": "Sign In",
+						"color": "primary",
+						"data-type": "button",
+						"formNoValidate": false,
+						"full-width": true,
+						"mode": "primary",
+						"shape": "",
+						"size": "md",
+						"variant": "contained"
+					},
+					"type": {
+						"resolvedName": "Button"
+					},
+					"parent": "ROOT"
+				},
+				"-Wq2MTXM8m": {
+					"custom": {},
+					"displayName": "Container",
+					"hidden": false,
+					"isCanvas": true,
+					"linkedNodes": {},
+					"nodes": ["Y2YpTnafYU", "_ApMCJpIdn"],
+					"props": {
+						"id": "-Wq2MTXM8m",
+						"align": "start",
+						"background": "#ffffff00",
+						"data-editor-type": "container",
+						"direction": "column",
+						"justify": "start",
+						"paddingX": "0",
+						"paddingY": "0",
+						"spaceBetween": "1",
+						"st-items-grow": 0,
+						"width": "100%"
+					},
+					"type": {
+						"resolvedName": "Container"
+					},
+					"parent": "ROOT"
+				},
+				"Y2YpTnafYU": {
+					"custom": {
+						"type": "button"
+					},
+					"displayName": "Button",
+					"hidden": false,
+					"isCanvas": false,
+					"linkedNodes": {},
+					"nodes": [],
+					"props": {
+						"id": "Y2YpTnafYU",
+						"auto-submit": false,
+						"children": "Forgot password?",
+						"color": "primary",
+						"data-type": "button",
+						"formNoValidate": true,
+						"full-width": false,
+						"mode": "primary",
+						"shape": "",
+						"size": "sm",
+						"variant": "link",
+						"text-align": "left"
+					},
+					"type": {
+						"resolvedName": "Button"
+					},
+					"parent": "-Wq2MTXM8m"
+				},
+				"_ApMCJpIdn": {
+					"custom": {
+						"type": "button"
+					},
+					"displayName": "Button",
+					"hidden": false,
+					"isCanvas": false,
+					"linkedNodes": {},
+					"nodes": [],
+					"props": {
+						"id": "_ApMCJpIdn",
+						"auto-submit": false,
+						"children": "Back to sign in",
+						"color": "primary",
+						"data-type": "button",
+						"formNoValidate": true,
+						"full-width": false,
+						"mode": "primary",
+						"shape": "",
+						"size": "sm",
+						"variant": "link",
+						"text-align": "left"
+					},
+					"type": {
+						"resolvedName": "Button"
+					},
+					"parent": "-Wq2MTXM8m"
+				}
+			},
+			"componentsVersion": "3.26.0"
+		},
+		{
+			"id": "SClBCrYIyg9fVTQNwuPggyJFCkoOc",
+			"version": 1,
+			"flowId": "panw-sign-in",
+			"inputs": [],
+			"interactions": [
+				{
+					"id": "GGB7XBLLyM",
+					"type": "",
+					"label": "Change Password",
+					"icon": "",
+					"subType": ""
+				}
+			],
+			"htmlTemplate": {
+				"ROOT": {
+					"custom": {},
+					"displayName": "Container",
+					"hidden": false,
+					"isCanvas": true,
+					"linkedNodes": {},
+					"nodes": ["sX-51o9DIG", "BXGj6zDCGl", "vbIIxyx9WO", "GGB7XBLLyM"],
+					"props": {
+						"id": "ROOT",
+						"align": "center",
+						"background": "#ffffff00",
+						"data-editor-type": "container",
+						"direction": "column",
+						"justify": "start",
+						"paddingX": "0",
+						"paddingY": "0",
+						"spaceBetween": "3",
+						"st-items-grow": 0,
+						"width": "100%"
+					},
+					"type": {
+						"resolvedName": "Container"
+					}
+				},
+				"sX-51o9DIG": {
+					"custom": {},
+					"displayName": "Text",
+					"hidden": false,
+					"isCanvas": false,
+					"linkedNodes": {},
+					"nodes": [],
+					"props": {
+						"id": "sX-51o9DIG",
+						"children": "Your password has expired",
+						"full-width": true,
+						"isEnriched": true,
+						"italic": false,
+						"link-target-blank": true,
+						"mode": "primary",
+						"text-align": "left",
+						"variant": "h3"
+					},
+					"type": {
+						"resolvedName": "Text"
+					},
+					"parent": "ROOT"
+				},
+				"BXGj6zDCGl": {
+					"custom": {
+						"type": "input"
+					},
+					"displayName": "New Password",
+					"hidden": false,
+					"isCanvas": false,
+					"linkedNodes": {},
+					"nodes": [],
+					"props": {
+						"id": "BXGj6zDCGl",
+						"active-policies": [],
+						"autocomplete": "new-password",
+						"bordered": true,
+						"confirm-label": "Re-enter password",
+						"confirm-placeholder": "",
+						"data-errormessage-pattern-mismatch": "Passwords do not match",
+						"data-errormessage-type-mismatch": "Value does not comply with requirements",
+						"data-errormessage-value-missing": "Please fill out this field.",
+						"data-password-policy-message-minlength": "At least {{value}} characters",
+						"data-password-policy-message-lowercase": "A lowercase letter",
+						"data-password-policy-message-uppercase": "An uppercase letter",
+						"data-password-policy-message-number": "A number",
+						"data-password-policy-message-nonalphanumeric": "A symbol",
+						"external-input": false,
+						"full-width": true,
+						"has-confirm": true,
+						"has-validation": true,
+						"label-type": "static",
+						"name": "newPassword",
+						"password-label": "New password",
+						"password-placeholder": "",
+						"policy-label": "Password requirements:",
+						"required": true,
+						"size": "md",
+						"st-policy-preview-padding": "0"
+					},
+					"type": {
+						"resolvedName": "NewPassword"
+					},
+					"parent": "ROOT"
+				},
+				"vbIIxyx9WO": {
+					"custom": {},
+					"displayName": "Error Message",
+					"hidden": false,
+					"isCanvas": false,
+					"linkedNodes": {},
+					"nodes": [],
+					"props": {
+						"id": "vbIIxyx9WO",
+						"data-type": "error-message",
+						"full-width": true,
+						"hide-when-empty": true,
+						"italic": false,
+						"link-target-blank": true,
+						"mode": "error",
+						"text-align": "left",
+						"variant": "body1"
+					},
+					"type": {
+						"resolvedName": "ErrorMessage"
+					},
+					"parent": "ROOT"
+				},
+				"GGB7XBLLyM": {
+					"custom": {
+						"type": "button"
+					},
+					"displayName": "Button",
+					"hidden": false,
+					"isCanvas": false,
+					"linkedNodes": {},
+					"nodes": [],
+					"props": {
+						"id": "GGB7XBLLyM",
+						"auto-submit": true,
+						"children": "Change Password",
+						"color": "primary",
+						"data-type": "button",
+						"formNoValidate": false,
+						"full-width": true,
+						"mode": "primary",
+						"shape": "",
+						"size": "md",
+						"variant": "contained"
+					},
+					"type": {
+						"resolvedName": "Button"
+					},
+					"parent": "ROOT"
+				}
+			},
+			"componentsVersion": "3.26.0"
+		},
+		{
+			"id": "SC9UbbeHBQAaw8MxcZdmy9sK6s8La",
+			"version": 1,
+			"flowId": "panw-sign-in",
+			"inputs": [],
+			"interactions": [
+				{
+					"id": "LJvEgtsD6U",
+					"type": "",
+					"label": "Reset via Email",
+					"icon": "",
+					"subType": ""
+				},
+				{
+					"id": "EuUmFdaP28",
+					"type": "",
+					"label": "Back to sign in",
+					"icon": "",
+					"subType": ""
+				}
+			],
+			"htmlTemplate": {
+				"ROOT": {
+					"custom": {},
+					"displayName": "Container",
+					"hidden": false,
+					"isCanvas": true,
+					"linkedNodes": {},
+					"nodes": [
+						"I8wfj-lysD",
+						"MjErfQLUus",
+						"NCoBo9M-gg",
+						"LJvEgtsD6U",
+						"EuUmFdaP28"
+					],
+					"props": {
+						"id": "ROOT",
+						"align": "center",
+						"background": "#ffffff00",
+						"data-editor-type": "container",
+						"direction": "column",
+						"justify": "start",
+						"paddingX": "0",
+						"paddingY": "0",
+						"spaceBetween": "3",
+						"st-items-grow": 0,
+						"width": "100%"
+					},
+					"type": {
+						"resolvedName": "Container"
+					}
+				},
+				"I8wfj-lysD": {
+					"custom": {},
+					"displayName": "Text",
+					"hidden": false,
+					"isCanvas": false,
+					"linkedNodes": {},
+					"nodes": [],
+					"props": {
+						"id": "I8wfj-lysD",
+						"children": "Reset Password",
+						"full-width": true,
+						"isEnriched": true,
+						"italic": false,
+						"link-target-blank": true,
+						"mode": "primary",
+						"text-align": "left",
+						"variant": "h3"
+					},
+					"type": {
+						"resolvedName": "Text"
+					},
+					"parent": "ROOT"
+				},
+				"MjErfQLUus": {
+					"custom": {
+						"type": "input"
+					},
+					"displayName": "Email Input",
+					"hidden": false,
+					"isCanvas": false,
+					"linkedNodes": {},
+					"nodes": [],
+					"props": {
+						"id": "MjErfQLUus",
+						"autocomplete": "username",
+						"bordered": true,
+						"copy-to-clipboard": false,
+						"has-confirm": false,
+						"data-errormessage-pattern-mismatch": "Must be a valid email",
+						"data-errormessage-value-missing": "Please fill out this field.",
+						"full-width": true,
+						"label": "Email",
+						"label-type": "static",
+						"max": 100,
+						"name": "email",
+						"pattern": "^[\\w._%+-]+@[\\w.-]+\\.[A-Za-z]{2,}$",
+						"placeholder": "",
+						"required": true,
+						"size": "md",
+						"type": "email"
+					},
+					"type": {
+						"resolvedName": "EmailInput"
+					},
+					"parent": "ROOT"
+				},
+				"NCoBo9M-gg": {
+					"custom": {},
+					"displayName": "Error Message",
+					"hidden": false,
+					"isCanvas": false,
+					"linkedNodes": {},
+					"nodes": [],
+					"props": {
+						"id": "NCoBo9M-gg",
+						"data-type": "error-message",
+						"full-width": true,
+						"hide-when-empty": true,
+						"italic": false,
+						"link-target-blank": true,
+						"mode": "error",
+						"text-align": "left",
+						"variant": "body1"
+					},
+					"type": {
+						"resolvedName": "ErrorMessage"
+					},
+					"parent": "ROOT"
+				},
+				"LJvEgtsD6U": {
+					"custom": {
+						"type": "button"
+					},
+					"displayName": "Button",
+					"hidden": false,
+					"isCanvas": false,
+					"linkedNodes": {},
+					"nodes": [],
+					"props": {
+						"id": "LJvEgtsD6U",
+						"auto-submit": true,
+						"children": "Reset via Email",
+						"color": "primary",
+						"data-type": "button",
+						"formNoValidate": false,
+						"full-width": true,
+						"mode": "primary",
+						"shape": "",
+						"size": "md",
+						"variant": "contained"
+					},
+					"type": {
+						"resolvedName": "Button"
+					},
+					"parent": "ROOT"
+				},
+				"EuUmFdaP28": {
+					"custom": {
+						"type": "button"
+					},
+					"displayName": "Button",
+					"hidden": false,
+					"isCanvas": false,
+					"linkedNodes": {},
+					"nodes": [],
+					"props": {
+						"id": "EuUmFdaP28",
+						"auto-submit": false,
+						"children": "Back to sign in",
+						"color": "primary",
+						"data-type": "button",
+						"formNoValidate": true,
+						"full-width": false,
+						"mode": "primary",
+						"shape": "",
+						"size": "sm",
+						"variant": "link",
+						"text-align": "left"
+					},
+					"type": {
+						"resolvedName": "Button"
+					},
+					"parent": "ROOT"
+				}
+			},
+			"componentsVersion": "3.26.0"
+		},
+		{
+			"id": "SCGKtV8gm9iYdoc39lElkviyOtQCO",
+			"version": 1,
+			"flowId": "panw-sign-in",
+			"inputs": [],
+			"interactions": [
+				{
+					"id": "polling",
+					"type": "",
+					"label": "Polling",
+					"icon": "",
+					"subType": ""
+				},
+				{
+					"id": "resend",
+					"type": "",
+					"label": "Send again",
+					"icon": "",
+					"subType": ""
+				},
+				{
+					"id": "uhWNkHJqO1",
+					"type": "",
+					"label": "Back to sign in",
+					"icon": "",
+					"subType": ""
+				}
+			],
+			"htmlTemplate": {
+				"ROOT": {
+					"custom": {},
+					"displayName": "Container",
+					"hidden": false,
+					"isCanvas": true,
+					"linkedNodes": {},
+					"nodes": [
+						"n5q-DLxS1O",
+						"5jmFJT6OYj",
+						"r8Wh9p3okU",
+						"7usj2ez4vc",
+						"resend",
+						"uhWNkHJqO1"
+					],
+					"props": {
+						"id": "ROOT",
+						"align": "center",
+						"background": "#ffffff00",
+						"data-editor-type": "container",
+						"direction": "column",
+						"justify": "start",
+						"paddingX": "0",
+						"paddingY": "0",
+						"spaceBetween": "3",
+						"st-items-grow": 0,
+						"width": "100%"
+					},
+					"type": {
+						"resolvedName": "Container"
+					}
+				},
+				"n5q-DLxS1O": {
+					"custom": {},
+					"displayName": "Text",
+					"hidden": false,
+					"isCanvas": false,
+					"linkedNodes": {},
+					"nodes": [],
+					"props": {
+						"id": "n5q-DLxS1O",
+						"children": "Email sent!",
+						"full-width": true,
+						"isEnriched": true,
+						"italic": false,
+						"link-target-blank": true,
+						"mode": "primary",
+						"text-align": "left",
+						"variant": "h3"
+					},
+					"type": {
+						"resolvedName": "Text"
+					},
+					"parent": "ROOT"
+				},
+				"5jmFJT6OYj": {
+					"custom": {},
+					"displayName": "Text",
+					"hidden": false,
+					"isCanvas": false,
+					"linkedNodes": {},
+					"nodes": [],
+					"props": {
+						"id": "5jmFJT6OYj",
+						"children": "We've sent a password reset link to {{sentTo.maskedEmail}}. Click the link in the email to continue.",
+						"full-width": true,
+						"isEnriched": true,
+						"italic": false,
+						"link-target-blank": true,
+						"mode": "primary",
+						"text-align": "left",
+						"variant": "body1"
+					},
+					"type": {
+						"resolvedName": "Text"
+					},
+					"parent": "ROOT"
+				},
+				"r8Wh9p3okU": {
+					"custom": {
+						"type": "polling"
+					},
+					"displayName": "Polling",
+					"hidden": false,
+					"isCanvas": false,
+					"linkedNodes": {},
+					"nodes": [],
+					"props": {
+						"id": "r8Wh9p3okU",
+						"color": "primary",
+						"data-type": "polling",
+						"size": "md",
+						"variant": "linear"
+					},
+					"type": {
+						"resolvedName": "PollingLoader"
+					},
+					"parent": "ROOT"
+				},
+				"7usj2ez4vc": {
+					"custom": {},
+					"displayName": "Error Message",
+					"hidden": false,
+					"isCanvas": false,
+					"linkedNodes": {},
+					"nodes": [],
+					"props": {
+						"id": "7usj2ez4vc",
+						"data-type": "error-message",
+						"full-width": true,
+						"hide-when-empty": true,
+						"italic": false,
+						"link-target-blank": true,
+						"mode": "error",
+						"text-align": "left",
+						"variant": "body1"
+					},
+					"type": {
+						"resolvedName": "ErrorMessage"
+					},
+					"parent": "ROOT"
+				},
+				"resend": {
+					"custom": {
+						"type": "button"
+					},
+					"displayName": "Button",
+					"hidden": false,
+					"isCanvas": false,
+					"linkedNodes": {},
+					"nodes": [],
+					"props": {
+						"id": "resend",
+						"auto-submit": false,
+						"children": "Send again",
+						"color": "primary",
+						"data-type": "button",
+						"formNoValidate": false,
+						"full-width": false,
+						"mode": "primary",
+						"shape": "",
+						"size": "sm",
+						"variant": "outline"
+					},
+					"type": {
+						"resolvedName": "Button"
+					},
+					"parent": "ROOT"
+				},
+				"uhWNkHJqO1": {
+					"custom": {
+						"type": "button"
+					},
+					"displayName": "Button",
+					"hidden": false,
+					"isCanvas": false,
+					"linkedNodes": {},
+					"nodes": [],
+					"props": {
+						"id": "uhWNkHJqO1",
+						"auto-submit": false,
+						"children": "Back to sign in",
+						"color": "primary",
+						"data-type": "button",
+						"formNoValidate": true,
+						"full-width": false,
+						"mode": "primary",
+						"shape": "",
+						"size": "sm",
+						"variant": "link",
+						"text-align": "left"
+					},
+					"type": {
+						"resolvedName": "Button"
+					},
+					"parent": "ROOT"
+				}
+			},
+			"componentsVersion": "3.26.0"
+		},
+		{
+			"id": "SCVbgtDmcwy4RHbSEmR2Dxr2oQ8j8",
+			"version": 1,
+			"flowId": "panw-sign-in",
+			"inputs": [],
+			"interactions": [
+				{
+					"id": "MI2k6opaRT",
+					"type": "",
+					"label": "Back to sign in",
+					"icon": "",
+					"subType": ""
+				}
+			],
+			"htmlTemplate": {
+				"ROOT": {
+					"custom": {},
+					"displayName": "Container",
+					"hidden": false,
+					"isCanvas": true,
+					"linkedNodes": {},
+					"nodes": ["2rONrdWTz_", "GRYPGn1VUf", "MI2k6opaRT"],
+					"props": {
+						"id": "ROOT",
+						"align": "center",
+						"background": "#ffffff00",
+						"data-editor-type": "container",
+						"direction": "column",
+						"justify": "start",
+						"paddingX": "0",
+						"paddingY": "0",
+						"spaceBetween": "3",
+						"st-items-grow": 0,
+						"width": "100%"
+					},
+					"type": {
+						"resolvedName": "Container"
+					}
+				},
+				"2rONrdWTz_": {
+					"custom": {},
+					"displayName": "Text",
+					"hidden": false,
+					"isCanvas": false,
+					"linkedNodes": {},
+					"nodes": [],
+					"props": {
+						"id": "2rONrdWTz_",
+						"children": "Check your other tab",
+						"full-width": true,
+						"isEnriched": true,
+						"italic": false,
+						"link-target-blank": true,
+						"mode": "primary",
+						"text-align": "left",
+						"variant": "h3"
+					},
+					"type": {
+						"resolvedName": "Text"
+					},
+					"parent": "ROOT"
+				},
+				"GRYPGn1VUf": {
+					"custom": {},
+					"displayName": "Text",
+					"hidden": false,
+					"isCanvas": false,
+					"linkedNodes": {},
+					"nodes": [],
+					"props": {
+						"id": "GRYPGn1VUf",
+						"children": "Finish resetting your password in the tab the email link opened. You can close this window.",
+						"full-width": true,
+						"isEnriched": true,
+						"italic": false,
+						"link-target-blank": true,
+						"mode": "primary",
+						"text-align": "left",
+						"variant": "body1"
+					},
+					"type": {
+						"resolvedName": "Text"
+					},
+					"parent": "ROOT"
+				},
+				"MI2k6opaRT": {
+					"custom": {
+						"type": "button"
+					},
+					"displayName": "Button",
+					"hidden": false,
+					"isCanvas": false,
+					"linkedNodes": {},
+					"nodes": [],
+					"props": {
+						"id": "MI2k6opaRT",
+						"auto-submit": false,
+						"children": "Back to sign in",
+						"color": "primary",
+						"data-type": "button",
+						"formNoValidate": true,
+						"full-width": false,
+						"mode": "primary",
+						"shape": "",
+						"size": "sm",
+						"variant": "link",
+						"text-align": "left"
+					},
+					"type": {
+						"resolvedName": "Button"
+					},
+					"parent": "ROOT"
+				}
+			},
+			"componentsVersion": "3.26.0"
+		},
+		{
+			"id": "SCNEYiz6Tv8vSnSE7SyQkVmDnJUgE",
+			"version": 1,
+			"flowId": "panw-sign-in",
+			"inputs": [],
+			"interactions": [
+				{
+					"id": "hsyDXFqdsq",
+					"type": "",
+					"label": "Reset Password",
+					"icon": "",
+					"subType": ""
+				}
+			],
+			"htmlTemplate": {
+				"ROOT": {
+					"custom": {},
+					"displayName": "Container",
+					"hidden": false,
+					"isCanvas": true,
+					"linkedNodes": {},
+					"nodes": ["kTZthDvFJK", "SJFj3yyH1w", "ov99AOODCD", "hsyDXFqdsq"],
+					"props": {
+						"id": "ROOT",
+						"align": "center",
+						"background": "#ffffff00",
+						"data-editor-type": "container",
+						"direction": "column",
+						"justify": "start",
+						"paddingX": "0",
+						"paddingY": "0",
+						"spaceBetween": "3",
+						"st-items-grow": 0,
+						"width": "100%"
+					},
+					"type": {
+						"resolvedName": "Container"
+					}
+				},
+				"kTZthDvFJK": {
+					"custom": {},
+					"displayName": "Text",
+					"hidden": false,
+					"isCanvas": false,
+					"linkedNodes": {},
+					"nodes": [],
+					"props": {
+						"id": "kTZthDvFJK",
+						"children": "Reset your password",
+						"full-width": true,
+						"isEnriched": true,
+						"italic": false,
+						"link-target-blank": true,
+						"mode": "primary",
+						"text-align": "left",
+						"variant": "h3"
+					},
+					"type": {
+						"resolvedName": "Text"
+					},
+					"parent": "ROOT"
+				},
+				"SJFj3yyH1w": {
+					"custom": {
+						"type": "input"
+					},
+					"displayName": "New Password",
+					"hidden": false,
+					"isCanvas": false,
+					"linkedNodes": {},
+					"nodes": [],
+					"props": {
+						"id": "SJFj3yyH1w",
+						"active-policies": [],
+						"autocomplete": "new-password",
+						"bordered": true,
+						"confirm-label": "Re-enter password",
+						"confirm-placeholder": "",
+						"data-errormessage-pattern-mismatch": "Passwords do not match",
+						"data-errormessage-type-mismatch": "Value does not comply with requirements",
+						"data-errormessage-value-missing": "Please fill out this field.",
+						"data-password-policy-message-minlength": "At least {{value}} characters",
+						"data-password-policy-message-lowercase": "A lowercase letter",
+						"data-password-policy-message-uppercase": "An uppercase letter",
+						"data-password-policy-message-number": "A number",
+						"data-password-policy-message-nonalphanumeric": "A symbol",
+						"external-input": false,
+						"full-width": true,
+						"has-confirm": true,
+						"has-validation": true,
+						"label-type": "static",
+						"name": "newPassword",
+						"password-label": "New password",
+						"password-placeholder": "",
+						"policy-label": "Password requirements:",
+						"required": true,
+						"size": "md",
+						"st-policy-preview-padding": "0"
+					},
+					"type": {
+						"resolvedName": "NewPassword"
+					},
+					"parent": "ROOT"
+				},
+				"ov99AOODCD": {
+					"custom": {},
+					"displayName": "Error Message",
+					"hidden": false,
+					"isCanvas": false,
+					"linkedNodes": {},
+					"nodes": [],
+					"props": {
+						"id": "ov99AOODCD",
+						"data-type": "error-message",
+						"full-width": true,
+						"hide-when-empty": true,
+						"italic": false,
+						"link-target-blank": true,
+						"mode": "error",
+						"text-align": "left",
+						"variant": "body1"
+					},
+					"type": {
+						"resolvedName": "ErrorMessage"
+					},
+					"parent": "ROOT"
+				},
+				"hsyDXFqdsq": {
+					"custom": {
+						"type": "button"
+					},
+					"displayName": "Button",
+					"hidden": false,
+					"isCanvas": false,
+					"linkedNodes": {},
+					"nodes": [],
+					"props": {
+						"id": "hsyDXFqdsq",
+						"auto-submit": true,
+						"children": "Reset Password",
+						"color": "primary",
+						"data-type": "button",
+						"formNoValidate": false,
+						"full-width": true,
+						"mode": "primary",
+						"shape": "",
+						"size": "md",
+						"variant": "contained"
+					},
+					"type": {
+						"resolvedName": "Button"
+					},
+					"parent": "ROOT"
+				}
+			},
+			"componentsVersion": "3.26.0"
+		},
+		{
+			"id": "SC9c0EH34mtVCqxG18mBMOy9TShoa",
+			"version": 1,
+			"flowId": "panw-sign-in",
+			"inputs": [],
+			"interactions": [
+				{
+					"id": "ap4gHLthGR",
+					"type": "",
+					"label": "Stay signed in",
+					"icon": "",
+					"subType": ""
+				},
+				{
+					"id": "TBfbh0uKBh",
+					"type": "",
+					"label": "Don't stay signed in",
+					"icon": "",
+					"subType": ""
+				}
+			],
+			"htmlTemplate": {
+				"ROOT": {
+					"custom": {},
+					"displayName": "Container",
+					"hidden": false,
+					"isCanvas": true,
+					"linkedNodes": {},
+					"nodes": ["mpvC-2mJpn", "X6RhZ1rjSq", "ap4gHLthGR", "TBfbh0uKBh"],
+					"props": {
+						"id": "ROOT",
+						"align": "center",
+						"background": "#ffffff00",
+						"data-editor-type": "container",
+						"direction": "column",
+						"justify": "start",
+						"paddingX": "0",
+						"paddingY": "0",
+						"spaceBetween": "3",
+						"st-items-grow": 0,
+						"width": "100%"
+					},
+					"type": {
+						"resolvedName": "Container"
+					}
+				},
+				"mpvC-2mJpn": {
+					"custom": {},
+					"displayName": "Text",
+					"hidden": false,
+					"isCanvas": false,
+					"linkedNodes": {},
+					"nodes": [],
+					"props": {
+						"id": "mpvC-2mJpn",
+						"children": "Keep me signed in",
+						"full-width": true,
+						"isEnriched": true,
+						"italic": false,
+						"link-target-blank": true,
+						"mode": "primary",
+						"text-align": "left",
+						"variant": "h3"
+					},
+					"type": {
+						"resolvedName": "Text"
+					},
+					"parent": "ROOT"
+				},
+				"X6RhZ1rjSq": {
+					"custom": {},
+					"displayName": "Text",
+					"hidden": false,
+					"isCanvas": false,
+					"linkedNodes": {},
+					"nodes": [],
+					"props": {
+						"id": "X6RhZ1rjSq",
+						"children": "Sign in and enter security methods less frequently.",
+						"full-width": true,
+						"isEnriched": true,
+						"italic": false,
+						"link-target-blank": true,
+						"mode": "primary",
+						"text-align": "left",
+						"variant": "body1"
+					},
+					"type": {
+						"resolvedName": "Text"
+					},
+					"parent": "ROOT"
+				},
+				"ap4gHLthGR": {
+					"custom": {
+						"type": "button"
+					},
+					"displayName": "Button",
+					"hidden": false,
+					"isCanvas": false,
+					"linkedNodes": {},
+					"nodes": [],
+					"props": {
+						"id": "ap4gHLthGR",
+						"auto-submit": true,
+						"children": "Stay signed in",
+						"color": "primary",
+						"data-type": "button",
+						"formNoValidate": false,
+						"full-width": true,
+						"mode": "primary",
+						"shape": "",
+						"size": "md",
+						"variant": "contained"
+					},
+					"type": {
+						"resolvedName": "Button"
+					},
+					"parent": "ROOT"
+				},
+				"TBfbh0uKBh": {
+					"custom": {
+						"type": "button"
+					},
+					"displayName": "Button",
+					"hidden": false,
+					"isCanvas": false,
+					"linkedNodes": {},
+					"nodes": [],
+					"props": {
+						"id": "TBfbh0uKBh",
+						"auto-submit": false,
+						"children": "Don't stay signed in",
+						"color": "primary",
+						"data-type": "button",
+						"formNoValidate": true,
+						"full-width": false,
+						"mode": "primary",
+						"shape": "",
+						"size": "sm",
+						"variant": "outline"
+					},
+					"type": {
+						"resolvedName": "Button"
+					},
+					"parent": "ROOT"
+				}
+			},
+			"componentsVersion": "3.26.0"
+		}
+	]
+}

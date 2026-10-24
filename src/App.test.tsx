@@ -195,6 +195,23 @@ describe('App component', () => {
 		);
 	});
 
+	test('renders the Palo Alto Networks layout when layout=panw', async () => {
+		window.location.pathname = `/${packageJson.homepage}/${validProjectId}`;
+		window.location.search = `?flow=${flowId}&layout=panw`;
+		render(<App />);
+		const layout = await screen.findByTestId('panw-layout');
+		expect(within(layout).getByTestId('descope-component')).toBeInTheDocument();
+		expect(document.documentElement).toHaveClass('panw-layout');
+	});
+
+	test('does not render the Palo Alto Networks layout by default', async () => {
+		window.location.pathname = `/${packageJson.homepage}/${validProjectId}`;
+		window.location.search = `?flow=${flowId}`;
+		render(<App />);
+		await screen.findByTestId('descope-component');
+		expect(screen.queryByTestId('panw-layout')).not.toBeInTheDocument();
+	});
+
 	test('sets the document title from the title search param', async () => {
 		window.location.pathname = `/${packageJson.homepage}/${validProjectId}`;
 		window.location.search = `?title=My%20Custom%20Title`;

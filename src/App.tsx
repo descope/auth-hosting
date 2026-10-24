@@ -6,6 +6,7 @@ import './App.css';
 import Done from './components/Done';
 import Welcome from './components/Welcome';
 import FlowGate from './components/FlowGate';
+import PanwLayout from './components/PanwLayout';
 import useOidcMfa from './hooks/useOidcMfa';
 import { env } from './env';
 import { logger } from './utils/logger';
@@ -232,6 +233,9 @@ const App = () => {
 
 	const form = { userCode: urlParams.get('user_code') || '' };
 
+	const isPanwLayout =
+		(urlParams.get('layout') || env.DESCOPE_LAYOUT) === 'panw';
+
 	const bodyCss = useMemo(() => {
 		const css: CSSProperties = {};
 		try {
@@ -337,7 +341,16 @@ const App = () => {
 			persistTokens={persistTokens}
 		>
 			<div className="app" style={bodyCss} data-testid="app">
-				{!done && projectId && flowId && (
+				{!done && projectId && flowId && isPanwLayout && (
+					<PanwLayout>
+						<div data-testid="descope-component">
+							<FlowGate baseUrl={baseUrl} projectId={projectId}>
+								<Descope {...flowProps} />
+							</FlowGate>
+						</div>
+					</PanwLayout>
+				)}
+				{!done && projectId && flowId && !isPanwLayout && (
 					<div
 						className={containerClasses}
 						style={containerCss}

@@ -70,6 +70,8 @@ These are the different query parameters you can use:
 
 12. `title` query parameter is optional. If provided, it sets the browser tab/document title (e.g. `title=Sign%20in`).
 
+13. `layout` query parameter is optional. `layout=panw` wraps the flow in the Palo Alto Networks sign-in page (header, banner, card, terms line and footer) recreated from their Okta CIS hosted page. Pair it with the `panw-sign-in` flow in [`flows/panw-sign-in.json`](flows/panw-sign-in.json), e.g. `?flow=panw-sign-in&layout=panw&title=Sign%20in`.
+
 **Using .env**
 
 In case you don't want to provide the project ID as part of the URL, you can specify it as an environment variable `DESCOPE_PROJECT_ID`.  
