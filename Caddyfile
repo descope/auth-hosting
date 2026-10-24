@@ -30,6 +30,7 @@ http:// {
 		REACT_APP_FLOW_HEIGHT '{$REACT_APP_FLOW_HEIGHT}'
 		DESCOPE_PROJECT_ID '{$DESCOPE_PROJECT_ID}'
 		DESCOPE_FLOW_ID '{$DESCOPE_FLOW_ID}'
+		DESCOPE_LAYOUT '{$DESCOPE_LAYOUT}'
 		LOGGER '{$LOGGER:false}'
 	}
 
@@ -47,6 +48,7 @@ window.env = {
 	REACT_APP_FLOW_HEIGHT: {{ placeholder "http.vars.REACT_APP_FLOW_HEIGHT" }},
 	DESCOPE_PROJECT_ID: {{ placeholder "http.vars.DESCOPE_PROJECT_ID" }},
 	DESCOPE_FLOW_ID: {{ placeholder "http.vars.DESCOPE_FLOW_ID" }},
+	DESCOPE_LAYOUT: {{ placeholder "http.vars.DESCOPE_LAYOUT" }},
 	LOGGER: {{ placeholder "http.vars.LOGGER" }}
 };`
 		}

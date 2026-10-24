@@ -43,6 +43,7 @@ module.exports = {
 									'REACT_APP_DEFAULT_FAVICON_URL',
 									'DESCOPE_PROJECT_ID',
 									'DESCOPE_FLOW_ID',
+									'DESCOPE_LAYOUT',
 									'LOGGER',
 									// Legacy env var names
 									'REACT_APP_FAVICON_URL',
