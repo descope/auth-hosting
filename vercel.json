@@ -1,5 +1,4 @@
 {
-	"trailingSlash": false,
 	"rewrites": [
 		{
 			"source": "/login/:path*",
