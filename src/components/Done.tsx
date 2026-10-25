@@ -2,8 +2,16 @@ import '../App.css';
 import React from 'react';
 
 const Done = () => (
-	<div className="app-content" data-testid="welcome-component">
-		<h1 className="welcome-title">You are all done!</h1>
+	<div className="done-page" data-testid="done-component">
+		<div className="done-card">
+			<div className="done-check" aria-hidden="true">
+				✓
+			</div>
+			<h1 className="done-title">Authentication complete</h1>
+			<p className="done-subtitle">
+				You&apos;re authenticated. You can close this window now.
+			</p>
+		</div>
 	</div>
 );
 
