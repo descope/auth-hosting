@@ -8,15 +8,14 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<meta name="theme-color" content="#000000" />
 		<script>
-			// Anchor relative asset URLs (./env.js, ./static/...) to the app mount root, i.e.
-			// everything up to and including the "login" segment (package.json "homepage").
-			// This keeps them correct for /login, /login/<pid>/, and /auth/login/<pid> alike.
+			// Anchor relative asset URLs (./env.js, ./static/...) to the app mount prefix, i.e.
+			// everything before the "login" segment (package.json "homepage"): "/" for
+			// /login/<pid> and "/auth/" for /auth/login/<pid>, regardless of trailing slash.
 			(function () {
 				var segments = window.location.pathname.split('/');
 				var index = segments.indexOf('login');
 				var base = document.createElement('base');
-				base.href =
-					index < 0 ? '/' : segments.slice(0, index + 1).join('/') + '/';
+				base.href = index < 0 ? '/' : segments.slice(0, index).join('/') + '/';
 				document.head.appendChild(base);
 			})();
 		</script>
