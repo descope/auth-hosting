@@ -67,14 +67,6 @@ const FlowGate: React.FC<FlowGateProps> = ({
 		);
 		if (openerOrigin) {
 			url.searchParams.set('openerOrigin', openerOrigin);
-			// The app the widget named, passed straight through. The backend merges
-			// that app's trusted domains with the project's. It is only ever an
-			// identifier, and naming a different app cannot widen the answer beyond
-			// the apps this project already has.
-			const appId = new URLSearchParams(window.location.search).get('appId');
-			if (appId) {
-				url.searchParams.set('appId', appId);
-			}
 		}
 
 		// Started now, not after the request: it is two postMessage calls inside

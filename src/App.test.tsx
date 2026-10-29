@@ -1054,32 +1054,6 @@ describe('opened as a widget popup', () => {
 		expect(window.location.assign).not.toHaveBeenCalled();
 	});
 
-	// The app the widget named has to reach the backend, or its own Approved
-	// Domains could never be consulted.
-	it('forwards the app the widget named to the domain check', async () => {
-		openedBy(OPENER_ORIGIN, {});
-		atUrl(`?flow=${flowId}&appId=SA1`);
-		render(<App />);
-
-		await waitFor(() => expect(mockDescope).toHaveBeenCalled());
-		const checked = mockFetch.mock.calls
-			.map(([url]: any[]) => String(url))
-			.find((url: string) => url.includes('/v1/flow/validate-domain'));
-		expect(checked).toContain('appId=SA1');
-	});
-
-	it('sends no app when the widget named none', async () => {
-		openedBy(OPENER_ORIGIN, {});
-		atUrl(`?flow=${flowId}`);
-		render(<App />);
-
-		await waitFor(() => expect(mockDescope).toHaveBeenCalled());
-		const checked = mockFetch.mock.calls
-			.map(([url]: any[]) => String(url))
-			.find((url: string) => url.includes('/v1/flow/validate-domain'));
-		expect(checked).not.toContain('appId');
-	});
-
 	it('says nothing to an opener the project does not trust', async () => {
 		// Without this, any page could open us and learn from the message it
 		// gets back whether the visitor has a session on this auth domain.
