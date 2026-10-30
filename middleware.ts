@@ -6,6 +6,14 @@ const FETCH_TIMEOUT_MS = 2000;
 const middleware = async (request: Request) => {
 	const url = new URL(request.url);
 
+	// /approve/<PID> ends in a project ID, but the agent approval function sets
+	// its own headers and needs no project config fetch
+	if (url.pathname.startsWith('/approve/')) {
+		return next({
+			headers: { 'x-descope-middleware': 'agentApproval' }
+		});
+	}
+
 	// Check base URL environment variable is set
 	const baseUrl = process.env.MIDDLEWARE_DESCOPE_BASE_URL;
 	if (!baseUrl) {
@@ -84,6 +92,9 @@ export default middleware;
 // Vercel reads this config to decide which routes invoke the middleware.
 // Skip static assets so we only run (and fetch project config) on document routes.
 export const config = {
+	// Explicit: a CLI-built deployment ran this file on Node as CommonJS and
+	// failed on the import statement
+	runtime: 'edge',
 	matcher: [
 		'/((?!.*\\.(?:js|css|map|ico|svg|png|jpg|jpeg|gif|webp|woff2?|ttf|eot)$).*)'
 	]
