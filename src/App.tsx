@@ -16,6 +16,7 @@ import {
 } from './utils/favicon';
 import { addAuthHostingHeader } from './shared/authHostingHeader';
 import { projectRegex } from './shared/projectRegex';
+import { getOriginWithBasePath } from './shared/basePath';
 
 const ssoAppRegex = /^[a-zA-Z0-9\-_]{1,30}$/;
 
@@ -80,7 +81,7 @@ const App = () => {
 
 	// Force origin base URL
 	if (env.REACT_APP_USE_ORIGIN_BASE_URL === 'true')
-		baseUrl = window.location.origin;
+		baseUrl = getOriginWithBasePath();
 
 	let projectId = '';
 
