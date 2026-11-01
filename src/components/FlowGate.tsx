@@ -1,5 +1,6 @@
 import React, { PropsWithChildren, useEffect, useState } from 'react';
 import ErrorScreen from '../Error';
+import { AUTH_HOSTING_HEADER } from '../shared/authHostingHeader';
 import {
 	claimedWidgetOpenerOrigin,
 	confirmWidgetOpener,
@@ -79,7 +80,10 @@ const FlowGate: React.FC<FlowGateProps> = ({
 			method: 'POST',
 			headers: {
 				Authorization: `Bearer ${projectId}`,
-				'x-descope-project-id': projectId
+				'x-descope-project-id': projectId,
+				// The same header the flow sends, so this asks the question the flow will be
+				// asked: may the auth hosting app run this project's flow?
+				[AUTH_HOSTING_HEADER]: '1'
 			}
 		})
 			.then((res) => (res.ok ? res.json() : undefined))
