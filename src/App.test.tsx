@@ -16,14 +16,27 @@ import { env } from './env';
 const mockDescope = jest.fn();
 const mockAuthProvider = jest.fn();
 
+// What the flow hands back on success. A flow can carry an
+// onSuccessRedirectUrl, so a test needs to be able to put one there.
+let mockFlowOutput: Record<string, unknown> = {};
+
 jest.mock('@descope/react-sdk', () => ({
 	...jest.requireActual('@descope/react-sdk'),
-	Descope: ({ onSuccess, ...props }: { onSuccess: () => void }) => {
+	Descope: ({ onSuccess, ...props }: { onSuccess: (e?: unknown) => void }) => {
 		mockDescope(props);
 		return (
-			<button data-testid="descope-button" type="button" onClick={onSuccess}>
-				Descope
-			</button>
+			<>
+				<button data-testid="descope-button" type="button" onClick={onSuccess}>
+					Descope
+				</button>
+				<button
+					data-testid="descope-button-with-output"
+					type="button"
+					onClick={() => onSuccess({ detail: { flowOutput: mockFlowOutput } })}
+				>
+					Descope with output
+				</button>
+			</>
 		);
 	},
 	AuthProvider: (props: PropsWithChildren<{ [key: string]: string }>) => {
@@ -271,6 +284,37 @@ describe('App component', () => {
 				expect(window.location.assign).toHaveBeenCalledWith(
 					`${baseUrl}/test?done=true`
 				);
+			});
+		});
+
+		// Guards the branch that sits directly below the widget-popup early
+		// return added for popup mode. Nothing covered it before, so a wrong
+		// return there would have stopped every success redirect silently.
+		it('follows a flow onSuccessRedirectUrl on a normal hosted login', async () => {
+			env.DESCOPE_FLOW_ID = 'sign-up-or-in';
+			mockFlowOutput = {
+				onSuccessRedirectUrl: 'https://app.example.com/after'
+			};
+
+			render(<App />);
+			fireEvent.click(screen.getByTestId('descope-button-with-output'));
+
+			await waitFor(() => {
+				expect(window.location.assign).toHaveBeenCalledWith(
+					'https://app.example.com/after'
+				);
+			});
+		});
+
+		it('navigates nowhere when the flow carries no redirect', async () => {
+			env.DESCOPE_FLOW_ID = 'sign-up-or-in';
+			mockFlowOutput = {};
+
+			render(<App />);
+			fireEvent.click(screen.getByTestId('descope-button-with-output'));
+
+			await waitFor(() => {
+				expect(window.location.assign).not.toHaveBeenCalled();
 			});
 		});
 	});
@@ -895,5 +939,184 @@ describe('App component', () => {
 			);
 			expect(screen.getByText(/something went wrong/i)).toBeInTheDocument();
 		});
+	});
+});
+
+describe('opened as a widget popup', () => {
+	const OPENER_ORIGIN = 'https://app.example.com';
+	const postMessage = jest.fn();
+	const close = jest.fn();
+
+	beforeEach(() => {
+		jest.clearAllMocks();
+		// FlowGate checks the domain before rendering the flow; clearAllMocks
+		// wipes the shared fetch mock, so re-arm it as the outer suite does.
+		mockFetch.mockResolvedValue({ ok: false });
+		env.REACT_APP_DESCOPE_BASE_URL = baseUrl;
+		window.name = '';
+		Object.defineProperty(window, 'opener', {
+			value: { postMessage },
+			configurable: true,
+			writable: true
+		});
+		Object.defineProperty(window, 'close', {
+			value: close,
+			configurable: true,
+			writable: true
+		});
+	});
+
+	afterEach(() => {
+		window.name = '';
+	});
+
+	const atUrl = (search: string) => {
+		Object.defineProperty(window, 'location', {
+			value: {
+				...window.location,
+				pathname: `/${packageJson.homepage}/${validProjectId}`,
+				search,
+				assign: jest.fn()
+			},
+			writable: true
+		});
+	};
+
+	// The opener writes its own origin into window.name, so before anything may
+	// be reported FlowGate runs two checks: it asks the backend whether the
+	// project trusts that origin, and it asks the opener to echo a code back,
+	// which only a page really at that origin could do.
+	//
+	// Only the validate-domain call is answered here; the favicon fetches keep
+	// the outer suite's not-ok default.
+	// Everything the popup posts except the handshake hello - that one is sent to
+	// an unproven origin on purpose, and carries nothing.
+	const reportsSent = () =>
+		postMessage.mock.calls.filter(
+			([data]: any[]) => data?.action !== 'widget-flow-hello'
+		);
+
+	const openedBy = (
+		origin: string,
+		{ trusted = true, echoes = true }: { trusted?: boolean; echoes?: boolean }
+	) => {
+		window.name = `descope-widget-flow|${origin}`;
+		postMessage.mockImplementation((data: any) => {
+			if (!echoes || data?.action !== 'widget-flow-hello') return;
+			const event = new MessageEvent('message', {
+				data: { action: 'widget-flow-hello-ack', nonce: data.nonce },
+				origin
+			});
+			Object.defineProperty(event, 'source', { value: window.opener });
+			window.dispatchEvent(event);
+		});
+		mockFetch.mockImplementation(async (url: string) =>
+			String(url).includes('/v1/flow/validate-domain')
+				? {
+						ok: true,
+						json: async () => ({ success: true, openerApproved: trusted })
+					}
+				: { ok: false }
+		);
+	};
+
+	it('passes form.<key> inputs through, which is how one passkey is removed', async () => {
+		atUrl(`?flow=${flowId}&form.externalId=user-1&form.credentialId=cred-9`);
+		render(<App />);
+
+		await waitFor(() =>
+			expect(mockDescope).toHaveBeenCalledWith(
+				expect.objectContaining({
+					form: {
+						userCode: '',
+						externalId: 'user-1',
+						credentialId: 'cred-9'
+					}
+				})
+			)
+		);
+	});
+
+	it('tells the widget and closes when the flow finishes', async () => {
+		openedBy(OPENER_ORIGIN, {});
+		atUrl(`?flow=${flowId}`);
+		render(<App />);
+
+		// In popup mode the flow is held back until the opener check answers.
+		await waitFor(() => expect(mockDescope).toHaveBeenCalled());
+		fireEvent.click(screen.getByTestId('descope-button'));
+
+		await waitFor(() =>
+			expect(postMessage).toHaveBeenCalledWith(
+				{ action: 'widget-flow-done' },
+				OPENER_ORIGIN
+			)
+		);
+		expect(close).toHaveBeenCalled();
+	});
+
+	it('reports completion BEFORE any redirect branch, so the popup closes rather than navigating', async () => {
+		// saml-config has its own onSuccess branch that navigates. If the popup
+		// check did not come first, that branch would win and the window would
+		// go somewhere instead of closing, leaving the app waiting.
+		openedBy(OPENER_ORIGIN, {});
+		atUrl(`?flow=saml-config`);
+		render(<App />);
+
+		await waitFor(() => expect(mockDescope).toHaveBeenCalled());
+		fireEvent.click(screen.getByTestId('descope-button'));
+
+		await waitFor(() => expect(postMessage).toHaveBeenCalled());
+		expect(close).toHaveBeenCalled();
+		expect(window.location.assign).not.toHaveBeenCalled();
+	});
+
+	it('says nothing to an opener the project does not trust', async () => {
+		// Without this, any page could open us and learn from the message it
+		// gets back whether the visitor has a session on this auth domain.
+		openedBy('https://evil.example', { trusted: false });
+		atUrl(`?flow=${flowId}`);
+		render(<App />);
+
+		await waitFor(() => expect(mockDescope).toHaveBeenCalled());
+		fireEvent.click(screen.getByTestId('descope-button'));
+
+		await waitFor(() => expect(window.location.assign).not.toHaveBeenCalled());
+		expect(reportsSent()).toHaveLength(0);
+		expect(close).not.toHaveBeenCalled();
+	});
+
+	// The second half of the same leak: a hostile page claims the customer's own
+	// app origin, which IS in Trusted Domains, so the backend approves it. It
+	// never receives our code, so it cannot answer, and we stay silent.
+	it('says nothing to an opener that claims a trusted origin but cannot prove it', async () => {
+		openedBy(OPENER_ORIGIN, { trusted: true, echoes: false });
+		atUrl(`?flow=${flowId}`);
+		render(<App />);
+
+		// Nobody answers the handshake here, so the flow is held for its full
+		// timeout before it renders.
+		await waitFor(() => expect(mockDescope).toHaveBeenCalled(), {
+			timeout: 3000
+		});
+		fireEvent.click(screen.getByTestId('descope-button'));
+
+		await waitFor(() => expect(window.location.assign).not.toHaveBeenCalled());
+		expect(reportsSent()).toHaveLength(0);
+		expect(close).not.toHaveBeenCalled();
+	});
+
+	it('does nothing of the sort on a normal hosted login', async () => {
+		// The negative test. auth-hosting is one deployment serving every
+		// customer's domain, so a page that was not opened by a widget must
+		// behave exactly as it did before.
+		atUrl(`?flow=${flowId}`);
+		render(<App />);
+
+		fireEvent.click(screen.getByTestId('descope-button'));
+
+		await waitFor(() => expect(mockDescope).toHaveBeenCalled());
+		expect(postMessage).not.toHaveBeenCalled();
+		expect(close).not.toHaveBeenCalled();
 	});
 });
