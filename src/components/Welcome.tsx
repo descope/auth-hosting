@@ -4,9 +4,10 @@ import { useCopyToClipboard } from 'usehooks-ts';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import CheckIcon from '@mui/icons-material/Check';
 import packageJson from '../../package.json';
+import { getOriginWithBasePath } from '../shared/basePath';
 
 const Welcome = () => {
-	const baseUrl = window.location.origin;
+	const baseUrl = getOriginWithBasePath();
 	const exampleText = `${baseUrl}/${packageJson.homepage}/PROJECT_ID`;
 
 	const [value, copy] = useCopyToClipboard();
