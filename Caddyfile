@@ -13,10 +13,40 @@ http:// {
 	log
 	encode gzip
 
+	# Substituted into the nonce config/cspPlugin.js bakes into index.html.
+	vars {
+		nonce {http.request.uuid}
+	}
+
+	# A cached document would hand one visitor's nonce to the next. Assets carry
+	# no nonce and keep their caching.
+	@document not path *.js *.mjs *.css *.map *.json *.txt *.xml *.ico *.svg *.png *.jpg *.jpeg *.gif *.webp *.avif *.woff *.woff2 *.ttf *.eot *.mp4 *.webm *.wasm
+	header @document Cache-Control "no-store"
+
+	# frame-ancestors cannot travel in a meta tag, so it is the one directive an
+	# ADD_CSP build still needs here. Keep CSP_HEADER to that alone on such a
+	# build: a second full policy would also have to be satisfied, and it cannot
+	# know the nonce. Override both vars to allow embedding; the defaults refuse.
+	#
+	# CSP_REPORT_ONLY is for deployments measuring rather than enforcing. Empty
+	# by default, since against an enforcing meta tag it would report a violation
+	# for every element the nonce admits.
+	header {
+		Content-Security-Policy "{$CSP_HEADER:frame-ancestors 'self'}"
+		Content-Security-Policy-Report-Only "{$CSP_REPORT_ONLY:}"
+		X-Frame-Options "{$X_FRAME_OPTIONS:SAMEORIGIN}"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+
 	handle /login* {
 		uri strip_prefix /login
 		root * {$WWW_ROOT:/www}
 		try_files {path} /index.html
+		# Only index.html is a template — running the app bundles through the
+		# template engine would break on any "{{" in the minified JS.
+		templates /index.html
 		file_server browse
 	}
 
@@ -35,7 +65,15 @@ http:// {
 
 	handle /login/env.js {
 		uri strip_prefix /login
-		templates
+		# respond defaults to text/plain, which the browser used to sniff and run
+		# anyway. X-Content-Type-Options: nosniff above stops that, so the type
+		# has to be stated or window.env never gets defined. templates only
+		# processes text/html and text/plain by default, so it has to be told
+		# about the new type as well or it emits the placeholders verbatim.
+		header Content-Type "text/javascript; charset=utf-8"
+		templates {
+			mime text/javascript application/javascript
+		}
 		respond `
 window.env = {
 	REACT_APP_DESCOPE_BASE_URL: {{ placeholder "http.vars.REACT_APP_DESCOPE_BASE_URL" }},
