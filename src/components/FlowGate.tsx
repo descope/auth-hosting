@@ -52,7 +52,7 @@ const FlowGate: React.FC<FlowGateProps> = ({
 				// reports a bad ?width= straight to the console: logger is silent
 				// outside development, and this has to be visible in production.
 				// eslint-disable-next-line no-console
-				console.error(reason);
+				console.error(`[Descope widget popup] ${reason}`);
 			}
 			setWidgetOpenerApproved(approved);
 			setWaitingForOpener(false);

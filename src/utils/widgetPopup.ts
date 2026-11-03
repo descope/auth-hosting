@@ -47,6 +47,15 @@ const isNoSessionError = (detail: { errorCode?: string } | undefined) =>
  * so a hostile page can claim to be the customer's app. Only `FlowGate` should
  * read it, to ask the backend whether the project trusts that origin.
  * Everything that reports back goes through `widgetOpenerOrigin` instead.
+ *
+ * The browser can clear `window.name`, so measured in Chrome 2026-11-03: a
+ * plain cross-site redirect inside the popup keeps it, and it is still there
+ * once the popup comes back. A page sending `Cross-Origin-Opener-Policy:
+ * same-origin` clears it for good, and that same navigation also severs
+ * `window.opener`, so there would be nothing to report to even if we had kept
+ * the origin some other way. Nothing here can recover from that. The flow
+ * still runs, it just cannot close the popup, and the widget notices when the
+ * user closes the window.
  */
 const claimedWidgetOpenerOrigin = (): string => {
 	const [prefix, origin] = (window.name || '').split('|');
