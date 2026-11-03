@@ -7,7 +7,10 @@ const html = fs.readFileSync(
 	path.join(__dirname, '..', 'public', 'index.html'),
 	'utf8'
 );
-const inlineScript = /<script>([\s\S]*?)<\/script>/.exec(html)?.[1] ?? '';
+const inlineScript =
+	new DOMParser()
+		.parseFromString(html, 'text/html')
+		.querySelector('script:not([src])')?.textContent ?? '';
 
 const paintBg = (search: string, env?: Record<string, string>) => {
 	Object.defineProperty(window, 'location', {
