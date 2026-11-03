@@ -7,6 +7,7 @@ import Done from './components/Done';
 import Welcome from './components/Welcome';
 import FlowGate from './components/FlowGate';
 import useOidcMfa from './hooks/useOidcMfa';
+import useClearPrePaintBg from './hooks/useClearPrePaintBg';
 import { env } from './env';
 import { logger } from './utils/logger';
 import {
@@ -94,6 +95,7 @@ const App = () => {
 	projectId = pathnameProjectId ?? envProjectId ?? '';
 
 	useOidcMfa();
+	useClearPrePaintBg();
 
 	const urlParams = useMemo(
 		() => new URLSearchParams(window.location.search),
