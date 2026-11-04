@@ -105,7 +105,8 @@
 		"collectCoverageFrom": [
 			"src/**/*.{js,jsx,ts,tsx}",
 			"!src/index.tsx",
-			"middleware.ts"
+			"middleware.ts",
+			"api/**/*.ts"
 		]
 	}
 }

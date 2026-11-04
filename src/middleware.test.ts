@@ -271,6 +271,40 @@ describe('middleware', () => {
 		});
 	});
 
+	describe('agent approval routes', () => {
+		const projectId = `P${'a'.repeat(27)}`;
+
+		beforeEach(() => {
+			process.env.MIDDLEWARE_DESCOPE_BASE_URL = 'https://api.descope.com';
+		});
+
+		it.each([`/approve/${projectId}`, `/approve/${projectId}/wait`])(
+			'passes %s through without fetching project config',
+			async (path) => {
+				await middleware(fakeRequest(`https://example.com${path}?client_id=x`));
+				expect(mockFetch).not.toHaveBeenCalled();
+				expectHeaders({ 'x-descope-middleware': 'agentApproval' });
+			}
+		);
+
+		it('passes through even when the base URL is not set', async () => {
+			delete process.env.MIDDLEWARE_DESCOPE_BASE_URL;
+			await middleware(fakeRequest(`https://example.com/approve/${projectId}`));
+			expectHeaders({ 'x-descope-middleware': 'agentApproval' });
+		});
+
+		it('does not skip a path that only contains /approve/', async () => {
+			mockFetch.mockResolvedValueOnce({
+				ok: true,
+				json: async () => ({})
+			});
+			await middleware(
+				fakeRequest(`https://example.com/login/approve/${projectId}`)
+			);
+			expect(mockFetch).toHaveBeenCalledTimes(1);
+		});
+	});
+
 	describe('matcher config', () => {
 		it('exports a matcher that excludes static file extensions', () => {
 			expect(config.matcher).toBeDefined();
