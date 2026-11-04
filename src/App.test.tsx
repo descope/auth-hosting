@@ -714,6 +714,24 @@ describe('App component', () => {
 			});
 		});
 
+		it('should clear the bg painted on <html> by index.html', async () => {
+			mockFetch.mockResolvedValueOnce({
+				ok: true,
+				status: 200
+			});
+
+			env.DESCOPE_BG = 'red';
+			document.documentElement.style.backgroundColor = 'red';
+			render(<App />);
+
+			expect(await screen.findByTestId('app')).toHaveStyle({
+				'background-color': 'red'
+			});
+			expect(document.documentElement).not.toHaveStyle({
+				'background-color': 'red'
+			});
+		});
+
 		it('should allow a color name', async () => {
 			mockFetch.mockResolvedValueOnce({
 				ok: true,

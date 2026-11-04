@@ -8,6 +8,22 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<meta name="theme-color" content="#000000" />
 		<script src="%PUBLIC_URL%/env.js"></script>
+		<script>
+			// Paint the bg color before the bundle loads, otherwise the page is white
+			// until React mounts. Mirrors normalizeBackgroundParam in App.tsx; image
+			// URLs and other invalid values are ignored by the CSSOM, React handles them.
+			(function () {
+				var bg =
+					new URLSearchParams(window.location.search).get('bg') ||
+					(window.env &&
+						(window.env.DESCOPE_BG || window.env.DESCOPE_BG_COLOR));
+				if (!bg) return;
+				bg = bg.trim();
+				if (/^([0-9A-Fa-f]{3,4}|[0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})$/.test(bg))
+					bg = '#' + bg;
+				document.documentElement.style.backgroundColor = bg;
+			})();
+		</script>
 	</head>
 	<body>
 		<noscript>You need to enable JavaScript to run this app.</noscript>

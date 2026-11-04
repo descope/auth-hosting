@@ -1,7 +1,9 @@
 import React from 'react';
 import logo from './assets/logo.svg';
+import useClearPrePaintBg from './hooks/useClearPrePaintBg';
 
 const Error: React.FC = () => {
+	useClearPrePaintBg();
 	let error = 'An error occurred';
 
 	const queryParam = new URLSearchParams(window.location.search);
