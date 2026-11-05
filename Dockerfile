@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1@sha256:93bfd3b68c109427185cd78b4779fc82b484b0b7618e36d0f104d4d801e66d25
+# syntax=docker/dockerfile:1@sha256:4edf897a3ffa55b89f906fc8cc78afdb3f1834cc9c7083565e611a8a7d5fe99e
 ARG NODE_VERSION=18
 ARG HTML_DIR=/usr/share/nginx/html
 ARG REACT_APP_DESCOPE_BASE_URL="https://api.descope.com"
