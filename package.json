@@ -23,7 +23,7 @@
 		"@babel/preset-react": "7.29.7",
 		"@testing-library/jest-dom": "6.9.1",
 		"@testing-library/react": "15.0.7",
-		"@testing-library/user-event": "14.6.7",
+		"@testing-library/user-event": "14.6.8",
 		"@types/jest": "30.0.0",
 		"@types/node": "22.20.5",
 		"@types/react": "19.3.0",
