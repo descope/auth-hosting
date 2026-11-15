@@ -24,7 +24,6 @@ http:// {
 		REACT_APP_DESCOPE_BASE_URL '{$REACT_APP_DESCOPE_BASE_URL:https://api.descope.com}'
 		REACT_APP_CONTENT_BASE_URL '{$REACT_APP_CONTENT_BASE_URL:https://api.descope.com/pages}'
 		REACT_APP_USE_ORIGIN_BASE_URL '{$REACT_APP_USE_ORIGIN_BASE_URL:false}'
-		REACT_APP_FAVICON_URL_TEMPLATE '{$REACT_APP_FAVICON_URL_TEMPLATE:https://api.descope.com/pages/\{projectId}}/v2-beta/\{ssoAppId}/assets/favicon.ico'
 		REACT_APP_DEFAULT_FAVICON_URL '{$REACT_APP_DEFAULT_FAVICON_URL:https://imgs.descope.com/auth-hosting/favicon.svg}'
 		REACT_APP_FLOW_WIDTH '{$REACT_APP_FLOW_WIDTH}'
 		REACT_APP_FLOW_HEIGHT '{$REACT_APP_FLOW_HEIGHT}'
@@ -33,6 +32,7 @@ http:// {
 		LOGGER '{$LOGGER:false}'
 	}
 
+	# REACT_APP_FAVICON_URL_TEMPLATE is read with `env`, not `vars`: vars resolves {projectId} and {ssoAppId} as Caddy placeholders and blanks them.
 	handle /login/env.js {
 		uri strip_prefix /login
 		templates
@@ -41,7 +41,7 @@ window.env = {
 	REACT_APP_DESCOPE_BASE_URL: {{ placeholder "http.vars.REACT_APP_DESCOPE_BASE_URL" }},
 	REACT_APP_CONTENT_BASE_URL: {{ placeholder "http.vars.REACT_APP_CONTENT_BASE_URL" }},
 	REACT_APP_USE_ORIGIN_BASE_URL: {{ placeholder "http.vars.REACT_APP_USE_ORIGIN_BASE_URL" }},
-	REACT_APP_FAVICON_URL_TEMPLATE: {{ placeholder "http.vars.REACT_APP_FAVICON_URL_TEMPLATE" }},
+	REACT_APP_FAVICON_URL_TEMPLATE: '{{ or (env "REACT_APP_FAVICON_URL_TEMPLATE") "https://api.descope.com/pages/{projectId}/v2-beta/{ssoAppId}/assets/favicon.ico" }}',
 	REACT_APP_DEFAULT_FAVICON_URL: {{ placeholder "http.vars.REACT_APP_DEFAULT_FAVICON_URL" }},
 	REACT_APP_FLOW_WIDTH: {{ placeholder "http.vars.REACT_APP_FLOW_WIDTH" }},
 	REACT_APP_FLOW_HEIGHT: {{ placeholder "http.vars.REACT_APP_FLOW_HEIGHT" }},
