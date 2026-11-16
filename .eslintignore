@@ -1,0 +1,5 @@
+# Build configuration, outside the tsconfig project the TypeScript parser is
+# pointed at. Linting these needs a second tsconfig, which is not worth it for
+# two files that webpack loads directly.
+config-overrides.js
+config/
