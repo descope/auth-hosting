@@ -19,9 +19,13 @@ afterAll(() => {
 
 const fakeRequest = (url: string): Request => ({ url }) as unknown as Request;
 
+// Every branch must send the CSP header with this exact value
 const expectHeaders = (expectedHeaders: Record<string, string>) => {
 	expect(mockedNext).toHaveBeenCalledWith({
-		headers: expectedHeaders
+		headers: {
+			...expectedHeaders,
+			'Content-Security-Policy': "script-src-attr 'none'"
+		}
 	});
 };
 
