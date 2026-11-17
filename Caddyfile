@@ -14,6 +14,8 @@ http:// {
 	encode gzip
 
 	handle /login* {
+		# Disallow inline event handler attributes (onclick="...")
+		header Content-Security-Policy "script-src-attr 'none'"
 		uri strip_prefix /login
 		root * {$WWW_ROOT:/www}
 		try_files {path} /index.html

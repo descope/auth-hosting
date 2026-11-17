@@ -3,6 +3,9 @@ import { projectRegex } from './src/shared/projectRegex';
 
 const FETCH_TIMEOUT_MS = 2000;
 
+// Disallow inline event handler attributes (onclick="...") on every page.
+const CSP_HEADER = { 'Content-Security-Policy': "script-src-attr 'none'" };
+
 const middleware = async (request: Request) => {
 	const url = new URL(request.url);
 
@@ -11,6 +14,7 @@ const middleware = async (request: Request) => {
 	if (!baseUrl) {
 		return next({
 			headers: {
+				...CSP_HEADER,
 				'x-descope-middleware': 'misconfigured',
 				'X-Frame-Options': 'SAMEORIGIN'
 			}
@@ -27,6 +31,7 @@ const middleware = async (request: Request) => {
 	if (!projectId) {
 		return next({
 			headers: {
+				...CSP_HEADER,
 				'x-descope-middleware': 'noProject',
 				'X-Frame-Options': 'SAMEORIGIN'
 			}
@@ -47,6 +52,7 @@ const middleware = async (request: Request) => {
 				// Project explicitly allows iframe embedding — omit X-Frame-Options
 				return next({
 					headers: {
+						...CSP_HEADER,
 						'x-descope-middleware': 'iframeEnabled'
 					}
 				});
@@ -54,6 +60,7 @@ const middleware = async (request: Request) => {
 			// allowAuthHostingIframeEmbedding is false or missing
 			return next({
 				headers: {
+					...CSP_HEADER,
 					'x-descope-middleware': 'iframeDisabled',
 					'X-Frame-Options': 'SAMEORIGIN'
 				}
@@ -62,6 +69,7 @@ const middleware = async (request: Request) => {
 		// Response not ok, treat as failed
 		return next({
 			headers: {
+				...CSP_HEADER,
 				'x-descope-middleware': 'failed',
 				'X-Frame-Options': 'SAMEORIGIN'
 			}
@@ -70,6 +78,7 @@ const middleware = async (request: Request) => {
 		// On error or timeout, return failed status
 		return next({
 			headers: {
+				...CSP_HEADER,
 				'x-descope-middleware': 'failed',
 				'X-Frame-Options': 'SAMEORIGIN'
 			}
