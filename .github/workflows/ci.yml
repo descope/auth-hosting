@@ -136,7 +136,7 @@ jobs:
         uses: aws-actions/amazon-ecr-login@03f1aad4c6c7ffd436567f42f9384779290529bd # v2.1.7
       - name: Extract metadata for the Docker image
         id: meta
-        uses: descope/.github/.github/actions/docker/metadata@158cdd0a0e8d95325e90c955ae01eae4ccd40bbd # main
+        uses: descope/.github/.github/actions/docker/metadata@e8da6e7314d679bc360a8ae71d6217d9b8f45c2d # main
         with:
           images: |
             ghcr.io/descope/${{ env.IMAGE_NAME }}
