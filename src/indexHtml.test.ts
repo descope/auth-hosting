@@ -1,16 +1,21 @@
 import fs from 'fs';
 import path from 'path';
 
-// The inline <script> in public/index.html paints the bg color before the
-// bundle loads, see normalizeBackgroundParam in App.tsx for the React side.
+// The inline <script> in public/index.html that paints the bg color before
+// the bundle loads, see normalizeBackgroundParam in App.tsx for the React side.
+// Another inline script (the <base> anchor) runs first, so pick by content.
 const html = fs.readFileSync(
 	path.join(__dirname, '..', 'public', 'index.html'),
 	'utf8'
 );
 const inlineScript =
-	new DOMParser()
-		.parseFromString(html, 'text/html')
-		.querySelector('script:not([src])')?.textContent ?? '';
+	Array.from(
+		new DOMParser()
+			.parseFromString(html, 'text/html')
+			.querySelectorAll('script:not([src])')
+	)
+		.map((script) => script.textContent ?? '')
+		.find((text) => text.includes('backgroundColor')) ?? '';
 
 const paintBg = (search: string, env?: Record<string, string>) => {
 	Object.defineProperty(window, 'location', {
